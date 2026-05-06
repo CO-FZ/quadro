@@ -18,23 +18,24 @@ Este documento define as diretrizes visuais e de componentes para o projeto Quad
     *   Body: 16px - Regular
     *   Small/Caption: 14px / 12px - Regular/Medium
 
-## 3. Paleta de Cores (Sugestão Inicial)
+## 3. Paleta de Cores (Baseada na Logo CO-FZ)
 
-Como o sistema é para a Comissão de Obras de Fortaleza, a paleta pode refletir confiança, engenharia e clareza.
+A logo da Comissão de Obras de Fortaleza (CO-FZ) carrega fortes elementos da Força Aérea e de engenharia. A paleta foi extraída diretamente de suas cores principais para garantir alinhamento institucional, mantendo um visual moderno e limpo.
 
 ### Tema Claro (Padrão)
-*   **Background:** `#F8FAFC` (Slate 50) - Um tom de cinza muito claro, menos agressivo que o branco puro.
+*   **Background:** `#F8FAFC` (Slate 50) - Um tom de cinza muito claro, limpo e profissional.
 *   **Surface (Cards/Modais):** `#FFFFFF` (Branco) - Para destacar o Kanban e as tarefas.
-*   **Primary (Marca/Ações):** `#2563EB` (Blue 600) - Cor que transmite seriedade e profissionalismo.
-    *   *Opção Alternativa (Engenharia):* `#EA580C` (Orange 600) para ações de destaque.
+*   **Primary (Marca/Ações):** `#1E40AF` (Blue 800) - Inspirado no **azul escuro do mar** na logo. Transmite seriedade, força e alinhamento com a engenharia/FAB.
+*   **Accent/Destaque:** `#FACC15` (Yellow 400) ou `#F59E0B` (Amber 500) - Inspirado no **amarelo da borda do brasão e do sol**. Excelente para chamar atenção a botões de ação secundários ou alertas.
 *   **Text (Secundário/Primário):** `#0F172A` (Slate 900) e `#475569` (Slate 600).
 *   **Borders/Dividers:** `#E2E8F0` (Slate 200).
+*   **Header/Top bar:** Pode utilizar o **azul claro do céu** da logo (`#38BDF8` - Sky 400) em detalhes sutis ou gradientes suaves.
 
 ### Status das Tarefas (Feedback Visual)
 *   **To Do (A Fazer):** `#64748B` (Slate 500) - Neutro.
-*   **In Progress (Em Andamento):** `#3B82F6` (Blue 500) ou `#F59E0B` (Amber 500) - Ativo.
-*   **Done (Concluída):** `#10B981` (Emerald 500) - Positivo/Concluído.
-*   **Blocked/Issue (Bloqueado):** `#EF4444` (Red 500) - Alerta.
+*   **In Progress (Fazendo):** `#F59E0B` (Amber 500) - Usando o **Laranja/Amarelo do sol e forte** da logo.
+*   **Done (Concluída):** `#10B981` (Emerald 500) - Verde, conectando com a **vegetação** na logo.
+*   **Blocked/Issue (Impedimento):** `#EF4444` (Red 500) - Alerta padrão.
 
 ## 4. Estilo de Componentes (Shadcn UI + Tailwind v4)
 
