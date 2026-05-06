@@ -1,0 +1,2 @@
+-- Local seed data can be added here.
+-- The initial whitelist entry lives in the user management migration.
