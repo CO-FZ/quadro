@@ -35,15 +35,14 @@ const NAV_ITEMS = [
 export default function AppShell({ profile, children }: AppShellProps) {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
-  const supabase = createClient()
 
   async function handleSignOut() {
+    const supabase = createClient()
     await supabase.auth.signOut()
     window.location.href = '/login'
   }
 
   const isAdmin = profile?.role === 'admin'
-  const isCoordenador = profile?.role === 'coordenador'
 
   const navItems = [
     ...NAV_ITEMS,

@@ -39,7 +39,6 @@ export default async function KanbanPage() {
       tasks={(tasks ?? []) as TaskWithAssignees[]}
       profiles={profiles ?? []}
       currentUserRole={currentProfile?.role ?? 'efetivo'}
-      currentUserId={currentProfile?.id ?? ''}
     />
   )
 }

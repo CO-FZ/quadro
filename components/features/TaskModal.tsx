@@ -5,7 +5,6 @@ import type { Profile, TaskSector } from '@/lib/supabase/types'
 
 interface TaskModalProps {
   profiles: Pick<Profile, 'id' | 'email' | 'avatar_url' | 'role'>[]
-  currentUserId: string
   onClose: () => void
   onSave: (data: {
     title: string
@@ -18,7 +17,7 @@ interface TaskModalProps {
   }) => Promise<void>
 }
 
-export default function TaskModal({ profiles, currentUserId, onClose, onSave }: TaskModalProps) {
+export default function TaskModal({ profiles, onClose, onSave }: TaskModalProps) {
   const [isPending, startTransition] = useTransition()
   const [form, setForm] = useState({
     title: '',

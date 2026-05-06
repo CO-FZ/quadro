@@ -8,7 +8,6 @@ interface TaskDetailModalProps {
   task: TaskWithAssignees
   profiles: Pick<Profile, 'id' | 'email' | 'avatar_url' | 'role'>[]
   canManage: boolean
-  currentUserId: string
   onClose: () => void
   onRefresh: () => void
 }
@@ -27,7 +26,7 @@ const DRIVE_ICON = (
 import { KANBAN_COLUMNS } from '@/lib/supabase/types'
 import type { TaskStatus } from '@/lib/supabase/types'
 
-export default function TaskDetailModal({ task, profiles, canManage, currentUserId, onClose, onRefresh }: TaskDetailModalProps) {
+export default function TaskDetailModal({ task, profiles, canManage, onClose, onRefresh }: TaskDetailModalProps) {
   const [isPending, startTransition] = useTransition()
   const currentAssigneeIds = task.task_assignees.map((a) => a.user_id)
   const [assigneeIds, setAssigneeIds] = useState<string[]>(currentAssigneeIds)

@@ -12,12 +12,11 @@ interface KanbanBoardProps {
   tasks: TaskWithAssignees[]
   profiles: Pick<Profile, 'id' | 'email' | 'avatar_url' | 'role'>[]
   currentUserRole: string
-  currentUserId: string
 }
 
-export default function KanbanBoard({ tasks, profiles, currentUserRole, currentUserId }: KanbanBoardProps) {
+export default function KanbanBoard({ tasks, profiles, currentUserRole }: KanbanBoardProps) {
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const [, startTransition] = useTransition()
   const [showModal, setShowModal] = useState(false)
   const [dragOverColumn, setDragOverColumn] = useState<TaskStatus | null>(null)
   const [draggingId, setDraggingId] = useState<string | null>(null)
@@ -133,7 +132,6 @@ export default function KanbanBoard({ tasks, profiles, currentUserRole, currentU
                     onDragEnd={handleDragEnd}
                     profiles={profiles}
                     canManage={canManage}
-                    currentUserId={currentUserId}
                     onRefresh={() => router.refresh()}
                   />
                 ))}
@@ -154,7 +152,6 @@ export default function KanbanBoard({ tasks, profiles, currentUserRole, currentU
       {showModal && (
         <TaskModal
           profiles={profiles}
-          currentUserId={currentUserId}
           onClose={() => setShowModal(false)}
           onSave={async (data) => {
             await createTask(data)

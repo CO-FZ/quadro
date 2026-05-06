@@ -10,7 +10,6 @@ interface TaskCardProps {
   onDragEnd: () => void
   profiles: Pick<Profile, 'id' | 'email' | 'avatar_url' | 'role'>[]
   canManage: boolean
-  currentUserId: string
   onRefresh: () => void
 }
 
@@ -62,7 +61,7 @@ function UserAvatars({ assignees }: { assignees: TaskWithAssignees['task_assigne
   )
 }
 
-export default function TaskCard({ task, onDragStart, onDragEnd, profiles, canManage, currentUserId, onRefresh }: TaskCardProps) {
+export default function TaskCard({ task, onDragStart, onDragEnd, profiles, canManage, onRefresh }: TaskCardProps) {
   const [showDetail, setShowDetail] = useState(false)
   const overdue = isOverdue(task)
 
@@ -130,7 +129,6 @@ export default function TaskCard({ task, onDragStart, onDragEnd, profiles, canMa
           task={task}
           profiles={profiles}
           canManage={canManage}
-          currentUserId={currentUserId}
           onClose={() => setShowDetail(false)}
           onRefresh={() => { setShowDetail(false); onRefresh() }}
         />
