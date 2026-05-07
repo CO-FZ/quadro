@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 import type { AppRole } from '@/lib/supabase/types'
 
 type ActionResult =
-  | { ok: true }
+  | { ok: true; message?: string }
   | { ok: false; code: string; message: string }
 
 function revalidateAdmin() {
@@ -90,7 +90,7 @@ export async function getWhitelist() {
 // ─── Adicionar à whitelist ───────────────────────────────────────────────────
 
 export async function addToWhitelist(
-  identifier: string,
+  identifiersText: string,
   defaultRole: AppRole = 'efetivo',
 ): Promise<ActionResult> {
   try {
@@ -98,19 +98,93 @@ export async function addToWhitelist(
     if (deny) return deny
 
     const supabase = await createClient()
-    const normalized = identifier.trim().toLowerCase()
+    
+    const identifiers = identifiersText
+      .split(/[\n,;]+/)
+      .map((id) => id.trim().toLowerCase())
+      .filter((id) => id.length > 0)
 
-    if (!normalized) {
-      return { ok: false, code: 'INVALID', message: 'Identificador não pode ser vazio.' }
+    if (identifiers.length === 0) {
+      return { ok: false, code: 'INVALID', message: 'Nenhum identificador válido fornecido.' }
     }
 
-    const { error } = await supabase
-      .from('whitelist')
-      .insert({ identifier: normalized, default_role: defaultRole })
+    let added = 0
+    let failed = 0
 
-    if (error?.code === '23505') {
-      return { ok: false, code: 'DUPLICATE', message: 'Identificador já está na whitelist.' }
+    for (const identifier of identifiers) {
+      const { error } = await supabase
+        .from('whitelist')
+        .insert({ identifier, default_role: defaultRole })
+      
+      if (error) failed++
+      else added++
     }
+
+    revalidateAdmin()
+
+    if (added === 0 && failed > 0) {
+      return { ok: false, code: 'DUPLICATE', message: 'Nenhum adicionado. Todos os identificadores já estão na whitelist.' }
+    }
+
+    const message = identifiers.length === 1 && added === 1 
+      ? undefined 
+      : `${added} adicionado(s) com sucesso${failed > 0 ? `, ${failed} ignorado(s) (já existiam)` : ''}.`
+
+    return { ok: true, message }
+  } catch (e) {
+    return { ok: false, code: 'UNEXPECTED', message: String(e) }
+  }
+}
+
+// ─── Arquivar / Restaurar Usuário (Soft Delete) ──────────────────────────────
+
+export async function archiveUser(userId: string): Promise<ActionResult> {
+  try {
+    const deny = await requireAdmin()
+    if (deny) return deny
+
+    const supabase = await createClient()
+
+    // Last-admin guard
+    const { data: target } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+
+    if (target?.role === 'admin') {
+      const { count } = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('role', 'admin')
+
+      if ((count ?? 0) <= 1) {
+        return {
+          ok: false,
+          code: 'LAST_ADMIN',
+          message: 'Não é possível arquivar o único admin do sistema.',
+        }
+      }
+    }
+
+    const { error } = await supabase.from('profiles').update({ archived_at: new Date().toISOString() }).eq('id', userId)
+    if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
+
+    revalidateAdmin()
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, code: 'UNEXPECTED', message: String(e) }
+  }
+}
+
+export async function restoreUser(userId: string): Promise<ActionResult> {
+  try {
+    const deny = await requireAdmin()
+    if (deny) return deny
+
+    const supabase = await createClient()
+
+    const { error } = await supabase.from('profiles').update({ archived_at: null }).eq('id', userId)
     if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
 
     revalidateAdmin()

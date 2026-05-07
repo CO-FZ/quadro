@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import type { Profile, AppRole, WhitelistEntry } from '@/lib/supabase/types'
-import { updateUserRole, addToWhitelist, removeFromWhitelist } from '@/lib/actions/admin'
+import { updateUserRole, addToWhitelist, removeFromWhitelist, archiveUser, restoreUser } from '@/lib/actions/admin'
 
 interface AdminViewProps {
   profiles: Profile[]
@@ -39,11 +39,18 @@ export default function AdminView({ profiles, whitelist: initialWhitelist }: Adm
   const [newIdentifier, setNewIdentifier] = useState('')
   const [newDefaultRole, setNewDefaultRole] = useState<AppRole>('efetivo')
   const [activeTab, setActiveTab] = useState<'usuarios' | 'whitelist'>('usuarios')
+  const [searchQuery, setSearchQuery] = useState('')
 
   const profileEmails = useMemo(
     () => new Set(profiles.map((p) => p.email.toLowerCase())),
     [profiles],
   )
+
+  const filteredProfiles = useMemo(() => {
+    if (!searchQuery.trim()) return profiles
+    const q = searchQuery.toLowerCase()
+    return profiles.filter(p => p.email.toLowerCase().includes(q) || (p.full_name && p.full_name.toLowerCase().includes(q)))
+  }, [profiles, searchQuery])
 
   function withFeedback(fn: () => Promise<{ ok: boolean; code?: string; message?: string }>, successText: string) {
     setErrorMsg(null)
@@ -62,12 +69,24 @@ export default function AdminView({ profiles, whitelist: initialWhitelist }: Adm
   function handleAddWhitelist(e: React.FormEvent) {
     e.preventDefault()
     if (!newIdentifier.trim()) return
-    withFeedback(
-      () => addToWhitelist(newIdentifier, newDefaultRole),
-      `"${newIdentifier.trim()}" adicionado como ${ROLE_LABELS[newDefaultRole]}.`,
-    )
+    setErrorMsg(null)
+    setSuccessMsg(null)
+    startTransition(async () => {
+      const result = await addToWhitelist(newIdentifier, newDefaultRole)
+      if (!result.ok) setErrorMsg((result as { message?: string }).message ?? 'Erro inesperado.')
+      else setSuccessMsg((result as { message?: string }).message ?? `"${newIdentifier.trim()}" adicionado como ${ROLE_LABELS[newDefaultRole]}.`)
+    })
     setNewIdentifier('')
     setNewDefaultRole('efetivo')
+  }
+
+  function handleArchive(userId: string, email: string) {
+    if (!confirm(`Tem certeza que deseja arquivar o usuário ${email}?`)) return
+    withFeedback(() => archiveUser(userId), `Usuário ${email} arquivado.`)
+  }
+
+  function handleRestore(userId: string, email: string) {
+    withFeedback(() => restoreUser(userId), `Usuário ${email} restaurado.`)
   }
 
   function handleRemoveWhitelist(id: string, identifier: string) {
@@ -121,7 +140,17 @@ export default function AdminView({ profiles, whitelist: initialWhitelist }: Adm
 
       {/* Tab: Usuários */}
       {activeTab === 'usuarios' && (
-        <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Buscar por e-mail ou nome..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full sm:w-80 text-sm border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+          <div className="bg-card border border-border rounded-2xl overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
@@ -131,40 +160,67 @@ export default function AdminView({ profiles, whitelist: initialWhitelist }: Adm
               </tr>
             </thead>
             <tbody>
-              {profiles.map((p) => (
-                <tr key={p.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+              {filteredProfiles.map((p) => {
+                const isArchived = !!p.archived_at
+                return (
+                <tr key={p.id} className={`border-b border-border last:border-0 hover:bg-muted/30 transition-colors ${isArchived ? 'opacity-50' : ''}`}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {p.avatar_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.avatar_url} alt={p.email} className="h-8 w-8 rounded-full object-cover" />
+                        <img src={p.avatar_url} alt={p.email} className={`h-8 w-8 rounded-full object-cover ${isArchived ? 'grayscale' : ''}`} />
                       ) : (
                         <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
                           {p.email[0]?.toUpperCase()}
                         </div>
                       )}
-                      <span className="font-medium truncate max-w-[180px]">{p.email}</span>
+                      <div className="flex flex-col">
+                        <span className="font-medium truncate max-w-[180px] flex items-center gap-2">
+                          {p.full_name || p.email}
+                          {isArchived && <span className="text-[10px] px-2 py-0.5 rounded-full bg-destructive/10 text-destructive font-semibold">Arquivado</span>}
+                        </span>
+                        {p.full_name && <span className="text-xs text-muted-foreground">{p.email}</span>}
+                      </div>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
                     {new Date(p.created_at).toLocaleDateString('pt-BR')}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <select
-                      id={`role-select-${p.id}`}
-                      value={p.role}
-                      onChange={(e) => handleRoleChange(p.id, e.target.value as AppRole)}
-                      disabled={isSubmitting}
-                      className={`text-xs font-semibold px-3 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 ${ROLE_COLORS[p.role]}`}
-                    >
-                      {(Object.keys(ROLE_LABELS) as AppRole[]).map((r) => (
-                        <option key={r} value={r}>{ROLE_LABELS[r]}</option>
-                      ))}
-                    </select>
+                    <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-2">
+                      <select
+                        id={`role-select-${p.id}`}
+                        value={p.role}
+                        onChange={(e) => handleRoleChange(p.id, e.target.value as AppRole)}
+                        disabled={isSubmitting || isArchived}
+                        className={`text-xs font-semibold px-3 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 ${ROLE_COLORS[p.role]}`}
+                      >
+                        {(Object.keys(ROLE_LABELS) as AppRole[]).map((r) => (
+                          <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                        ))}
+                      </select>
+                      {isArchived ? (
+                        <button
+                          onClick={() => handleRestore(p.id, p.email)}
+                          disabled={isSubmitting}
+                          className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
+                        >
+                          Restaurar
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleArchive(p.id, p.email)}
+                          disabled={isSubmitting}
+                          className="text-xs font-medium text-destructive hover:underline disabled:opacity-50"
+                        >
+                          Arquivar
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
-              ))}
-              {profiles.length === 0 && (
+              )})}
+              {filteredProfiles.length === 0 && (
                 <tr>
                   <td colSpan={3} className="px-4 py-8 text-center text-muted-foreground text-sm">
                     Nenhum usuário cadastrado.
@@ -174,38 +230,41 @@ export default function AdminView({ profiles, whitelist: initialWhitelist }: Adm
             </tbody>
           </table>
         </div>
+      </div>
       )}
 
       {/* Tab: Whitelist */}
       {activeTab === 'whitelist' && (
         <div className="flex flex-col gap-4">
           {/* Formulário adicionar */}
-          <form onSubmit={handleAddWhitelist} className="flex flex-col sm:flex-row gap-2">
-            <input
+          <form onSubmit={handleAddWhitelist} className="flex flex-col gap-2">
+            <textarea
               id="input-whitelist"
-              type="text"
               value={newIdentifier}
               onChange={(e) => setNewIdentifier(e.target.value)}
-              placeholder="email@dominio.com ou @dominio.com"
-              className="flex-1 text-sm border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+              placeholder="email@dominio.com ou @dominio.com&#10;Suporta múltiplos valores separados por vírgula ou nova linha"
+              rows={3}
+              className="w-full text-sm border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y"
             />
-            <select
-              id="select-default-role"
-              value={newDefaultRole}
-              onChange={(e) => setNewDefaultRole(e.target.value as AppRole)}
-              className="text-sm border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
-            >
-              {(Object.keys(ROLE_LABELS) as AppRole[]).map((r) => (
-                <option key={r} value={r}>{ROLE_LABELS[r]}</option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              disabled={isSubmitting || !newIdentifier.trim()}
-              className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              Adicionar
-            </button>
+            <div className="flex justify-end gap-2">
+              <select
+                id="select-default-role"
+                value={newDefaultRole}
+                onChange={(e) => setNewDefaultRole(e.target.value as AppRole)}
+                className="text-sm border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                {(Object.keys(ROLE_LABELS) as AppRole[]).map((r) => (
+                  <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                disabled={isSubmitting || !newIdentifier.trim()}
+                className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                Adicionar
+              </button>
+            </div>
           </form>
 
           {/* Lista */}

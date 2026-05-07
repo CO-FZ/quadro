@@ -110,7 +110,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Quadro</h1>
+          <h1 className="text-xl font-bold text-foreground">Atividades</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {activeTasks.length} tarefa{activeTasks.length !== 1 ? 's' : ''} ativa{activeTasks.length !== 1 ? 's' : ''}
             {archivedTasks.length > 0 && ` · ${archivedTasks.length} arquivada${archivedTasks.length !== 1 ? 's' : ''}`}

@@ -10,6 +10,7 @@ export interface Profile {
   role: AppRole
   created_at: string
   updated_at: string
+  archived_at: string | null
 }
 
 export interface Task {
