@@ -73,7 +73,12 @@ pnpm lint               # passou ✅
 
 - **🟡 Validação visual mobile não executada.** Browser subagent não disponível neste runtime (Claude Code). Layout usa `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` no Kanban; em viewport < 640px renderiza 1 coluna por vez + **FAB flutuante** (bottom-left, `fixed bottom-6 left-6 sm:hidden`). Validar manualmente em dispositivo real ou DevTools (CA-06 fica em débito).
 - **🟢 Decisão "quem finaliza" confirmada:** `['admin','coordenador']` — humano confirmou em 2026-05-07.
-- **🔴 Migration NÃO aplicada em remoto.** Ao rodar `pnpm supabase db push`, divergência detectada: 4 migrations remotas desconhecidas (`20260507134655` a `20260507135135`) e 5 locais não aplicadas. Não foi feito repair nem pull para evitar destruir estado. **Aguardando decisão humana** entre (a) `db pull` e consolidar, (b) `repair --status reverted` + `db push`, (c) inspecionar dump primeiro.
+- **🟢 Migrations aplicadas em remoto via reset destrutivo (b3, autorizado pelo humano).** Sequência executada em 2026-05-07:
+  1. `supabase migration repair --status reverted` nas 4 remotas órfãs.
+  2. `supabase db push` falhou por schema já existente (`type "app_role" already exists`).
+  3. Humano autorizou `supabase db reset --linked --yes` — drop completo do schema remoto + truncate de `auth.*` + reaplicação das 5 migrations locais.
+  4. `supabase migration list` confirma local↔remoto idênticos.
+- **🔴 Dados de produção/dev perdidos no reset.** Profiles, tasks e qualquer tarefa criada antes do reset foram apagados. Whitelist re-semeada via migration. Usuários precisam re-logar para recriar `profiles`. Aceitável neste estágio (dev), mas registrar para não repetir em produção.
 - **🟡 `useOptimistic` sem rollback explícito do estado de erro.** Em erro, faço `router.refresh()` que recarrega o estado real do servidor — funciona mas há um leve flash. Aceitável para v1; refinamento futuro pode usar revert local sincronizado.
 - **🟡 Migration de RLS não testada em ambiente remoto.** Aplicada apenas via `pnpm supabase db push` localmente. Smoke test anti-spoofing é parte do plano de validação humana.
 - **🟢 `requireRole` não logar tentativas FORBIDDEN.** Risco anotado em ADR 0003 §"Riscos conhecidos a fechar" — débito de Sprint 04+.
@@ -84,7 +89,7 @@ pnpm lint               # passou ✅
 - [x] `pnpm lint` → sem erros.
 - [ ] Smoke test manual com 3 personas (admin, coord, efetivo) — **pendente humano**.
 - [ ] Validação visual mobile com screenshots — **pendente** (browser subagent indisponível).
-- [ ] Migration aplicada em ambiente remoto — **bloqueado** (divergência local↔remoto). Veja "Riscos conhecidos".
+- [x] Migration aplicada em ambiente remoto via `db reset --linked --yes` (autorizado pelo humano).
 
 ## Harness debt produzida nesta sprint
 
