@@ -6,6 +6,13 @@ import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/supabase/types'
 
+/** Retorna a inicial para o avatar fallback */
+function getInitial(profile: Profile | null): string {
+  if (profile?.full_name) return profile.full_name[0].toUpperCase()
+  if (profile?.email) return profile.email[0].toUpperCase()
+  return '?'
+}
+
 interface AppShellProps {
   profile: Profile | null
   children: React.ReactNode
@@ -105,12 +112,12 @@ export default function AppShell({ profile, children }: AppShellProps) {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={profile.avatar_url}
-                      alt={profile.email}
+                      alt={profile.full_name ?? profile.email}
                       className="h-8 w-8 rounded-full object-cover border-2 border-primary-foreground/30"
                     />
                   ) : (
                     <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground font-bold text-xs">
-                      {profile?.email?.[0]?.toUpperCase() ?? '?'}
+                      {getInitial(profile)}
                     </div>
                   )}
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-3 text-primary-foreground/60">
@@ -121,14 +128,30 @@ export default function AppShell({ profile, children }: AppShellProps) {
                 {menuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-56 bg-card border border-border rounded-xl shadow-xl py-2 z-50">
                     <div className="px-4 py-2 border-b border-border">
-                      <p className="text-xs font-medium text-foreground truncate">{profile?.email}</p>
+                      {profile?.full_name && (
+                        <p className="text-xs font-semibold text-foreground truncate">{profile.full_name}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
                       <p className="text-xs text-muted-foreground capitalize mt-0.5">{profile?.role}</p>
                     </div>
+                    <Link
+                      href="/app/profile"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors w-full"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4 text-muted-foreground">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                      </svg>
+                      Meu Perfil
+                    </Link>
                     <button
                       id="btn-signout"
                       onClick={handleSignOut}
-                      className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-muted transition-colors"
+                      className="w-full flex items-center gap-2 text-left px-4 py-2 text-sm text-destructive hover:bg-muted transition-colors"
                     >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H2.25" />
+                      </svg>
                       Sair
                     </button>
                   </div>

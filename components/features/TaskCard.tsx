@@ -8,7 +8,7 @@ interface TaskCardProps {
   task: TaskWithAssignees
   onDragStart: () => void
   onDragEnd: () => void
-  profiles: Pick<Profile, 'id' | 'email' | 'avatar_url' | 'role'>[]
+  profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'avatar_url' | 'role'>[]
   canManage: boolean
   onRefresh: () => void
 }
@@ -37,17 +37,17 @@ function UserAvatars({ assignees }: { assignees: TaskWithAssignees['task_assigne
   return (
     <div className="flex -space-x-2">
       {shown.map((a) => (
-        <div key={a.user_id} title={a.profiles?.email} className="relative">
+        <div key={a.user_id} title={a.profiles?.full_name ?? a.profiles?.email} className="relative">
           {a.profiles?.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={a.profiles.avatar_url}
-              alt={a.profiles.email}
+              alt={a.profiles.full_name ?? a.profiles.email}
               className="h-6 w-6 rounded-full border-2 border-card object-cover"
             />
           ) : (
             <div className="h-6 w-6 rounded-full border-2 border-card bg-primary flex items-center justify-center text-[9px] font-bold text-primary-foreground">
-              {a.profiles?.email?.[0]?.toUpperCase() ?? '?'}
+              {(a.profiles?.full_name ?? a.profiles?.email)?.[0]?.toUpperCase() ?? '?'}
             </div>
           )}
         </div>

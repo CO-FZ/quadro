@@ -1,33 +1,51 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import type { Profile, TaskSector } from '@/lib/supabase/types'
+import type { Profile, TaskSector, TaskWithAssignees } from '@/lib/supabase/types'
+
+interface TaskFormData {
+  title: string
+  description: string
+  start_date: string
+  end_date: string
+  sector: TaskSector
+  drive_url: string
+  assignee_ids: string[]
+}
 
 interface TaskModalProps {
   profiles: Pick<Profile, 'id' | 'email' | 'avatar_url' | 'role'>[]
+  /** Se fornecido, abre no modo edição com os dados pré-preenchidos */
+  initialData?: TaskWithAssignees
   onClose: () => void
-  onSave: (data: {
-    title: string
-    description: string
-    start_date: string
-    end_date: string
-    sector: TaskSector
-    drive_url: string
-    assignee_ids: string[]
-  }) => Promise<void>
+  onSave: (data: TaskFormData) => Promise<{ ok: boolean; message?: string } | void>
 }
 
-export default function TaskModal({ profiles, onClose, onSave }: TaskModalProps) {
+const DRIVE_ICON = (
+  <svg viewBox="0 0 87.3 78" className="h-4 w-4" aria-hidden="true">
+    <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+    <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
+    <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
+    <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+    <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+    <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+  </svg>
+)
+
+export default function TaskModal({ profiles, initialData, onClose, onSave }: TaskModalProps) {
+  const isEdit = !!initialData
   const [isPending, startTransition] = useTransition()
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    start_date: new Date().toISOString().split('T')[0],
-    end_date: '',
-    sector: 'DT' as TaskSector,
-    drive_url: '',
+  const [form, setForm] = useState<Omit<TaskFormData, 'assignee_ids'>>({
+    title: initialData?.title ?? '',
+    description: initialData?.description ?? '',
+    start_date: initialData?.start_date ?? new Date().toISOString().split('T')[0],
+    end_date: initialData?.end_date ?? '',
+    sector: initialData?.sector ?? 'DT',
+    drive_url: initialData?.drive_url ?? '',
   })
-  const [assigneeIds, setAssigneeIds] = useState<string[]>([])
+  const [assigneeIds, setAssigneeIds] = useState<string[]>(
+    initialData?.task_assignees.map((a) => a.user_id) ?? []
+  )
   const [error, setError] = useState<string | null>(null)
 
   function toggleAssignee(id: string) {
@@ -42,7 +60,10 @@ export default function TaskModal({ profiles, onClose, onSave }: TaskModalProps)
     if (!form.end_date) { setError('A data de entrega é obrigatória.'); return }
     setError(null)
     startTransition(async () => {
-      await onSave({ ...form, assignee_ids: assigneeIds })
+      const result = await onSave({ ...form, assignee_ids: assigneeIds })
+      if (result && !result.ok) {
+        setError(result.message ?? 'Erro ao salvar.')
+      }
     })
   }
 
@@ -51,7 +72,9 @@ export default function TaskModal({ profiles, onClose, onSave }: TaskModalProps)
       <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <h2 className="text-base font-bold text-foreground">Nova Tarefa</h2>
+          <h2 className="text-base font-bold text-foreground">
+            {isEdit ? 'Editar Tarefa' : 'Nova Tarefa'}
+          </h2>
           <button
             id="btn-close-modal"
             onClick={onClose}
@@ -159,14 +182,7 @@ export default function TaskModal({ profiles, onClose, onSave }: TaskModalProps)
             </label>
             <div className="relative">
               <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                <svg viewBox="0 0 87.3 78" className="h-4 w-4" aria-hidden="true">
-                  <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
-                  <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
-                  <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
-                  <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
-                  <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
-                  <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
-                </svg>
+                {DRIVE_ICON}
               </div>
               <input
                 id="task-drive"
@@ -225,7 +241,7 @@ export default function TaskModal({ profiles, onClose, onSave }: TaskModalProps)
               disabled={isPending}
               className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
             >
-              {isPending ? 'Salvando...' : 'Criar Tarefa'}
+              {isPending ? 'Salvando...' : isEdit ? 'Salvar Alterações' : 'Criar Tarefa'}
             </button>
           </div>
         </form>

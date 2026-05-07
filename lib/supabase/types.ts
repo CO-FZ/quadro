@@ -1,10 +1,11 @@
 export type AppRole = 'admin' | 'coordenador' | 'efetivo'
 export type TaskSector = 'DT' | 'DA'
-export type TaskStatus = 'backlog' | 'alocada' | 'em_desenvolvimento' | 'finalizada'
+export type TaskStatus = 'backlog' | 'alocada' | 'em_desenvolvimento' | 'finalizada' | 'arquivada'
 
 export interface Profile {
   id: string
   email: string
+  full_name: string | null
   avatar_url: string | null
   role: AppRole
   created_at: string
@@ -36,6 +37,7 @@ export interface TaskAssignee {
 export interface UserTaskStats {
   user_id: string
   email: string
+  full_name: string | null
   role: AppRole
   total_tasks: number
   finished_tasks: number
