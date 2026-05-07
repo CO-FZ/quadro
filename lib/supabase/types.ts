@@ -44,6 +44,14 @@ export interface UserTaskStats {
   in_progress_tasks: number
 }
 
+export interface WhitelistEntry {
+  id: string
+  identifier: string
+  default_role: AppRole
+  created_at: string
+  created_by: string | null
+}
+
 /** Tarefa enriquecida com assignees já carregados */
 export interface TaskWithAssignees extends Task {
   task_assignees: (TaskAssignee & { profiles: Profile })[]

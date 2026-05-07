@@ -1,6 +1,6 @@
 # Sprints — Summary
 
-**Última atualização:** 2026-05-07
+**Última atualização:** 2026-05-07 (Sprint 04 fechada)
 
 > Index acumulativo das sprints. Cada sprint mantém seu próprio plano em `docs/sprints/<n>/sprint-plan.md`. Resumos de fase ficam em `docs/memory/sprints/<n>/_summary.md`. Logs detalhados de execução em `docs/memory/execution/`.
 
@@ -26,6 +26,19 @@
 
 **Fechado:** schema `tasks`/`task_assignees` + RLS + view `user_task_stats`; UI Kanban, Dashboard, AppShell, modais; status `arquivada`; avatares com fallback (commit `f0d806e`); Toast tipado (commit `f0d806e`); sync `full_name`/`avatar_url` via trigger Google.
 **Aberto (carregado para Sprint 03):** role guards server-side em Server Actions de tasks (passo 0 com ADR 0003), helper único de "Atrasada", optimistic UI no drag-and-drop, validação visual mobile com browser subagent.
+
+## Sprint 04 — Whitelist com role + last-admin guard + pendentes
+
+**Status:** 🟡 entregue com ressalva — 2026-05-07. Smoke multi-persona pendente humano.
+**Plano:** [docs/sprints/04/sprint-plan.md](../../sprints/04/sprint-plan.md)
+**Story:** [docs/sprints/04/story-04-whitelist-roles.md](../../sprints/04/story-04-whitelist-roles.md)
+**ADR:** [0002 (rev) — Whitelist trigger](../../spec/adr/0002-whitelist-emails-trigger.md)
+**Resumo de fase:** [04/_summary.md](04/_summary.md)
+**Final Artifact:** [../execution/2026-05-07-sprint-04-final.md](../execution/2026-05-07-sprint-04-final.md)
+
+**Fechado:** coluna `default_role` em `whitelist`; trigger `handle_new_user` reescrito com lookup (email > domínio > fallback efetivo); form de adição com select de role; guard `LAST_ADMIN` em `updateUserRole`; badge "Pendente" para entries sem profile. Migration aplicada via `db push` (sem reset). 6/6 migrations sincronizadas.
+
+**Aberto:** smoke multi-persona; UI de aviso para domínio com role privilegiada; audit log de role ≠ efetivo; race condition do `LAST_ADMIN` aceita como débito.
 
 ## Sprint 03 — Hardening + ADR 0003 + criação universal
 

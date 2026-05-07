@@ -39,6 +39,31 @@ export async function updateUserRole(userId: string, role: AppRole): Promise<Act
     if (deny) return deny
 
     const supabase = await createClient()
+
+    // Last-admin guard: se está rebaixando um admin, garantir que não é o único.
+    if (role !== 'admin') {
+      const { data: target } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single()
+
+      if (target?.role === 'admin') {
+        const { count } = await supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+          .eq('role', 'admin')
+
+        if ((count ?? 0) <= 1) {
+          return {
+            ok: false,
+            code: 'LAST_ADMIN',
+            message: 'Não é possível rebaixar o único admin do sistema. Promova outro usuário a admin antes.',
+          }
+        }
+      }
+    }
+
     const { error } = await supabase.from('profiles').update({ role }).eq('id', userId)
     if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
 
@@ -64,7 +89,10 @@ export async function getWhitelist() {
 
 // ─── Adicionar à whitelist ───────────────────────────────────────────────────
 
-export async function addToWhitelist(identifier: string): Promise<ActionResult> {
+export async function addToWhitelist(
+  identifier: string,
+  defaultRole: AppRole = 'efetivo',
+): Promise<ActionResult> {
   try {
     const deny = await requireAdmin()
     if (deny) return deny
@@ -76,7 +104,9 @@ export async function addToWhitelist(identifier: string): Promise<ActionResult> 
       return { ok: false, code: 'INVALID', message: 'Identificador não pode ser vazio.' }
     }
 
-    const { error } = await supabase.from('whitelist').insert({ identifier: normalized })
+    const { error } = await supabase
+      .from('whitelist')
+      .insert({ identifier: normalized, default_role: defaultRole })
 
     if (error?.code === '23505') {
       return { ok: false, code: 'DUPLICATE', message: 'Identificador já está na whitelist.' }

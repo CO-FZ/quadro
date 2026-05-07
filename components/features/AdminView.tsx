@@ -1,14 +1,8 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import type { Profile, AppRole } from '@/lib/supabase/types'
+import { useMemo, useState, useTransition } from 'react'
+import type { Profile, AppRole, WhitelistEntry } from '@/lib/supabase/types'
 import { updateUserRole, addToWhitelist, removeFromWhitelist } from '@/lib/actions/admin'
-
-interface WhitelistEntry {
-  id: string
-  identifier: string
-  created_at: string
-}
 
 interface AdminViewProps {
   profiles: Profile[]
@@ -27,14 +21,31 @@ const ROLE_COLORS: Record<AppRole, string> = {
   efetivo: 'bg-muted text-muted-foreground',
 }
 
+function isEntryPending(entry: WhitelistEntry, profileEmails: Set<string>): boolean {
+  if (entry.identifier.startsWith('@')) {
+    const domain = entry.identifier
+    for (const email of profileEmails) {
+      if (email.endsWith(domain)) return false
+    }
+    return true
+  }
+  return !profileEmails.has(entry.identifier)
+}
+
 export default function AdminView({ profiles, whitelist: initialWhitelist }: AdminViewProps) {
-  const [isPending, startTransition] = useTransition()
+  const [isSubmitting, startTransition] = useTransition()
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const [newIdentifier, setNewIdentifier] = useState('')
+  const [newDefaultRole, setNewDefaultRole] = useState<AppRole>('efetivo')
   const [activeTab, setActiveTab] = useState<'usuarios' | 'whitelist'>('usuarios')
 
-  function withFeedback(fn: () => Promise<{ ok: boolean; message?: string }>, successText: string) {
+  const profileEmails = useMemo(
+    () => new Set(profiles.map((p) => p.email.toLowerCase())),
+    [profiles],
+  )
+
+  function withFeedback(fn: () => Promise<{ ok: boolean; code?: string; message?: string }>, successText: string) {
     setErrorMsg(null)
     setSuccessMsg(null)
     startTransition(async () => {
@@ -51,8 +62,12 @@ export default function AdminView({ profiles, whitelist: initialWhitelist }: Adm
   function handleAddWhitelist(e: React.FormEvent) {
     e.preventDefault()
     if (!newIdentifier.trim()) return
-    withFeedback(() => addToWhitelist(newIdentifier), `"${newIdentifier.trim()}" adicionado.`)
+    withFeedback(
+      () => addToWhitelist(newIdentifier, newDefaultRole),
+      `"${newIdentifier.trim()}" adicionado como ${ROLE_LABELS[newDefaultRole]}.`,
+    )
     setNewIdentifier('')
+    setNewDefaultRole('efetivo')
   }
 
   function handleRemoveWhitelist(id: string, identifier: string) {
@@ -139,7 +154,7 @@ export default function AdminView({ profiles, whitelist: initialWhitelist }: Adm
                       id={`role-select-${p.id}`}
                       value={p.role}
                       onChange={(e) => handleRoleChange(p.id, e.target.value as AppRole)}
-                      disabled={isPending}
+                      disabled={isSubmitting}
                       className={`text-xs font-semibold px-3 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 ${ROLE_COLORS[p.role]}`}
                     >
                       {(Object.keys(ROLE_LABELS) as AppRole[]).map((r) => (
@@ -165,7 +180,7 @@ export default function AdminView({ profiles, whitelist: initialWhitelist }: Adm
       {activeTab === 'whitelist' && (
         <div className="flex flex-col gap-4">
           {/* Formulário adicionar */}
-          <form onSubmit={handleAddWhitelist} className="flex gap-2">
+          <form onSubmit={handleAddWhitelist} className="flex flex-col sm:flex-row gap-2">
             <input
               id="input-whitelist"
               type="text"
@@ -174,9 +189,19 @@ export default function AdminView({ profiles, whitelist: initialWhitelist }: Adm
               placeholder="email@dominio.com ou @dominio.com"
               className="flex-1 text-sm border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
+            <select
+              id="select-default-role"
+              value={newDefaultRole}
+              onChange={(e) => setNewDefaultRole(e.target.value as AppRole)}
+              className="text-sm border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+            >
+              {(Object.keys(ROLE_LABELS) as AppRole[]).map((r) => (
+                <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+              ))}
+            </select>
             <button
               type="submit"
-              disabled={isPending || !newIdentifier.trim()}
+              disabled={isSubmitting || !newIdentifier.trim()}
               className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
               Adicionar
@@ -191,30 +216,41 @@ export default function AdminView({ profiles, whitelist: initialWhitelist }: Adm
               </p>
             ) : (
               <ul>
-                {initialWhitelist.map((entry) => (
-                  <li key={entry.id} className="flex items-center justify-between px-4 py-3 border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                    <div className="flex items-center gap-2">
-                      {entry.identifier.startsWith('@') ? (
-                        <span className="text-xs bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full font-medium">domínio</span>
-                      ) : (
-                        <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">e-mail</span>
-                      )}
-                      <span className="text-sm font-mono">{entry.identifier}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-muted-foreground hidden sm:block">
-                        {new Date(entry.created_at).toLocaleDateString('pt-BR')}
-                      </span>
-                      <button
-                        onClick={() => handleRemoveWhitelist(entry.id, entry.identifier)}
-                        disabled={isPending}
-                        className="text-xs text-destructive hover:text-destructive/80 transition-colors disabled:opacity-50"
-                      >
-                        Remover
-                      </button>
-                    </div>
-                  </li>
-                ))}
+                {initialWhitelist.map((entry) => {
+                  const pending = isEntryPending(entry, profileEmails)
+                  return (
+                    <li key={entry.id} className="flex items-center justify-between px-4 py-3 border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {entry.identifier.startsWith('@') ? (
+                          <span className="text-xs bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full font-medium">domínio</span>
+                        ) : (
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">e-mail</span>
+                        )}
+                        <span className="text-sm font-mono">{entry.identifier}</span>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${ROLE_COLORS[entry.default_role]}`}>
+                          {ROLE_LABELS[entry.default_role]}
+                        </span>
+                        {pending && (
+                          <span title="Ainda não logou" className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                            🕐 Pendente
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-muted-foreground hidden sm:block">
+                          {new Date(entry.created_at).toLocaleDateString('pt-BR')}
+                        </span>
+                        <button
+                          onClick={() => handleRemoveWhitelist(entry.id, entry.identifier)}
+                          disabled={isSubmitting}
+                          className="text-xs text-destructive hover:text-destructive/80 transition-colors disabled:opacity-50"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </div>
