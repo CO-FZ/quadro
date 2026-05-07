@@ -2,6 +2,7 @@
 
 import type { Profile, TaskWithAssignees, TaskStatus } from '@/lib/supabase/types'
 import { SECTOR_LABELS } from '@/lib/supabase/types'
+import { isOverdue } from '@/lib/utils/task-status'
 
 interface ProfileViewProps {
   profile: Profile | null
@@ -28,10 +29,6 @@ function getInitial(profile: Profile | null): string {
   if (profile?.full_name) return profile.full_name[0].toUpperCase()
   if (profile?.email) return profile.email[0].toUpperCase()
   return '?'
-}
-
-function isOverdue(task: TaskWithAssignees): boolean {
-  return task.status !== 'finalizada' && new Date(task.end_date) < new Date()
 }
 
 export default function ProfileView({ profile, tasks }: ProfileViewProps) {

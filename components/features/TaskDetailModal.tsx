@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import type { Profile, TaskWithAssignees } from '@/lib/supabase/types'
+import { isOverdue } from '@/lib/utils/task-status'
 import { updateTaskStatus, deleteTask, updateTaskAssignees, archiveTask, updateTask } from '@/lib/actions/tasks'
 import { KANBAN_COLUMNS } from '@/lib/supabase/types'
 import type { TaskStatus } from '@/lib/supabase/types'
@@ -70,7 +71,7 @@ export default function TaskDetailModal({ task, profiles, canManage, onClose, on
     withFeedback(() => deleteTask(task.id), 'Tarefa excluída.')
   }
 
-  const isOverdue = task.status !== 'finalizada' && new Date(task.end_date) < new Date()
+  const overdue = isOverdue(task)
 
   // Se modal de edição estiver aberto, mostra ele no lugar
   if (showEditModal) {
@@ -106,13 +107,13 @@ export default function TaskDetailModal({ task, profiles, canManage, onClose, on
                 {task.sector}
               </span>
               <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                isOverdue
+                overdue
                   ? 'bg-destructive/10 text-destructive'
                   : task.status !== 'finalizada'
                   ? 'bg-green-50 text-green-700'
                   : 'bg-muted text-muted-foreground'
               }`}>
-                {task.status === 'finalizada' ? '✓ Concluída' : isOverdue ? '⚠ Atrasada' : '● No prazo'}
+                {task.status === 'finalizada' ? '✓ Concluída' : overdue ? '⚠ Atrasada' : '● No prazo'}
               </span>
             </div>
             <h2 className="text-base font-bold text-foreground">{task.title}</h2>
@@ -160,11 +161,32 @@ export default function TaskDetailModal({ task, profiles, canManage, onClose, on
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Entrega</p>
-              <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : ''}`}>
+              <p className={`text-sm font-medium ${overdue ? 'text-destructive' : ''}`}>
                 {new Date(task.end_date + 'T00:00:00').toLocaleDateString('pt-BR')}
               </p>
             </div>
           </div>
+
+          {/* Histórico — criada por */}
+          {task.created_by && (() => {
+            const creator = profiles.find((p) => p.id === task.created_by)
+            const label = creator?.full_name ?? creator?.email ?? 'usuário removido'
+            return (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>Criada por</span>
+                {creator?.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={creator.avatar_url} alt={label} className="h-5 w-5 rounded-full object-cover" />
+                ) : (
+                  <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center text-[8px] font-bold text-primary-foreground">
+                    {label[0]?.toUpperCase()}
+                  </div>
+                )}
+                <span className="font-medium text-foreground">{label}</span>
+                <span>em {new Date(task.created_at).toLocaleDateString('pt-BR')}</span>
+              </div>
+            )
+          })()}
 
           {/* Google Drive */}
           {task.drive_url && (

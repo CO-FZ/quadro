@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { requireRole } from '@/lib/auth/require-role'
 import type { TaskSector, TaskStatus } from '@/lib/supabase/types'
 import { revalidatePath } from 'next/cache'
 
@@ -13,7 +14,7 @@ function revalidateKanban() {
   revalidatePath('/dashboard')
 }
 
-// ─── Criar tarefa ────────────────────────────────────────────────────────────
+// ─── Criar tarefa (qualquer authenticated — ADR 0003 §B) ─────────────────────
 
 export async function createTask(data: {
   title: string
@@ -60,7 +61,7 @@ export async function createTask(data: {
   }
 }
 
-// ─── Editar tarefa ───────────────────────────────────────────────────────────
+// ─── Editar tarefa (admin/coord — ADR 0003 §A) ───────────────────────────────
 
 export async function updateTask(
   taskId: string,
@@ -75,9 +76,10 @@ export async function updateTask(
   }
 ): Promise<ActionResult> {
   try {
+    const deny = await requireRole(['admin', 'coordenador'])
+    if (deny) return deny
+
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
 
     const { error } = await supabase
       .from('tasks')
@@ -93,7 +95,6 @@ export async function updateTask(
 
     if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
 
-    // Re-sincroniza assignees
     await supabase.from('task_assignees').delete().eq('task_id', taskId)
     if (data.assignee_ids.length > 0) {
       const { error: assignError } = await supabase.from('task_assignees').insert(
@@ -109,13 +110,18 @@ export async function updateTask(
   }
 }
 
-// ─── Mover status ────────────────────────────────────────────────────────────
+// ─── Mover status (RLS cobre admin/coord/alocado; finalizada exige role) ─────
 
 export async function updateTaskStatus(
   taskId: string,
   status: TaskStatus
 ): Promise<ActionResult> {
   try {
+    if (status === 'finalizada') {
+      const deny = await requireRole(['admin', 'coordenador'])
+      if (deny) return deny
+    }
+
     const supabase = await createClient()
     const { error } = await supabase
       .from('tasks')
@@ -130,13 +136,16 @@ export async function updateTaskStatus(
   }
 }
 
-// ─── Atualizar assignees ──────────────────────────────────────────────────────
+// ─── Atualizar assignees (admin/coord — ADR 0003 §A) ─────────────────────────
 
 export async function updateTaskAssignees(
   taskId: string,
   assigneeIds: string[]
 ): Promise<ActionResult> {
   try {
+    const deny = await requireRole(['admin', 'coordenador'])
+    if (deny) return deny
+
     const supabase = await createClient()
 
     await supabase.from('task_assignees').delete().eq('task_id', taskId)
@@ -147,7 +156,6 @@ export async function updateTaskAssignees(
       if (error) return { ok: false, code: 'ASSIGN_ERROR', message: error.message }
     }
 
-    // Se agora tem assignees e a tarefa estava no backlog, move para alocada
     if (assigneeIds.length > 0) {
       const { data: task } = await supabase
         .from('tasks')
@@ -167,10 +175,13 @@ export async function updateTaskAssignees(
   }
 }
 
-// ─── Arquivar tarefa ─────────────────────────────────────────────────────────
+// ─── Arquivar tarefa (admin/coord — ADR 0003 §A) ─────────────────────────────
 
 export async function archiveTask(taskId: string): Promise<ActionResult> {
   try {
+    const deny = await requireRole(['admin', 'coordenador'])
+    if (deny) return deny
+
     const supabase = await createClient()
     const { error } = await supabase
       .from('tasks')
@@ -185,10 +196,13 @@ export async function archiveTask(taskId: string): Promise<ActionResult> {
   }
 }
 
-// ─── Excluir tarefa ──────────────────────────────────────────────────────────
+// ─── Excluir tarefa (admin/coord — ADR 0003 §A) ──────────────────────────────
 
 export async function deleteTask(taskId: string): Promise<ActionResult> {
   try {
+    const deny = await requireRole(['admin', 'coordenador'])
+    if (deny) return deny
+
     const supabase = await createClient()
     const { error } = await supabase.from('tasks').delete().eq('id', taskId)
     if (error) return { ok: false, code: 'DB_ERROR', message: error.message }

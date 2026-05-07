@@ -27,21 +27,15 @@
 **Fechado:** schema `tasks`/`task_assignees` + RLS + view `user_task_stats`; UI Kanban, Dashboard, AppShell, modais; status `arquivada`; avatares com fallback (commit `f0d806e`); Toast tipado (commit `f0d806e`); sync `full_name`/`avatar_url` via trigger Google.
 **Aberto (carregado para Sprint 03):** role guards server-side em Server Actions de tasks (passo 0 com ADR 0003), helper único de "Atrasada", optimistic UI no drag-and-drop, validação visual mobile com browser subagent.
 
-## Sprint 03 — Hardening + ADR 0003 (em planejamento)
+## Sprint 03 — Hardening + ADR 0003 + criação universal
 
-**Status:** ⬜ planejamento — Plan Artifact pendente de aprovação humana (Gate 1)
-**Plano:** [docs/sprints/03/sprint-plan.md](../../sprints/03/sprint-plan.md) (a criar)
-**Story:** [docs/sprints/03/story-03-tasks-hardening.md](../../sprints/03/story-03-tasks-hardening.md) (a criar)
-**Execuções retroativas:** [../execution/2026-05-07-f0d806e-retroativo.md](../execution/2026-05-07-f0d806e-retroativo.md)
+**Status:** 🟡 entregue com ressalvas — 2026-05-07. Decisão "quem finaliza" e validação mobile aguardam confirmação humana.
+**Plano:** [docs/sprints/03/sprint-plan.md](../../sprints/03/sprint-plan.md)
+**Story:** [docs/sprints/03/story-03-tasks-hardening.md](../../sprints/03/story-03-tasks-hardening.md)
+**ADR:** [0003 — defesa em camadas + criação universal](../../spec/adr/0003-defesa-em-camadas-tasks.md)
+**Resumo de fase:** [03/_summary.md](03/_summary.md)
+**Final Artifact:** [../execution/2026-05-07-sprint-03-final.md](../execution/2026-05-07-sprint-03-final.md)
 
-**Escopo previsto:**
+**Fechado:** ADR 0003 aceito; migration relaxa INSERT de `tasks`; `requireRole` em ações destrutivas; gate condicional em `updateTaskStatus` para `finalizada`; helper `isOverdue` único; `useOptimistic` no Kanban com transição CSS suave; histórico "Criada por" no detalhe; favicon CO-FZ via `app/icon.png`. `tsc --noEmit` e `pnpm lint` passam.
 
-1. ADR 0003 — defesa em camadas (RLS + Server Action role guard).
-2. `requireRole` server-side em todas as Server Actions de tasks.
-3. Helper único `lib/utils/task-status.ts` (atrasada).
-4. `useOptimistic` no drag-and-drop do Kanban + rollback.
-5. Validação visual mobile com browser subagent + screenshots em `docs/memory/execution/`.
-
-**Já entregue retroativamente em `f0d806e` (escopo (a) + dívida 02):** UI Admin Whitelist/roles, UI Profile, Toast, archived, sync Google.
-
-**Próxima sessão começa com Plan Artifact (Gate 1) obrigatório.**
+**Aberto:** confirmar admin+coord vs apenas coord para conclusão; smoke manual com 3 personas; validação visual mobile (browser subagent indisponível); aplicar migration em ambiente remoto.

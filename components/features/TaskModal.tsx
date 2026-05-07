@@ -57,7 +57,9 @@ export default function TaskModal({ profiles, initialData, onClose, onSave }: Ta
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.title.trim()) { setError('O título é obrigatório.'); return }
+    if (!form.start_date) { setError('A data de início é obrigatória.'); return }
     if (!form.end_date) { setError('A data de entrega é obrigatória.'); return }
+    if (form.end_date < form.start_date) { setError('A data de entrega não pode ser anterior à data de início.'); return }
     setError(null)
     startTransition(async () => {
       const result = await onSave({ ...form, assignee_ids: assigneeIds })

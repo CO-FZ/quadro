@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useOptimistic, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Profile, TaskStatus, TaskWithAssignees } from '@/lib/supabase/types'
 import { KANBAN_COLUMNS } from '@/lib/supabase/types'
@@ -12,10 +12,13 @@ import { useToast } from '@/components/ui/ToastProvider'
 interface KanbanBoardProps {
   tasks: TaskWithAssignees[]
   profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'avatar_url' | 'role'>[]
+  currentUserId: string
   currentUserRole: string
 }
 
-export default function KanbanBoard({ tasks, profiles, currentUserRole }: KanbanBoardProps) {
+type StatusOverride = { taskId: string; status: TaskStatus }
+
+export default function KanbanBoard({ tasks, profiles, currentUserId, currentUserRole }: KanbanBoardProps) {
   const router = useRouter()
   const [, startTransition] = useTransition()
   const { toast } = useToast()
@@ -28,8 +31,14 @@ export default function KanbanBoard({ tasks, profiles, currentUserRole }: Kanban
 
   const canManage = currentUserRole === 'admin' || currentUserRole === 'coordenador'
 
-  const activeTasks = tasks.filter((t) => t.status !== 'arquivada')
-  const archivedTasks = tasks.filter((t) => t.status === 'arquivada')
+  const [optimisticTasks, applyOptimistic] = useOptimistic(
+    tasks,
+    (state: TaskWithAssignees[], override: StatusOverride) =>
+      state.map((t) => (t.id === override.taskId ? { ...t, status: override.status } : t))
+  )
+
+  const activeTasks = optimisticTasks.filter((t) => t.status !== 'arquivada')
+  const archivedTasks = optimisticTasks.filter((t) => t.status === 'arquivada')
 
   function applyFilters(list: TaskWithAssignees[]) {
     return list
@@ -57,19 +66,22 @@ export default function KanbanBoard({ tasks, profiles, currentUserRole }: Kanban
   function handleDrop(e: React.DragEvent, status: TaskStatus) {
     e.preventDefault()
     if (!draggingId) return
-    const task = tasks.find((t) => t.id === draggingId)
-    if (!task || task.status === status) {
-      setDraggingId(null)
-      setDragOverColumn(null)
-      return
-    }
-    startTransition(async () => {
-      const result = await updateTaskStatus(draggingId, status)
-      if (!result.ok) toast(result.message ?? 'Erro ao mover tarefa.', 'error')
-      else router.refresh()
-    })
+    const task = optimisticTasks.find((t) => t.id === draggingId)
+    const movingId = draggingId
     setDraggingId(null)
     setDragOverColumn(null)
+    if (!task || task.status === status) return
+
+    startTransition(async () => {
+      applyOptimistic({ taskId: movingId, status })
+      const result = await updateTaskStatus(movingId, status)
+      if (!result.ok) {
+        toast(result.message ?? 'Erro ao mover tarefa.', 'error')
+        router.refresh()
+      } else {
+        router.refresh()
+      }
+    })
   }
 
   function handleDragEnd() {
@@ -131,18 +143,16 @@ export default function KanbanBoard({ tasks, profiles, currentUserRole }: Kanban
             ))}
           </select>
 
-          {canManage && (
-            <button
-              id="btn-nova-tarefa"
-              onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl font-medium text-sm hover:bg-primary/90 transition-all duration-150 shadow-sm hover:shadow-md"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              Nova Tarefa
-            </button>
-          )}
+          <button
+            id="btn-nova-tarefa"
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl font-medium text-sm hover:bg-primary/90 transition-all duration-150 shadow-sm hover:shadow-md"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Nova Tarefa
+          </button>
         </div>
       </div>
 
@@ -182,6 +192,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserRole }: Kanban
                     onDragEnd={handleDragEnd}
                     profiles={profiles}
                     canManage={canManage}
+                    currentUserId={currentUserId}
                     onRefresh={() => router.refresh()}
                   />
                 ))}
@@ -236,6 +247,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserRole }: Kanban
                   onDragEnd={() => {}}
                   profiles={profiles}
                   canManage={canManage}
+                  currentUserId={currentUserId}
                   onRefresh={() => router.refresh()}
                 />
               ))}

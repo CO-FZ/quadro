@@ -29,16 +29,18 @@ export default async function KanbanPage() {
     .select('id, email, full_name, avatar_url, role')
     .order('email')
 
+  const { data: { user } } = await supabase.auth.getUser()
   const { data: currentProfile } = await supabase
     .from('profiles')
     .select('id, role')
-    .eq('id', (await supabase.auth.getUser()).data.user?.id ?? '')
+    .eq('id', user?.id ?? '')
     .single()
 
   return (
     <KanbanBoard
       tasks={(tasks ?? []) as TaskWithAssignees[]}
       profiles={profiles ?? []}
+      currentUserId={user?.id ?? ''}
       currentUserRole={currentProfile?.role ?? 'efetivo'}
     />
   )

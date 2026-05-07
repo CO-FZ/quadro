@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { Profile, TaskWithAssignees } from '@/lib/supabase/types'
+import { isOverdue } from '@/lib/utils/task-status'
 import TaskDetailModal from '@/components/features/TaskDetailModal'
 
 interface TaskCardProps {
@@ -10,6 +11,7 @@ interface TaskCardProps {
   onDragEnd: () => void
   profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'avatar_url' | 'role'>[]
   canManage: boolean
+  currentUserId: string
   onRefresh: () => void
 }
 
@@ -23,11 +25,6 @@ const DRIVE_ICON = (
     <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
   </svg>
 )
-
-function isOverdue(task: TaskWithAssignees): boolean {
-  if (task.status === 'finalizada') return false
-  return new Date(task.end_date) < new Date()
-}
 
 function UserAvatars({ assignees }: { assignees: TaskWithAssignees['task_assignees'] }) {
   if (!assignees || assignees.length === 0) return null
@@ -61,18 +58,20 @@ function UserAvatars({ assignees }: { assignees: TaskWithAssignees['task_assigne
   )
 }
 
-export default function TaskCard({ task, onDragStart, onDragEnd, profiles, canManage, onRefresh }: TaskCardProps) {
+export default function TaskCard({ task, onDragStart, onDragEnd, profiles, canManage, currentUserId, onRefresh }: TaskCardProps) {
   const [showDetail, setShowDetail] = useState(false)
   const overdue = isOverdue(task)
+  const isAssignee = task.task_assignees.some((a) => a.user_id === currentUserId)
+  const canDrag = canManage || isAssignee
 
   return (
     <>
       <div
-        draggable={canManage}
+        draggable={canDrag}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
         onClick={() => setShowDetail(true)}
-        className="group bg-background border border-border rounded-xl p-3 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all duration-150 select-none"
+        className={`group bg-background border border-border rounded-xl p-3 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all duration-200 ease-out select-none ${canDrag ? 'active:scale-[0.98]' : ''}`}
       >
         {/* Badges de topo */}
         <div className="flex items-center gap-1.5 mb-2">
