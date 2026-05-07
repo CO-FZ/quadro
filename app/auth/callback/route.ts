@@ -11,5 +11,5 @@ export async function GET(request: NextRequest) {
     await supabase.auth.exchangeCodeForSession(code)
   }
 
-  return NextResponse.redirect(new URL('/app/kanban', requestUrl.origin))
+  return NextResponse.redirect(new URL('/kanban', requestUrl.origin))
 }

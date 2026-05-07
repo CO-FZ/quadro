@@ -9,8 +9,8 @@ type ActionResult =
   | { ok: false; code: string; message: string }
 
 function revalidateKanban() {
-  revalidatePath('/app/kanban')
-  revalidatePath('/app/dashboard')
+  revalidatePath('/kanban')
+  revalidatePath('/dashboard')
 }
 
 // ─── Criar tarefa ────────────────────────────────────────────────────────────

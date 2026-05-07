@@ -6,7 +6,7 @@ export default async function HomePage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (user) {
-    redirect('/app/kanban')
+    redirect('/kanban')
   } else {
     redirect('/login')
   }

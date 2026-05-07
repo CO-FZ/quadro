@@ -9,7 +9,7 @@ type ActionResult =
   | { ok: false; code: string; message: string }
 
 function revalidateAdmin() {
-  revalidatePath('/app/admin')
+  revalidatePath('/admin')
 }
 
 // ─── Helper: checar se solicitante é admin ───────────────────────────────────

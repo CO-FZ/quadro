@@ -20,7 +20,7 @@ interface AppShellProps {
 
 const NAV_ITEMS = [
   {
-    href: '/app/kanban',
+    href: '/kanban',
     label: 'Kanban',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
@@ -29,7 +29,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: '/app/dashboard',
+    href: '/dashboard',
     label: 'Dashboard',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
@@ -54,7 +54,7 @@ export default function AppShell({ profile, children }: AppShellProps) {
   const navItems = [
     ...NAV_ITEMS,
     ...(isAdmin ? [{
-      href: '/app/admin',
+      href: '/admin',
       label: 'Usuários',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
@@ -135,7 +135,7 @@ export default function AppShell({ profile, children }: AppShellProps) {
                       <p className="text-xs text-muted-foreground capitalize mt-0.5">{profile?.role}</p>
                     </div>
                     <Link
-                      href="/app/profile"
+                      href="/profile"
                       onClick={() => setMenuOpen(false)}
                       className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors w-full"
                     >

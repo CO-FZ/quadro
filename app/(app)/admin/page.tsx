@@ -23,7 +23,7 @@ export default async function AdminPage() {
     .single()
 
   if (currentProfile?.role !== 'admin') {
-    redirect('/app/kanban')
+    redirect('/kanban')
   }
 
   // Busca todos os perfis para listagem
