@@ -44,7 +44,7 @@ export default function LoginPage() {
         <div className="text-center">
           <p className="text-foreground font-medium">Acesso restrito</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Entre com o e-mail institucional autorizado
+            Entre com o gmail cadastrado
           </p>
         </div>
 
@@ -76,7 +76,7 @@ export default function LoginPage() {
         </button>
 
         <p className="text-xs text-muted-foreground text-center">
-          Apenas e-mails autorizados têm acesso ao sistema.
+          Apenas e-mails cadastrados têm acesso ao sistema.
         </p>
       </div>
     </div>

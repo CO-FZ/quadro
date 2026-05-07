@@ -21,7 +21,7 @@ Sprint 03 entrega: criação universal de tarefas (qualquer authenticated cria, 
 | [`lib/auth/require-role.ts`](../../../lib/auth/require-role.ts) | criar | helper memoizado via `cache()` |
 | [`lib/utils/task-status.ts`](../../../lib/utils/task-status.ts) | criar | `isOverdue` único |
 | [`lib/actions/tasks.ts`](../../../lib/actions/tasks.ts) | atualizar | `createTask` universal; `updateTask`/`archiveTask`/`deleteTask`/`updateTaskAssignees` com `requireRole`; `updateTaskStatus` com gate condicional para `finalizada` |
-| [`components/features/KanbanBoard.tsx`](../../../components/features/KanbanBoard.tsx) | atualizar | FAB universal; `useOptimistic` + transition fluida; passa `currentUserId` |
+| [`components/features/KanbanBoard.tsx`](../../../components/features/KanbanBoard.tsx) | atualizar | FAB universal (inline `sm:flex` desktop + flutuante `sm:hidden` mobile bottom-left); `useOptimistic` + transition fluida; passa `currentUserId` |
 | [`components/features/TaskCard.tsx`](../../../components/features/TaskCard.tsx) | atualizar | usa helper `isOverdue`; `canDrag = canManage \|\| isAssignee`; transição CSS suave |
 | [`components/features/TaskDetailModal.tsx`](../../../components/features/TaskDetailModal.tsx) | atualizar | usa helper `isOverdue`; mostra "Criada por &lt;nome&gt; em &lt;data&gt;" |
 | [`components/features/ProfileView.tsx`](../../../components/features/ProfileView.tsx) | atualizar | usa helper `isOverdue` |
@@ -71,8 +71,9 @@ pnpm lint               # passou ✅
 
 ## Riscos conhecidos
 
-- **🟡 Validação visual mobile não executada.** Browser subagent não disponível neste runtime (Claude Code). Layout usa `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` no Kanban; em viewport < 640px deve renderizar 1 coluna por vez. Validar manualmente em dispositivo real ou DevTools (CA-06 fica em débito).
-- **🟡 Decisão "quem finaliza".** Implementado como `['admin','coordenador']`. Usuário pediu "somente coordenador" — interpretado como admin é superset. Confirmar antes de produção. Se for estrito, alterar [`lib/actions/tasks.ts`](../../../lib/actions/tasks.ts) → `requireRole(['coordenador'])`.
+- **🟡 Validação visual mobile não executada.** Browser subagent não disponível neste runtime (Claude Code). Layout usa `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` no Kanban; em viewport < 640px renderiza 1 coluna por vez + **FAB flutuante** (bottom-left, `fixed bottom-6 left-6 sm:hidden`). Validar manualmente em dispositivo real ou DevTools (CA-06 fica em débito).
+- **🟢 Decisão "quem finaliza" confirmada:** `['admin','coordenador']` — humano confirmou em 2026-05-07.
+- **🔴 Migration NÃO aplicada em remoto.** Ao rodar `pnpm supabase db push`, divergência detectada: 4 migrations remotas desconhecidas (`20260507134655` a `20260507135135`) e 5 locais não aplicadas. Não foi feito repair nem pull para evitar destruir estado. **Aguardando decisão humana** entre (a) `db pull` e consolidar, (b) `repair --status reverted` + `db push`, (c) inspecionar dump primeiro.
 - **🟡 `useOptimistic` sem rollback explícito do estado de erro.** Em erro, faço `router.refresh()` que recarrega o estado real do servidor — funciona mas há um leve flash. Aceitável para v1; refinamento futuro pode usar revert local sincronizado.
 - **🟡 Migration de RLS não testada em ambiente remoto.** Aplicada apenas via `pnpm supabase db push` localmente. Smoke test anti-spoofing é parte do plano de validação humana.
 - **🟢 `requireRole` não logar tentativas FORBIDDEN.** Risco anotado em ADR 0003 §"Riscos conhecidos a fechar" — débito de Sprint 04+.
@@ -83,7 +84,7 @@ pnpm lint               # passou ✅
 - [x] `pnpm lint` → sem erros.
 - [ ] Smoke test manual com 3 personas (admin, coord, efetivo) — **pendente humano**.
 - [ ] Validação visual mobile com screenshots — **pendente** (browser subagent indisponível).
-- [ ] Migration aplicada em ambiente remoto — **pendente humano** (`pnpm supabase db push`).
+- [ ] Migration aplicada em ambiente remoto — **bloqueado** (divergência local↔remoto). Veja "Riscos conhecidos".
 
 ## Harness debt produzida nesta sprint
 

@@ -75,7 +75,7 @@ export default function AppShell({ profile, children }: AppShellProps) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/CO-FZ.png" alt="CO-FZ" className="h-8 w-auto object-contain" />
               <span className="font-bold text-sm tracking-wide hidden sm:block">
-                Quadro de Atividades
+                Quadro
               </span>
             </div>
 

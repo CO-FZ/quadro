@@ -110,7 +110,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Quadro de Atividades</h1>
+          <h1 className="text-xl font-bold text-foreground">Quadro</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {activeTasks.length} tarefa{activeTasks.length !== 1 ? 's' : ''} ativa{activeTasks.length !== 1 ? 's' : ''}
             {archivedTasks.length > 0 && ` · ${archivedTasks.length} arquivada${archivedTasks.length !== 1 ? 's' : ''}`}
@@ -146,7 +146,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
           <button
             id="btn-nova-tarefa"
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl font-medium text-sm hover:bg-primary/90 transition-all duration-150 shadow-sm hover:shadow-md"
+            className="hidden sm:flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-xl font-medium text-sm hover:bg-primary/90 transition-all duration-150 shadow-sm hover:shadow-md"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-4">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -255,6 +255,18 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
           )}
         </div>
       )}
+
+      {/* FAB flutuante (mobile) */}
+      <button
+        id="btn-nova-tarefa-fab"
+        onClick={() => setShowModal(true)}
+        aria-label="Nova tarefa"
+        className="sm:hidden fixed bottom-6 left-6 z-40 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl active:scale-95 transition-all duration-150 flex items-center justify-center"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="size-6">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+      </button>
 
       {/* Modal de Criação */}
       {showModal && (
