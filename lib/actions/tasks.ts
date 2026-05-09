@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/auth/require-role'
+import { initialStatusFor, normalizeTaskInput } from '@/lib/actions/_validation'
 import type { TaskSector, TaskStatus } from '@/lib/supabase/types'
 import { revalidatePath } from 'next/cache'
 
@@ -30,17 +31,14 @@ export async function createTask(data: {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
 
+    const normalized = normalizeTaskInput(data)
+
     const { data: task, error } = await supabase
       .from('tasks')
       .insert({
-        title: data.title.trim(),
-        description: data.description.trim() || null,
-        start_date: data.start_date,
-        end_date: data.end_date,
-        sector: data.sector,
-        drive_url: data.drive_url.trim() || null,
+        ...normalized,
         created_by: user.id,
-        status: data.assignee_ids.length > 0 ? 'alocada' : 'backlog',
+        status: initialStatusFor(data.assignee_ids),
       })
       .select()
       .single()
@@ -83,14 +81,7 @@ export async function updateTask(
 
     const { error } = await supabase
       .from('tasks')
-      .update({
-        title: data.title.trim(),
-        description: data.description.trim() || null,
-        start_date: data.start_date,
-        end_date: data.end_date,
-        sector: data.sector,
-        drive_url: data.drive_url.trim() || null,
-      })
+      .update(normalizeTaskInput(data))
       .eq('id', taskId)
 
     if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
