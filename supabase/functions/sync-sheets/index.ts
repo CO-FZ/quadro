@@ -45,11 +45,11 @@ Deno.serve(async (req) => {
     const rowData = [
       record.id,
       record.title,
-      record.division || "",
+      record.sector || "",
       record.status,
-      record.priority || "",
+      record.description || "",
       record.created_at,
-      record.due_date || "",
+      record.end_date || "",
       record.created_by || "",
     ]
 
@@ -128,9 +128,25 @@ Deno.serve(async (req) => {
     })
   } catch (err) {
     console.error("Error syncing to Google Sheets:", err)
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : String(err) }), {
-      headers: { "Content-Type": "application/json" },
-      status: 500,
-    })
+    
+    // Diagnostic info for the user (safe as it only shows keys)
+    let diag = {}
+    try {
+      const credentialsJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON")
+      if (credentialsJson) {
+        const credentials = JSON.parse(credentialsJson)
+        diag = { credential_keys: Object.keys(credentials) }
+      }
+    } catch (e) {
+      diag = { parse_error: e.message }
+    }
+
+    return new Response(
+      JSON.stringify({ 
+        error: err instanceof Error ? err.message : String(err),
+        ...diag
+      }), 
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    )
   }
 })

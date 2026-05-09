@@ -4,7 +4,7 @@
 
 **Data de início:** 2026-05-07
 **Capacidade:** 1 dev humano + 1 agente Antigravity (Opus 4.7)
-**Status:** ⬜ aguardando Gate 1 (Plan Artifact)
+**Status:** 🟡 em andamento (Edge Function e Webhook implementados)
 
 ---
 
