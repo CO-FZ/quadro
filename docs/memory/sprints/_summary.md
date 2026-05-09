@@ -1,6 +1,6 @@
 # Sprints — Summary
 
-**Última atualização:** 2026-05-07 (Sprint 04 fechada)
+**Última atualização:** 2026-05-09 (Sprints 07-A e 07-B planejadas; auditoria de débitos transversais)
 
 > Index acumulativo das sprints. Cada sprint mantém seu próprio plano em `docs/sprints/<n>/sprint-plan.md`. Resumos de fase ficam em `docs/memory/sprints/<n>/_summary.md`. Logs detalhados de execução em `docs/memory/execution/`.
 
@@ -52,3 +52,61 @@
 **Fechado:** ADR 0003 aceito; migration relaxa INSERT de `tasks`; `requireRole` em ações destrutivas; gate condicional em `updateTaskStatus` para `finalizada`; helper `isOverdue` único; `useOptimistic` no Kanban com transição CSS suave; histórico "Criada por" no detalhe; favicon CO-FZ via `app/icon.png`. `tsc --noEmit` e `pnpm lint` passam.
 
 **Aberto:** confirmar admin+coord vs apenas coord para conclusão; smoke manual com 3 personas; validação visual mobile (browser subagent indisponível); aplicar migration em ambiente remoto.
+
+## Sprint 05 — Admin Enhancements (Soft-delete, Busca, Bulk Add)
+
+**Status:** ⬜ pendente fechamento retroativo (`_summary.md` ainda não escrito) — **Story 07B.4**.
+**Plano:** [docs/sprints/05/sprint-plan.md](../../sprints/05/sprint-plan.md)
+**Story:** [docs/sprints/05/story-05-admin-enhancements.md](../../sprints/05/story-05-admin-enhancements.md)
+
+**Implementação detectada no código:** migrations `20260507000003_profiles_archived_at.sql`, `20260507000004_fix_admin_rls.sql`; funções `archiveUser`/`restoreUser` em `lib/actions/admin.ts`; bulk parsing em `addToWhitelist`. Reconstrução formal vai para Story 07B.4.
+
+## Sprint 06 — Integração Google Sheets
+
+**Status:** 🟡 implementação detectada em prod, mas `_summary.md` e Final Artifact não escritos; ADR 0004 ainda em status `Proposto`. Fechamento formal vai para **Story 07B.4**.
+**Plano:** [docs/sprints/06/sprint-plan.md](../../sprints/06/sprint-plan.md)
+**Story:** [docs/sprints/06/story-06-google-sheets-sync.md](../../sprints/06/story-06-google-sheets-sync.md)
+**ADR:** [0004 — Google Sheets Sync](../../spec/adr/0004-google-sheets-sync.md) (`Proposto` → ser promovido a `Aceito` na Story 07B.4)
+
+**Implementação detectada:** migration `20260507000005_google_sheets_webhook.sql`; Edge Function `supabase/functions/sync-sheets/index.ts` com auth via service account.
+
+## Sprint 07-A — Suíte de testes em camadas
+
+**Status:** ⬜ planejada — aguardando Gate 1.
+**Plano:** [docs/sprints/07A/sprint-plan.md](../../sprints/07A/sprint-plan.md)
+**Stories:**
+- [07A.1 — Domain layer tests (Vitest unit)](../../sprints/07A/story-07A.1-domain-tests.md)
+- [07A.2 — Integration tests (Vitest + Supabase local)](../../sprints/07A/story-07A.2-integration-tests.md)
+- [07A.3 — Feature/E2E (Playwright + screenshot diff mobile)](../../sprints/07A/story-07A.3-feature-tests.md)
+- [07A.4 — pgTAP triggers e schema](../../sprints/07A/story-07A.4-pgtap-tests.md)
+**ADR:** [0005 — Estratégia de testes em camadas](../../spec/adr/0005-estrategia-de-testes.md) (`proposto` — promover a `aceito` no Gate 1)
+
+**Compromisso:** zerar débito de cobertura 0% acumulado das Sprints 02–06; pagar CA-06 da Sprint 03 (validação visual mobile via screenshot diff Playwright); estabelecer gates `pnpm typecheck && pnpm test:*` no CI.
+
+## Sprint 07-B — Débitos transversais
+
+**Status:** ⬜ planejada — bloqueada por Sprint 07-A.
+**Plano:** [docs/sprints/07B/sprint-plan.md](../../sprints/07B/sprint-plan.md)
+**Stories:**
+- [07B.1 — Logger estruturado (`lib/logger`)](../../sprints/07B/story-07B.1-logger.md)
+- [07B.2 — Mapeamento de erro na auth callback + UI domínio privilegiado](../../sprints/07B/story-07B.2-callback-mapping.md)
+- [07B.3 — Audit log de role privilegiada + smoke anti-spoofing](../../sprints/07B/story-07B.3-audit-log.md)
+- [07B.4 — Fechamento retroativo Sprints 05/06 + ADR 0004 → Aceito](../../sprints/07B/story-07B.4-retroactive-closure.md)
+
+**Compromisso:** fechar débitos não-teste herdados (logger, callback mapping, audit log, fechamento retroativo).
+
+---
+
+## Débitos abertos (após planejamento de 07-A/07-B)
+
+Itens que **não** entram nas Sprints 07-A/07-B e ficam como roadmap pós-v1:
+
+- 🟡 Race-condition do `LAST_ADMIN` (transação real) — aceito como débito documentado.
+- 🟡 Sincronização bi-direcional Google Sheets — fora de escopo do PRD v1.
+- 🟡 Migração total de mensagens hard-coded para `lib/i18n` — Sprint 07B.2 só migra as 5 críticas.
+- 🟡 Trace IDs / correlation IDs no logger.
+- 🟡 Idempotência/retry da Edge Function `sync-sheets`.
+- 🟡 Audit log para `updateUserRole` (mudança pós-cadastro) — Story 07B.3 só cobre criação automática.
+- 🟡 Visual diff em desktop (E2E hoje só mobile).
+- 🟢 Alertas/notificações para tarefas atrasadas — roadmap pós-v1 do PRD.
+- 🟢 Exportação de relatórios PDF — roadmap pós-v1 do PRD.
