@@ -8,7 +8,26 @@ export type RoleGuardError = {
   message: string
 }
 
-const getCallerRole = cache(async (): Promise<{ userId: string; role: AppRole } | null> => {
+export type Caller = { userId: string; role: AppRole } | null
+
+/**
+ * Função pura: dado um `caller` já resolvido (ou null), decide se a role bate.
+ * Extraída para teste unit (não toca Supabase nem cache).
+ */
+export function assertRoleAllowed(
+  caller: Caller,
+  allowed: AppRole[],
+): RoleGuardError | null {
+  if (!caller) {
+    return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
+  }
+  if (!allowed.includes(caller.role)) {
+    return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
+  }
+  return null
+}
+
+const getCallerRole = cache(async (): Promise<Caller> => {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
@@ -25,11 +44,5 @@ const getCallerRole = cache(async (): Promise<{ userId: string; role: AppRole } 
 
 export async function requireRole(allowed: AppRole[]): Promise<RoleGuardError | null> {
   const caller = await getCallerRole()
-  if (!caller) {
-    return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
-  }
-  if (!allowed.includes(caller.role)) {
-    return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
-  }
-  return null
+  return assertRoleAllowed(caller, allowed)
 }

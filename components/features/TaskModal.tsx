@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import type { Profile, TaskSector, TaskWithAssignees } from '@/lib/supabase/types'
+import { validateTaskDates } from '@/lib/utils/task-dates'
 
 interface TaskFormData {
   title: string
@@ -57,9 +58,8 @@ export default function TaskModal({ profiles, initialData, onClose, onSave }: Ta
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.title.trim()) { setError('O título é obrigatório.'); return }
-    if (!form.start_date) { setError('A data de início é obrigatória.'); return }
-    if (!form.end_date) { setError('A data de entrega é obrigatória.'); return }
-    if (form.end_date < form.start_date) { setError('A data de entrega não pode ser anterior à data de início.'); return }
+    const datesValidation = validateTaskDates(form.start_date, form.end_date)
+    if (!datesValidation.ok) { setError(datesValidation.message); return }
     setError(null)
     startTransition(async () => {
       const result = await onSave({ ...form, assignee_ids: assigneeIds })
