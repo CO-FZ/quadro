@@ -1,6 +1,6 @@
 # Sprints — Summary
 
-**Última atualização:** 2026-05-09 (Sprints 07-A e 07-B planejadas; auditoria de débitos transversais)
+**Última atualização:** 2026-05-09 (Sprints 05/06 fechadas retroativamente; ADR 0004 → Aceito; baseline tsc/lint VERMELHO documentado)
 
 > Index acumulativo das sprints. Cada sprint mantém seu próprio plano em `docs/sprints/<n>/sprint-plan.md`. Resumos de fase ficam em `docs/memory/sprints/<n>/_summary.md`. Logs detalhados de execução em `docs/memory/execution/`.
 
@@ -55,20 +55,37 @@
 
 ## Sprint 05 — Admin Enhancements (Soft-delete, Busca, Bulk Add)
 
-**Status:** ⬜ pendente fechamento retroativo (`_summary.md` ainda não escrito) — **Story 07B.4**.
+**Status:** 🟡 fechada retroativamente — 2026-05-09. 4/4 CAs verdes; regra §2 ("arquivados não aparecem como assignees") **não implementada** — vira ticket P0 da Sprint 07-B.
 **Plano:** [docs/sprints/05/sprint-plan.md](../../sprints/05/sprint-plan.md)
 **Story:** [docs/sprints/05/story-05-admin-enhancements.md](../../sprints/05/story-05-admin-enhancements.md)
+**Resumo de fase:** [05/_summary.md](05/_summary.md)
 
-**Implementação detectada no código:** migrations `20260507000003_profiles_archived_at.sql`, `20260507000004_fix_admin_rls.sql`; funções `archiveUser`/`restoreUser` em `lib/actions/admin.ts`; bulk parsing em `addToWhitelist`. Reconstrução formal vai para Story 07B.4.
+**Fechado:** soft-delete (`archived_at` em profiles + UI badge "Arquivado" + grayscale); `archiveUser`/`restoreUser`; last-admin guard estendido para `archiveUser`; busca client-side por email/full_name; bulk add whitelist com parsing `[\n,;]+`; `is_admin()` SECURITY DEFINER (resolve recursão de policies admin de [ADR 0001](../../spec/adr/0001-rbac-via-supabase-rls.md)).
+
+**Aberto:** filtro `archived_at IS NULL` em `app/(app)/kanban/page.tsx` (assignee selector mostra arquivados); ausência de ADR para `is_admin()` (deveria ser ADR 0006 ou revisão do 0001).
 
 ## Sprint 06 — Integração Google Sheets
 
-**Status:** 🟡 implementação detectada em prod, mas `_summary.md` e Final Artifact não escritos; ADR 0004 ainda em status `Proposto`. Fechamento formal vai para **Story 07B.4**.
+**Status:** 🟡 fechada retroativamente — 2026-05-09. Pipeline funcional ponta-a-ponta; ADR 0004 promovido a `Aceito`; débitos de hardening rastreados.
 **Plano:** [docs/sprints/06/sprint-plan.md](../../sprints/06/sprint-plan.md)
 **Story:** [docs/sprints/06/story-06-google-sheets-sync.md](../../sprints/06/story-06-google-sheets-sync.md)
-**ADR:** [0004 — Google Sheets Sync](../../spec/adr/0004-google-sheets-sync.md) (`Proposto` → ser promovido a `Aceito` na Story 07B.4)
+**ADR:** [0004 — Google Sheets Sync](../../spec/adr/0004-google-sheets-sync.md) (`Aceito` retroativo)
+**Resumo de fase:** [06/_summary.md](06/_summary.md)
 
-**Implementação detectada:** migration `20260507000005_google_sheets_webhook.sql`; Edge Function `supabase/functions/sync-sheets/index.ts` com auth via service account.
+**Fechado:** Edge Function `sync-sheets` (Deno + googleapis) cobrindo INSERT/UPDATE/DELETE; database webhook nativo via `pg_net.http_post` em `tasks`; auth via Service Account JSON em secrets; CA-01 e CA-02 verdes; CA-03 parcial (loga erro, sem retry).
+
+**Aberto:** URL e anon key JWT hardcoded em [migration 20260507000005](../../../supabase/migrations/20260507000005_google_sheets_webhook.sql) (vincula ambiente); ausência de retry; logger não estruturado; sem testes da Edge Function; diagnóstico expõe `credential_keys` no body do erro.
+
+---
+
+## ⚠️ Baseline VERMELHO (auditoria 2026-05-09)
+
+Antes de qualquer execução de Sprint 07, dois gates pré-existentes precisam ser destravados — **estão na DoD da Story 07A.1**:
+
+1. **`pnpm exec tsc --noEmit` falha** com 8 erros em `supabase/functions/sync-sheets/index.ts` — arquivo Deno coberto pelo tsconfig do Next desde commit `7c6aa45`. Causa raiz: `tsconfig.json` não exclui `supabase/functions/`.
+2. **`pnpm lint` falha** com `react-hooks/set-state-in-effect` em `components/ui/ThemeToggle.tsx:11` (commit `b1e3ce2`, dark mode entregue fora de sprint formal).
+
+Esses dois itens **bloqueiam toda a Sprint 07-A** porque o pre-commit hook proposto requer typecheck + lint verdes. Endereçar como passo 0 da Story 07A.1 (escopo: adicionar `"supabase/functions"` em `tsconfig.exclude` + corrigir o `useEffect` do ThemeToggle).
 
 ## Sprint 07-A — Suíte de testes em camadas
 

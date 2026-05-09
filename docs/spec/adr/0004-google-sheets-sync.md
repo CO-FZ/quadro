@@ -1,7 +1,9 @@
 # ADR 0004: Sincronização com Google Sheets via Webhooks e Edge Functions
 
 ## Status
-`Proposto`
+`Aceito (retroativo — promovido em 2026-05-09)`
+
+> **Nota retroativa.** Este ADR foi escrito em 2026-05-07 com status `Proposto` e implementado em prod no mesmo dia (commit `7c6aa45` + complemento `77c0f06` em 2026-05-09) sem ser promovido formalmente. Promovido para `Aceito` em 2026-05-09 como parte da Story 07B.4, após auditoria confirmar que migration `20260507000005_google_sheets_webhook.sql` e Edge Function `sync-sheets` estão em produção. Débitos descobertos na auditoria estão registrados em [docs/memory/sprints/06/_summary.md §3](../../memory/sprints/06/_summary.md): URL e anon key hardcoded na migration, ausência de retry, falta de testes da Edge Function. Esses débitos viram trabalho de Sprint 07-A/07-B; **não invalidam a decisão**, apenas refinam a implementação.
 
 ## Contexto
 O PRD (US-05) exige que os dados do Kanban sejam sincronizados automaticamente com uma planilha do Google Sheets, servindo como uma base espelho acessível para relatórios extras. Na Sprint 05, adiamos essa implementação pois ela exigia uma definição arquitetural (este ADR).
