@@ -3,13 +3,17 @@
 import * as React from 'react'
 import { useTheme } from 'next-themes'
 
+const subscribe = () => () => {}
+
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
+  // Resolve a hidratação sem disparar setState num useEffect:
+  // useSyncExternalStore retorna false no servidor e true no client.
+  const mounted = React.useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false,
+  )
 
   if (!mounted) {
     return (
