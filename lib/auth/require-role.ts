@@ -1,5 +1,6 @@
 import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 import type { AppRole } from '@/lib/supabase/types'
 
 export type RoleGuardError = {
@@ -44,5 +45,13 @@ const getCallerRole = cache(async (): Promise<Caller> => {
 
 export async function requireRole(allowed: AppRole[]): Promise<RoleGuardError | null> {
   const caller = await getCallerRole()
-  return assertRoleAllowed(caller, allowed)
+  const result = assertRoleAllowed(caller, allowed)
+  if (result?.code === 'FORBIDDEN' && caller) {
+    logger.warn('role_forbidden', {
+      userId: caller.userId,
+      role: caller.role,
+      allowed: allowed.join(','),
+    })
+  }
+  return result
 }

@@ -25,6 +25,7 @@ export default defineConfig({
         'lib/utils/**/*.ts',
         'lib/auth/**/*.ts',
         'lib/actions/_validation.ts',
+        'lib/logger/index.ts',
       ],
       exclude: [
         'lib/supabase/**',

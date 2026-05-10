@@ -2,7 +2,15 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { logger } from '@/lib/logger'
 import type { AppRole } from '@/lib/supabase/types'
+
+const PRIVILEGED_ROLES: AppRole[] = ['admin', 'coordenador']
+
+function identifierDomain(identifier: string): string | null {
+  const at = identifier.lastIndexOf('@')
+  return at === -1 ? null : identifier.slice(at + 1)
+}
 
 type ActionResult =
   | { ok: true; message?: string }
@@ -115,9 +123,19 @@ export async function addToWhitelist(
       const { error } = await supabase
         .from('whitelist')
         .insert({ identifier, default_role: defaultRole })
-      
-      if (error) failed++
-      else added++
+
+      if (error) {
+        failed++
+      } else {
+        added++
+        if (PRIVILEGED_ROLES.includes(defaultRole)) {
+          logger.info('whitelist_privileged_role', {
+            event: 'whitelist_privileged_role',
+            identifier_domain: identifierDomain(identifier),
+            default_role: defaultRole,
+          })
+        }
+      }
     }
 
     revalidateAdmin()
