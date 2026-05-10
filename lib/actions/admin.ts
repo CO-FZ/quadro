@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { logger } from '@/lib/logger'
-import type { AppRole } from '@/lib/supabase/types'
+import type { AppRole, PrivilegedRoleAuditEntry } from '@/lib/supabase/types'
 
 const PRIVILEGED_ROLES: AppRole[] = ['admin', 'coordenador']
 
@@ -207,6 +207,43 @@ export async function restoreUser(userId: string): Promise<ActionResult> {
 
     revalidateAdmin()
     return { ok: true }
+  } catch (e) {
+    return { ok: false, code: 'UNEXPECTED', message: String(e) }
+  }
+}
+
+// ─── Audit log de role privilegiada ──────────────────────────────────────────
+
+const AUDIT_DEFAULT_LIMIT = 50
+const AUDIT_MAX_LIMIT = 200
+
+type AuditResult =
+  | { ok: true; data: PrivilegedRoleAuditEntry[] }
+  | { ok: false; code: string; message: string }
+
+export async function getPrivilegedRoleAudit(
+  options: { limit?: number; offset?: number } = {},
+): Promise<AuditResult> {
+  try {
+    const deny = await requireAdmin()
+    if (deny) return deny
+
+    const limit = Math.min(
+      Math.max(options.limit ?? AUDIT_DEFAULT_LIMIT, 1),
+      AUDIT_MAX_LIMIT,
+    )
+    const offset = Math.max(options.offset ?? 0, 0)
+
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('privileged_role_audit')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
+
+    if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
+
+    return { ok: true, data: (data ?? []) as PrivilegedRoleAuditEntry[] }
   } catch (e) {
     return { ok: false, code: 'UNEXPECTED', message: String(e) }
   }

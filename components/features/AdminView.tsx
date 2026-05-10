@@ -1,7 +1,13 @@
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
-import type { Profile, AppRole, WhitelistEntry } from '@/lib/supabase/types'
+import type {
+  Profile,
+  AppRole,
+  WhitelistEntry,
+  PrivilegedRoleAuditEntry,
+  PrivilegedRoleAuditSource,
+} from '@/lib/supabase/types'
 import { updateUserRole, addToWhitelist, removeFromWhitelist, archiveUser, restoreUser } from '@/lib/actions/admin'
 import { isPrivilegedDomainEntry } from '@/lib/utils/admin-warnings'
 import { t } from '@/lib/i18n'
@@ -9,6 +15,17 @@ import { t } from '@/lib/i18n'
 interface AdminViewProps {
   profiles: Profile[]
   whitelist: WhitelistEntry[]
+  auditEntries?: PrivilegedRoleAuditEntry[]
+  auditError?: string | null
+  currentUserRole?: AppRole
+}
+
+type AdminTab = 'usuarios' | 'whitelist' | 'auditoria'
+
+const AUDIT_SOURCE_LABEL_KEYS: Record<PrivilegedRoleAuditSource, string> = {
+  whitelist_email: 'admin.audit.source_whitelist_email',
+  whitelist_domain: 'admin.audit.source_whitelist_domain',
+  manual: 'admin.audit.source_manual',
 }
 
 const ROLE_LABELS: Record<AppRole, string> = {
@@ -34,14 +51,26 @@ function isEntryPending(entry: WhitelistEntry, profileEmails: Set<string>): bool
   return !profileEmails.has(entry.identifier)
 }
 
-export default function AdminView({ profiles, whitelist: initialWhitelist }: AdminViewProps) {
+export default function AdminView({
+  profiles,
+  whitelist: initialWhitelist,
+  auditEntries = [],
+  auditError = null,
+  currentUserRole,
+}: AdminViewProps) {
   const [isSubmitting, startTransition] = useTransition()
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const [newIdentifier, setNewIdentifier] = useState('')
   const [newDefaultRole, setNewDefaultRole] = useState<AppRole>('efetivo')
-  const [activeTab, setActiveTab] = useState<'usuarios' | 'whitelist'>('usuarios')
+  const [activeTab, setActiveTab] = useState<AdminTab>('usuarios')
   const [searchQuery, setSearchQuery] = useState('')
+
+  const showAuditTab = currentUserRole === 'admin'
+  const whitelistById = useMemo(
+    () => new Map(initialWhitelist.map((entry) => [entry.id, entry])),
+    [initialWhitelist],
+  )
 
   const profileEmails = useMemo(
     () => new Set(profiles.map((p) => p.email.toLowerCase())),
@@ -133,7 +162,7 @@ export default function AdminView({ profiles, whitelist: initialWhitelist }: Adm
 
       {/* Tabs */}
       <div className="flex border-b border-border gap-1">
-        {(['usuarios', 'whitelist'] as const).map((tab) => (
+        {((['usuarios', 'whitelist', ...(showAuditTab ? ['auditoria'] as const : [])]) as AdminTab[]).map((tab) => (
           <button
             key={tab}
             id={`tab-${tab}`}
@@ -144,7 +173,16 @@ export default function AdminView({ profiles, whitelist: initialWhitelist }: Adm
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            {tab === 'usuarios' ? `Usuários (${profiles.length})` : `Whitelist (${initialWhitelist.length})`}
+            {tab === 'usuarios' && `Usuários (${profiles.length})`}
+            {tab === 'whitelist' && `Whitelist (${initialWhitelist.length})`}
+            {tab === 'auditoria' && (
+              <span className="inline-flex items-center gap-1.5">
+                {t('admin.audit.tab_label')} ({auditEntries.length})
+                <span className="text-[10px] font-semibold uppercase tracking-wide bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                  {t('admin.audit.badge_new')}
+                </span>
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -337,6 +375,93 @@ export default function AdminView({ profiles, whitelist: initialWhitelist }: Adm
           <p className="text-xs text-muted-foreground">
             <strong>Dica:</strong> Use <code className="bg-muted px-1 rounded">@dominio.gov.br</code> para liberar um domínio inteiro.
           </p>
+        </div>
+      )}
+
+      {/* Tab: Auditoria (admin-only) */}
+      {showAuditTab && activeTab === 'auditoria' && (
+        <div className="flex flex-col gap-4">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">
+              {t('admin.audit.title')}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {t('admin.audit.description')}
+            </p>
+          </div>
+
+          {auditError && (
+            <div role="alert" className="bg-destructive/10 border border-destructive/20 text-destructive text-sm px-4 py-2.5 rounded-xl">
+              {t('admin.audit.fetch_error')}
+            </div>
+          )}
+
+          <div className="bg-card border border-border rounded-2xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">
+                    {t('admin.audit.column_date')}
+                  </th>
+                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">
+                    {t('admin.audit.column_email')}
+                  </th>
+                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">
+                    {t('admin.audit.column_role')}
+                  </th>
+                  <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">
+                    {t('admin.audit.column_source')}
+                  </th>
+                  <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">
+                    {t('admin.audit.column_whitelist_entry')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {auditEntries.map((entry) => {
+                  const wlEntry = entry.whitelist_entry_id
+                    ? whitelistById.get(entry.whitelist_entry_id)
+                    : null
+                  return (
+                    <tr key={entry.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                        {new Date(entry.created_at).toLocaleString('pt-BR')}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs">{entry.email}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs font-semibold px-3 py-1 rounded-full ${ROLE_COLORS[entry.role]}`}>
+                          {ROLE_LABELS[entry.role]}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
+                        {t(AUDIT_SOURCE_LABEL_KEYS[entry.source])}
+                      </td>
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        {wlEntry ? (
+                          <span className="text-xs font-mono">{wlEntry.identifier}</span>
+                        ) : entry.whitelist_entry_id ? (
+                          <span className="text-xs italic text-muted-foreground">
+                            {t('admin.audit.whitelist_entry_removed')}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+                {auditEntries.length === 0 && !auditError && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground text-sm">
+                      {t('admin.audit.empty')}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="text-xs text-muted-foreground">{t('admin.audit.backfill_notice')}</p>
         </div>
       )}
     </div>

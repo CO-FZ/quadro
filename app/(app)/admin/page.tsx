@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getWhitelist } from '@/lib/actions/admin'
+import { getWhitelist, getPrivilegedRoleAudit } from '@/lib/actions/admin'
 import AdminView from '@/components/features/AdminView'
 import type { Profile } from '@/lib/supabase/types'
 
@@ -35,10 +35,16 @@ export default async function AdminPage() {
   // Busca whitelist
   const whitelistResult = await getWhitelist()
 
+  // Busca audit log (story 07B.3) — só admin chega aqui, mas a action revalida.
+  const auditResult = await getPrivilegedRoleAudit({ limit: 50 })
+
   return (
     <AdminView
       profiles={(profiles ?? []) as Profile[]}
       whitelist={whitelistResult.ok ? (whitelistResult.data ?? []) : []}
+      auditEntries={auditResult.ok ? auditResult.data : []}
+      auditError={auditResult.ok ? null : auditResult.message}
+      currentUserRole="admin"
     />
   )
 }
