@@ -1,5 +1,6 @@
 import "@supabase/functions-js/edge-runtime.d.ts"
 import { google } from "npm:googleapis@133.0.0"
+import { logger } from "../_shared/logger.ts"
 
 // Interface for the incoming webhook payload
 interface WebhookPayload {
@@ -11,9 +12,14 @@ interface WebhookPayload {
 }
 
 Deno.serve(async (req) => {
+  let opType: WebhookPayload["type"] | "unknown" = "unknown"
+  let taskId: string | null = null
+
   try {
     const payload: WebhookPayload = await req.json()
-    console.log("Received payload:", payload.type, payload.record?.id)
+    opType = payload.type
+    taskId = (payload.record?.id as string) ?? (payload.old_record?.id as string) ?? null
+    logger.info("sync_sheets_received", { operation: opType, task_id: taskId })
 
     if (payload.table !== "tasks") {
       return new Response(JSON.stringify({ error: "Invalid table" }), { status: 400 })
@@ -23,7 +29,7 @@ Deno.serve(async (req) => {
     const spreadsheetId = Deno.env.get("GOOGLE_SHEET_ID")
 
     if (!credentialsJson || !spreadsheetId) {
-      console.error("Missing Google Sheets credentials in environment variables")
+      logger.error("sync_sheets_missing_config", { operation: opType, task_id: taskId })
       return new Response(JSON.stringify({ error: "Missing config" }), { status: 500 })
     }
 
@@ -37,10 +43,10 @@ Deno.serve(async (req) => {
     const sheets = google.sheets({ version: "v4", auth })
 
     const { type, record } = payload
-    
+
     // We assume the sheet name is 'Tasks'
     const range = "Tasks!A:H"
-    
+
     // Convert record to row array
     const rowData = [
       record.id,
@@ -63,17 +69,17 @@ Deno.serve(async (req) => {
           values: [rowData],
         },
       })
-      console.log(`Successfully appended task ${record.id}`)
+      logger.info("sync_sheets_appended", { operation: type, task_id: taskId })
     } else if (type === "UPDATE") {
       // For updates, we first need to find the row with the matching ID
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId,
         range: "Tasks!A:A", // Fetch only IDs to find the row
       })
-      
+
       const rows = response.data.values || []
       const rowIndex = rows.findIndex((row: unknown[]) => row[0] === record.id)
-      
+
       if (rowIndex !== -1) {
         // Row is 1-indexed, so rowIndex + 1
         const updateRange = `Tasks!A${rowIndex + 1}:H${rowIndex + 1}`
@@ -85,7 +91,7 @@ Deno.serve(async (req) => {
             values: [rowData],
           },
         })
-        console.log(`Successfully updated task ${record.id} at row ${rowIndex + 1}`)
+        logger.info("sync_sheets_updated", { operation: type, task_id: taskId, row: rowIndex + 1 })
       } else {
         // Fallback: If for some reason it wasn't there, append it
         await sheets.spreadsheets.values.append({
@@ -96,7 +102,7 @@ Deno.serve(async (req) => {
             values: [rowData],
           },
         })
-        console.log(`Task ${record.id} not found for update, appended instead.`)
+        logger.warn("sync_sheets_update_fallback_append", { operation: type, task_id: taskId })
       }
     } else if (type === "DELETE") {
       // For deletes, we could clear the row or mark it as deleted
@@ -106,8 +112,9 @@ Deno.serve(async (req) => {
         range: "Tasks!A:A",
       })
       const rows = response.data.values || []
-      const rowIndex = rows.findIndex((row) => row[0] === payload.old_record.id)
-      
+      const oldId = payload.old_record.id
+      const rowIndex = rows.findIndex((row) => row[0] === oldId)
+
       if (rowIndex !== -1) {
         const updateRange = `Tasks!D${rowIndex + 1}` // Status is column D
         await sheets.spreadsheets.values.update({
@@ -118,7 +125,7 @@ Deno.serve(async (req) => {
             values: [["Deleted"]],
           },
         })
-        console.log(`Successfully marked task ${payload.old_record.id} as Deleted`)
+        logger.info("sync_sheets_deleted", { operation: type, task_id: String(oldId ?? "") })
       }
     }
 
@@ -127,26 +134,31 @@ Deno.serve(async (req) => {
       status: 200,
     })
   } catch (err) {
-    console.error("Error syncing to Google Sheets:", err)
-    
-    // Diagnostic info for the user (safe as it only shows keys)
-    let diag = {}
+    const message = err instanceof Error ? err.message : String(err)
+
+    // Diagnostic info: only credential keys (no values), for the user.
+    let credentialKeys: string[] | null = null
     try {
       const credentialsJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON")
       if (credentialsJson) {
-        const credentials = JSON.parse(credentialsJson)
-        diag = { credential_keys: Object.keys(credentials) }
+        credentialKeys = Object.keys(JSON.parse(credentialsJson))
       }
-    } catch (e) {
-      diag = { parse_error: e.message }
+    } catch {
+      credentialKeys = null
     }
 
+    logger.error("sync_sheets_failed", {
+      operation: opType,
+      task_id: taskId,
+      message,
+    })
+
     return new Response(
-      JSON.stringify({ 
-        error: err instanceof Error ? err.message : String(err),
-        ...diag
-      }), 
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: message,
+        ...(credentialKeys ? { credential_keys: credentialKeys } : {}),
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
     )
   }
 })
