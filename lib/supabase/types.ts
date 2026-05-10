@@ -53,6 +53,21 @@ export interface WhitelistEntry {
   created_by: string | null
 }
 
+export type PrivilegedRoleAuditSource =
+  | 'whitelist_email'
+  | 'whitelist_domain'
+  | 'manual'
+
+export interface PrivilegedRoleAuditEntry {
+  id: string
+  profile_id: string
+  email: string
+  role: AppRole
+  source: PrivilegedRoleAuditSource
+  whitelist_entry_id: string | null
+  created_at: string
+}
+
 /** Tarefa enriquecida com assignees já carregados */
 export interface TaskWithAssignees extends Task {
   task_assignees: (TaskAssignee & { profiles: Profile })[]
