@@ -1,11 +1,27 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { t } from '@/lib/i18n'
+
+type CallbackError = 'not_authorized' | 'auth_failed'
+
+const KNOWN_ERRORS: ReadonlySet<CallbackError> = new Set(['not_authorized', 'auth_failed'])
+
+function callbackErrorMessage(value: string | null): string | null {
+  if (!value) return null
+  if ((KNOWN_ERRORS as ReadonlySet<string>).has(value)) {
+    return t(`auth.errors.${value}`)
+  }
+  return t('auth.errors.auth_failed')
+}
 
 export default function LoginPage() {
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const callbackError = callbackErrorMessage(searchParams.get('error'))
 
   async function handleGoogleLogin() {
     setLoading(true)
@@ -48,9 +64,22 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Erro */}
+        {/* Aviso vindo da auth callback (?error=not_authorized | auth_failed) */}
+        {callbackError && !error && (
+          <div
+            role="alert"
+            className="w-full bg-destructive/10 border border-destructive/30 rounded-lg px-4 py-3 text-sm text-destructive"
+          >
+            {callbackError}
+          </div>
+        )}
+
+        {/* Erro do próprio fluxo OAuth (signInWithOAuth) */}
         {error && (
-          <div className="w-full bg-destructive/10 border border-destructive/30 rounded-lg px-4 py-3 text-sm text-destructive">
+          <div
+            role="alert"
+            className="w-full bg-destructive/10 border border-destructive/30 rounded-lg px-4 py-3 text-sm text-destructive"
+          >
             {error}
           </div>
         )}

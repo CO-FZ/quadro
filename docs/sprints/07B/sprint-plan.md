@@ -2,10 +2,10 @@
 
 **Sprint goal (1 frase):** zerar a dívida não-teste herdada das Sprints 01–06 — logger estruturado, mapeamento de erro na auth callback, audit log de privilégios, fechamento retroativo das Sprints 05/06 e ADR 0004 — usando a suíte da Sprint 07-A como rede de segurança.
 
-**Data de início:** 2026-05-09 (sequencial após 07-A)
+**Data de início:** 2026-05-10 (Sprint 07-A pausada em 07A.1 — 07A.2/3/4 dependem de Docker indisponível no sandbox; Sprint 07-B avança em paralelo nas stories testáveis sem stack)
 **Capacidade:** 1 dev humano + 1 agente (Opus 4.7)
-**Status:** ⬜ aguardando Sprint 07-A fechar
-**Sprint precedente:** [Sprint 07-A — Suíte de testes](../07A/sprint-plan.md) (bloqueante)
+**Status:** 🟡 em andamento — 07B.1 ✅, 07B.2 🟡 (CA-03/CA-09 deferidas)
+**Sprint precedente:** [Sprint 07-A — Suíte de testes](../07A/sprint-plan.md) (07A.1 ✅; 07A.2/3/4 deferidas por dependência de Docker no sandbox)
 
 ---
 
@@ -13,10 +13,10 @@
 
 | ID | Story / Task | Tipo | Estimativa | Owner | Prioridade | Status |
 |----|--------------|------|-----------|-------|------------|--------|
-| Story 07B.1 | Logger estruturado (`lib/logger`) + integração em `requireRole` e auth callback | story | S | agente | P0 | ⬜ |
-| Story 07B.2 | Mapeamento de erro na auth callback + UI de aviso para domínio privilegiado | story | S | agente | P0 | ⬜ |
+| Story 07B.1 | Logger estruturado (`lib/logger`) + integração em `requireRole` e auth callback | story | S | agente | P0 | ✅ |
+| Story 07B.2 | Mapeamento de erro na auth callback + UI de aviso para domínio privilegiado | story | S | agente | P0 | 🟡 (CA-03/CA-09 deferidas) |
 | Story 07B.3 | Audit log de criação automática com role ≠ efetivo + smoke anti-spoofing fixture | story | M | agente | P1 | ⬜ |
-| Story 07B.4 | Fechamento retroativo Sprints 05/06 + ADR 0004 → Aceito + i18n base | story | S | agente | P1 | ⬜ |
+| Story 07B.4 | Fechamento retroativo Sprints 05/06 + ADR 0004 → Aceito + i18n base | story | S | agente | P1 | 🟡 (`lib/i18n` antecipada na 07B.2) |
 
 > Sprint **independente da 07-A em escopo**, mas só faz sentido depois dela: cada uma destas mudanças exige a suíte de testes para garantir não-regressão. Se 07-A não fechar, 07-B não começa.
 

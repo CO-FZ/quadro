@@ -3,6 +3,8 @@
 import { useMemo, useState, useTransition } from 'react'
 import type { Profile, AppRole, WhitelistEntry } from '@/lib/supabase/types'
 import { updateUserRole, addToWhitelist, removeFromWhitelist, archiveUser, restoreUser } from '@/lib/actions/admin'
+import { isPrivilegedDomainEntry } from '@/lib/utils/admin-warnings'
+import { t } from '@/lib/i18n'
 
 interface AdminViewProps {
   profiles: Profile[]
@@ -45,6 +47,15 @@ export default function AdminView({ profiles, whitelist: initialWhitelist }: Adm
     () => new Set(profiles.map((p) => p.email.toLowerCase())),
     [profiles],
   )
+
+  const showPrivilegedDomainWarning = isPrivilegedDomainEntry(newIdentifier, newDefaultRole)
+  const privilegedDomainMessage = showPrivilegedDomainWarning
+    ? t(
+        'admin.whitelist.privileged_domain_warning',
+        newIdentifier.trim(),
+        ROLE_LABELS[newDefaultRole],
+      )
+    : null
 
   const filteredProfiles = useMemo(() => {
     if (!searchQuery.trim()) return profiles
@@ -265,6 +276,15 @@ export default function AdminView({ profiles, whitelist: initialWhitelist }: Adm
                 Adicionar
               </button>
             </div>
+            {privilegedDomainMessage && (
+              <div
+                role="alert"
+                data-testid="privileged-domain-warning"
+                className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-sm px-4 py-2.5 rounded-xl"
+              >
+                {privilegedDomainMessage}
+              </div>
+            )}
           </form>
 
           {/* Lista */}
