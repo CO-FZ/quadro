@@ -4,7 +4,7 @@
 
 **Data de início:** 2026-05-10 (Sprint 07-A pausada em 07A.1 — 07A.2/3/4 dependem de Docker indisponível no sandbox; Sprint 07-B avança em paralelo nas stories testáveis sem stack)
 **Capacidade:** 1 dev humano + 1 agente (Opus 4.7)
-**Status:** 🟡 em andamento — 07B.1 ✅, 07B.2 🟡 (CA-03/CA-09 deferidas)
+**Status:** 🟡 fechada — 2026-05-10. 07B.1 ✅, 07B.2 🟡 (CA-03/CA-09 deferidas), 07B.3 🟡 (CA-02/CA-04 deferidas), 07B.4 ✅. Detalhes em [_summary.md](../../memory/sprints/07B/_summary.md).
 **Sprint precedente:** [Sprint 07-A — Suíte de testes](../07A/sprint-plan.md) (07A.1 ✅; 07A.2/3/4 deferidas por dependência de Docker no sandbox)
 
 ---
@@ -108,23 +108,39 @@
 
 ---
 
-## 8. Retrospectiva (preencher ao final)
+## 8. Retrospectiva (fechada em 2026-05-10)
 
 **O que funcionou:**
-- `[...]`
+- **Sequenciamento `logger → callback mapping`** (07B.1 → 07B.2) deu certo: a callback já reescreveu chamando `logger.warn('signup_blocked', ...)` direto, sem precisar de refactor depois.
+- **Dividir 07B.4 em 3 sessões / 3 branches** (uma por story-grupo) ajudou a manter cada PR coeso e revisável. Branch isolada por story facilitou o histórico (o git log das 3 sessões está limpo).
+- **Detectar débitos durante arqueologia** (CA-07 da 07B.4) revelou que regra §2 da Sprint 05 nunca foi implementada — vira ticket P0 explícito em vez de ficar invisível.
+- **Smoke anti-spoofing como ferramenta humana** (07B.3) preencheu o gap deixado pelas Camadas 2/3 deferidas. Não substitui a suíte automatizada, mas dá um caminho de validação enquanto Docker não está disponível.
+- **Migration idempotente** (`DROP TRIGGER IF EXISTS` + `DROP FUNCTION IF EXISTS ... CASCADE`) — padrão da Sprint 04 reaplicado nas duas migrations da 07B sem problema.
 
 **O que não funcionou:**
-- `[...]`
+- **Sandbox sem Docker bloqueou 5 CAs** (07B.2 CA-03/CA-09; 07B.3 CA-02/CA-04; 07B.4 dependeu da auditoria do estado das Camadas 2/3/4 da 07-A). Era previsível desde a Sprint 07-A — deveria ter virado revisão de Plan Artifact da 07-A antes de 07-B começar.
+- **CA-09 da Sprint 07-A não foi pago em sessão própria.** O `_summary.md` da 07-A foi escrito como subproduto de 07B.4, o que é ok mas borrou a fronteira entre as sprints.
+- **Não houve smoke manual contra Supabase remoto.** Migrations `20260510000000` e `20260510000001` continuam não aplicadas. Cada sessão empurrou esse gate para a próxima.
+- **Lib i18n cresceu por demanda** (5 chaves na 07B.2 + 13 chaves de audit na 07B.3) sem revisitar a estratégia. Funcionou, mas é dívida latente — migração total continua aberta.
 
 **O que vamos mudar na próxima sprint:**
-- `[...]`
+- **Antes de uma sprint começar, validar pré-condições de ambiente** (Docker presente, secrets disponíveis, etc.). Sprint 07-A deveria ter pivotado quando Docker se mostrou indisponível, não emitido stories que dependiam dele.
+- **`db push` precisa entrar como gate explícito do Final Artifact**, não como follow-up vago. Migrations não-aplicadas em prod = entrega incompleta.
+- **Hooks de pre-commit configurados de fato** (não só listados em `tests/README.md`). `pnpm typecheck && pnpm lint && pnpm test:unit` deveria rodar automaticamente antes de cada commit.
+- **Plan Artifact por story** dentro de uma sprint — Sprint 07-B emitiu 4 stories sem Plan Artifact individual; algumas decisões (ex.: forma de detectar bloqueio no smoke script) seriam melhor cobertas em revisão prévia.
 
 **Métrica da sprint:**
 
 | Métrica | Valor |
 |---------|-------|
 | Stories planejadas | 4 |
-| Stories concluídas | — |
-| Débitos fechados (de uma lista de ~15) | — |
-| Bugs introduzidos | — |
-| Cobertura `pnpm test:unit` (deve ser ≥ Sprint 07-A) | — |
+| Stories concluídas (substantivamente) | 4 |
+| Stories totalmente verdes | 2 (07B.1, 07B.4) |
+| Stories 🟡 com CAs deferidos | 2 (07B.2, 07B.3) — 5 CAs ao todo, todos dependem das Camadas 2/3 da 07-A |
+| Débitos fechados (lista de ~15 do plano) | 9 fechados, 6 deferidos / continuam |
+| Débitos novos descobertos | 3 (regra §2 arquivados, ADR para `is_admin()`, ADR 0005 não promovido) |
+| Bugs introduzidos | 0 (sem regressão na suite unit) |
+| Cobertura `pnpm test:unit` | 35 → 59 (+24 testes; ≥ Sprint 07-A ✅) |
+| Migrations criadas (pendentes de `db push`) | 2 |
+| ADRs promovidos | 1 (0004) |
+| Final Artifacts retroativos | 2 (Sprints 05 e 06) |

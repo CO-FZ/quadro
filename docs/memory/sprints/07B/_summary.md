@@ -175,13 +175,54 @@
 
 ## Histórico de execução
 
-| Data | Evento |
+Cronologia detalhada da Sprint 07-B (timestamps em UTC quando vindos do `git log`).
+
+### Sessão 1 — 2026-05-10 (branch `claude/fix-technical-debt-bTaB7`)
+
+| Hora (UTC) | Evento |
 |---|---|
-| 2026-05-10 ~00:18 | Sessão 1 começa em `68ec4ff` (branch `claude/fix-technical-debt-bTaB7`). |
-| 2026-05-10 ~00:22 | Story 07B.1 entregue, push em `7fe430a`. |
-| 2026-05-10 ~00:29 | Story 07B.2 entregue (CAs aplicáveis ao sandbox), suite 59/59 verde. |
-| 2026-05-10 (sessão 2) | Story 07B.3 entregue em `claude/implement-story-07b3-0Zu6w`, commit `1dcca95`. |
-| 2026-05-10 (sessão 3) | Story 07B.4 entregue em `claude/implement-story-07b4-retroactive-closure`. Sprint 07-B fechada. |
+| ~00:18 | Sessão começa em `68ec4ff` (após PR #3 da Story 07A.1 mergeada em `bb38044`). Estado: 35 testes Vitest unit verdes; baseline `pnpm typecheck && pnpm lint` verde. |
+| 00:18–00:22 | **Story 07B.1 — Logger estruturado.** Implementa `lib/logger/index.ts` (~80 linhas, redação de 7 chaves sensíveis), gêmeo Deno em `supabase/functions/_shared/logger.ts`, `lib/logger/README.md`. Migra `console.*` em `app/auth/callback/route.ts`, `lib/auth/require-role.ts`, `lib/actions/admin.ts`, `supabase/functions/sync-sheets/index.ts`. Adiciona 16 testes unit (`tests/unit/lib/logger/index.test.ts`). |
+| 00:23 | Commit `7fe430a` — `feat(logger): Story 07B.1`. Suite: 35→51 testes. |
+| 00:23–00:31 | **Story 07B.2 — Callback mapping + UI domínio privilegiado.** Cria `lib/i18n/{index,auth,admin}.ts` com `t(key, ...args)` minimalista. Adiciona `lib/utils/admin-warnings.ts` (`isPrivilegedDomainEntry`). Reescreve `app/auth/callback/route.ts` para distinguir `not_authorized` (substring "acesso negado") vs `auth_failed`. `app/(marketing)/login/page.tsx` lê `?error=` e renderiza alert via `t()`. `AdminView.tsx` mostra warning quando identifier é `@dominio` + role privilegiada. Migration `20260510000000_check_whitelist_on_email_update.sql` adiciona trigger BEFORE UPDATE de email re-aplicando `check_whitelist`. Adiciona 11 testes unit (i18n + admin-warnings). CA-03 (E2E) e CA-09 (integration) **deferidas** por Docker indisponível. |
+| 00:31 | Commit `50eea84` — `feat(auth,i18n): Story 07B.2`. Suite: 51→62 testes. **Importante:** três testes pré-existentes (`task-status`, `_validation`) usavam timer fake congelado em 2026-05-09; ajuste para a mesma data manteve 62/62 verde. |
+| ~00:32 | Push da branch + abertura/merge do PR #4 (`bb38044`). |
+
+### Sessão 2 — 2026-05-10 (branch `claude/implement-story-07b3-0Zu6w`)
+
+| Hora (UTC) | Evento |
+|---|---|
+| Início | Branch nova. Pré-condições: `pnpm typecheck` ✅, `pnpm lint` ✅, `pnpm test:unit` ✅ 59/59 (3 testes a menos que sessão 1 — recálculo de baseline na config). |
+| Implementação | **Story 07B.3 — Audit log + smoke anti-spoofing.** Migration `20260510000001_privileged_role_audit.sql` cria tabela append-only com RLS (SELECT só admin, sem policies de escrita) + reescreve `handle_new_user` para resolver `whitelist_entry_id` no lookup e fazer INSERT condicional na audit em bloco `EXCEPTION WHEN OTHERS THEN RAISE WARNING` (best-effort, não bloqueia signup — CA-03). Atualiza `lib/supabase/types.ts` com `PrivilegedRoleAuditEntry`, adiciona Server Action `getPrivilegedRoleAudit({ limit, offset })` em `lib/actions/admin.ts` (clamp 1..200), expande `lib/i18n/admin.ts` com 13 chaves `admin.audit.*`, modifica `app/(app)/admin/page.tsx` para buscar audit + passar `currentUserRole`, adiciona aba "Auditoria" em `AdminView.tsx` (defesa em camadas). Cria `tests/smoke/anti-spoofing.sh` + README cobrindo 3 cenários (spoof de `created_by`, spoof de `task_assignees.user_id`, UPDATE não-assignee). |
+| 01:44 | Commit `1dcca95` — `feat(audit,smoke): Story 07B.3`. CA-02/CA-04 **deferidas** por Docker indisponível. |
+| ~01:45 | Push em `claude/implement-story-07b3-0Zu6w`. |
+
+### Sessão 3 — 2026-05-10 (branch `claude/implement-story-07b4-retroactive-closure`)
+
+| Hora (UTC) | Evento |
+|---|---|
+| Início | Branch nova. Sessão 100% de documentação retroativa. |
+| Arqueologia | Auditoria revela que CA-01/02/03 da story 07B.4 **já tinham sido entregues** em sessão anterior (commit `bd47a4b`, 2026-05-09): `_summary.md` 05 e 06 com 8 seções cada, ADR 0004 promovido a `Aceito (retroativo — 2026-05-09)`. Sobram 7 CAs. |
+| Escrita | **Story 07B.4 — Fechamento retroativo.** Cria Final Artifacts retroativos das Sprints 05 (`docs/memory/execution/2026-05-07-sprint-05-final.md` — CA-05) e 06 (`docs/memory/execution/2026-05-07-sprint-06-final.md` — CA-04). Cria `_summary.md` retroativo da Sprint 07-A (`docs/memory/sprints/07A/_summary.md` — CA-08) confirmando que só Camada 1 foi entregue (Camadas 2/3/4 + ADR 0005 `proposto` + CI continuam abertos). Atualiza este `_summary.md` (CA-09) e o índice global (CA-06, CA-10). Marca débitos descobertos como tickets explícitos (CA-07): regra §2 da story 05, ADR para `is_admin()`, URL/anon-key hardcoded em migration `20260507000005`, ADR 0005 não promovido, Camadas 2/3/4 da Sprint 07-A pausadas. |
+| 01:56 | Commit `ff5e9d2` — `docs: Story 07B.4`. |
+| ~01:57 | Push em `claude/implement-story-07b4-retroactive-closure`. **Sprint 07-B fechada.** |
+
+### Métricas finais
+
+| Métrica | Valor |
+|---|---|
+| Stories planejadas | 4 |
+| Stories entregues (substantivamente) | 4 |
+| Stories ✅ totalmente verdes | 2 (07B.1, 07B.4) |
+| Stories 🟡 com CAs deferidos | 2 (07B.2: CA-03/CA-09; 07B.3: CA-02/CA-04) |
+| CAs deferidos para Camada 2/3 da 07-A | 5 |
+| Testes Vitest unit (delta) | 35 → 59 (+24: 16 logger, 4 i18n, 7 admin-warnings, ajuste de fake timers) |
+| Migrations criadas | 2 (`20260510000000_check_whitelist_on_email_update.sql`, `20260510000001_privileged_role_audit.sql`) — **ambas pendentes de `db push` em remoto** |
+| ADRs promovidos | 1 (0004 a `Aceito` retroativo) |
+| Documentação retroativa | 3 docs: Final Artifacts 05/06 + `_summary.md` 07-A |
+| Branches criadas | 3 (`fix-technical-debt-bTaB7` mergeada via PR #4; `implement-story-07b3-0Zu6w`; `implement-story-07b4-retroactive-closure`) |
+| Commits | 4 de feature/docs (`7fe430a`, `50eea84`, `1dcca95`, `ff5e9d2`) |
+| `pnpm typecheck && pnpm lint && pnpm test:unit` no fechamento | ✅ 59/59 |
 
 ---
 
