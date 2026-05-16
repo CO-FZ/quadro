@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { initialStatusFor, normalizeTaskInput } from '@/lib/actions/_validation'
+import { initialStatusFor, normalizeTaskInput } from '@/src/modules/task-board/domain/task'
 import type { TaskSector } from '@/lib/supabase/types'
 
 /**

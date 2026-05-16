@@ -28,7 +28,7 @@ export function assertRoleAllowed(
   return null
 }
 
-const getCallerRole = cache(async (): Promise<Caller> => {
+export const getCallerRole = cache(async (): Promise<Caller> => {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null

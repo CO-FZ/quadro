@@ -1,10 +1,11 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
-import { requireRole } from '@/lib/auth/require-role'
-import { initialStatusFor, normalizeTaskInput } from '@/lib/actions/_validation'
-import type { TaskSector, TaskStatus } from '@/lib/supabase/types'
 import { revalidatePath } from 'next/cache'
+import { getCallerRole } from '@/lib/auth/require-role'
+import type { TaskSector, TaskStatus } from '@/lib/supabase/types'
+import { normalizeTaskInput } from '@/src/modules/task-board/domain/task'
+import { TaskUseCases } from '@/src/modules/task-board/application/use-cases'
+import { SupabaseTaskRepository } from '@/src/modules/task-board/infrastructure/supabase-task-repository'
 
 type ActionResult =
   | { ok: true }
@@ -15,7 +16,9 @@ function revalidateKanban() {
   revalidatePath('/dashboard')
 }
 
-// ─── Criar tarefa (qualquer authenticated — ADR 0003 §B) ─────────────────────
+// Instancia as dependências do caso de uso
+const taskRepository = new SupabaseTaskRepository()
+const taskUseCases = new TaskUseCases(taskRepository)
 
 export async function createTask(data: {
   title: string
@@ -27,39 +30,17 @@ export async function createTask(data: {
   assignee_ids: string[]
 }): Promise<ActionResult> {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
-
+    const caller = await getCallerRole()
     const normalized = normalizeTaskInput(data)
-
-    const { data: task, error } = await supabase
-      .from('tasks')
-      .insert({
-        ...normalized,
-        created_by: user.id,
-        status: initialStatusFor(data.assignee_ids),
-      })
-      .select()
-      .single()
-
-    if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
-
-    if (data.assignee_ids.length > 0) {
-      const { error: assignError } = await supabase.from('task_assignees').insert(
-        data.assignee_ids.map((user_id) => ({ task_id: task.id, user_id }))
-      )
-      if (assignError) return { ok: false, code: 'ASSIGN_ERROR', message: assignError.message }
-    }
-
+    await taskUseCases.createTask(caller, normalized, data.assignee_ids)
+    
     revalidateKanban()
     return { ok: true }
-  } catch (e) {
+  } catch (e: any) {
+    if (e.message === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
     return { ok: false, code: 'UNEXPECTED', message: String(e) }
   }
 }
-
-// ─── Editar tarefa (admin/coord — ADR 0003 §A) ───────────────────────────────
 
 export async function updateTask(
   taskId: string,
@@ -74,132 +55,77 @@ export async function updateTask(
   }
 ): Promise<ActionResult> {
   try {
-    const deny = await requireRole(['admin', 'coordenador'])
-    if (deny) return deny
-
-    const supabase = await createClient()
-
-    const { error } = await supabase
-      .from('tasks')
-      .update(normalizeTaskInput(data))
-      .eq('id', taskId)
-
-    if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
-
-    await supabase.from('task_assignees').delete().eq('task_id', taskId)
-    if (data.assignee_ids.length > 0) {
-      const { error: assignError } = await supabase.from('task_assignees').insert(
-        data.assignee_ids.map((user_id) => ({ task_id: taskId, user_id }))
-      )
-      if (assignError) return { ok: false, code: 'ASSIGN_ERROR', message: assignError.message }
-    }
-
+    const caller = await getCallerRole()
+    const normalized = normalizeTaskInput(data)
+    await taskUseCases.updateTask(caller, taskId, normalized, data.assignee_ids)
+    
     revalidateKanban()
     return { ok: true }
-  } catch (e) {
+  } catch (e: any) {
+    if (e.message === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
+    if (e.message === 'FORBIDDEN') return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
     return { ok: false, code: 'UNEXPECTED', message: String(e) }
   }
 }
-
-// ─── Mover status (RLS cobre admin/coord/alocado; finalizada exige role) ─────
 
 export async function updateTaskStatus(
   taskId: string,
   status: TaskStatus
 ): Promise<ActionResult> {
   try {
-    if (status === 'finalizada') {
-      const deny = await requireRole(['admin', 'coordenador'])
-      if (deny) return deny
-    }
-
-    const supabase = await createClient()
-    const { error } = await supabase
-      .from('tasks')
-      .update({ status })
-      .eq('id', taskId)
-
-    if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
+    const caller = await getCallerRole()
+    await taskUseCases.updateTaskStatus(caller, taskId, status)
+    
     revalidateKanban()
     return { ok: true }
-  } catch (e) {
+  } catch (e: any) {
+    if (e.message === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
+    if (e.message === 'FORBIDDEN') return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
     return { ok: false, code: 'UNEXPECTED', message: String(e) }
   }
 }
-
-// ─── Atualizar assignees (admin/coord — ADR 0003 §A) ─────────────────────────
 
 export async function updateTaskAssignees(
   taskId: string,
   assigneeIds: string[]
 ): Promise<ActionResult> {
   try {
-    const deny = await requireRole(['admin', 'coordenador'])
-    if (deny) return deny
-
-    const supabase = await createClient()
-
-    await supabase.from('task_assignees').delete().eq('task_id', taskId)
-    if (assigneeIds.length > 0) {
-      const { error } = await supabase.from('task_assignees').insert(
-        assigneeIds.map((user_id) => ({ task_id: taskId, user_id }))
-      )
-      if (error) return { ok: false, code: 'ASSIGN_ERROR', message: error.message }
-    }
-
-    if (assigneeIds.length > 0) {
-      const { data: task } = await supabase
-        .from('tasks')
-        .select('status')
-        .eq('id', taskId)
-        .single()
-
-      if (task?.status === 'backlog') {
-        await supabase.from('tasks').update({ status: 'alocada' }).eq('id', taskId)
-      }
-    }
-
+    const caller = await getCallerRole()
+    await taskUseCases.updateTaskAssignees(caller, taskId, assigneeIds)
+    
     revalidateKanban()
     return { ok: true }
-  } catch (e) {
+  } catch (e: any) {
+    if (e.message === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
+    if (e.message === 'FORBIDDEN') return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
     return { ok: false, code: 'UNEXPECTED', message: String(e) }
   }
 }
-
-// ─── Arquivar tarefa (admin/coord — ADR 0003 §A) ─────────────────────────────
 
 export async function archiveTask(taskId: string): Promise<ActionResult> {
   try {
-    const deny = await requireRole(['admin', 'coordenador'])
-    if (deny) return deny
-
-    const supabase = await createClient()
-    const { error } = await supabase
-      .from('tasks')
-      .update({ status: 'arquivada' as TaskStatus })
-      .eq('id', taskId)
-
-    if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
+    const caller = await getCallerRole()
+    await taskUseCases.archiveTask(caller, taskId)
+    
     revalidateKanban()
     return { ok: true }
-  } catch (e) {
+  } catch (e: any) {
+    if (e.message === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
+    if (e.message === 'FORBIDDEN') return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
     return { ok: false, code: 'UNEXPECTED', message: String(e) }
   }
 }
 
-// ─── Excluir tarefa (admin/coord — ADR 0003 §A) ──────────────────────────────
-
 export async function deleteTask(taskId: string): Promise<ActionResult> {
   try {
-    const deny = await requireRole(['admin', 'coordenador'])
-    if (deny) return deny
-
-    const supabase = await createClient()
-    const { error } = await supabase.from('tasks').delete().eq('id', taskId)
-    if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
+    const caller = await getCallerRole()
+    await taskUseCases.deleteTask(caller, taskId)
+    
     revalidateKanban()
     return { ok: true }
-  } catch (e) {
+  } catch (e: any) {
+    if (e.message === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
+    if (e.message === 'FORBIDDEN') return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
     return { ok: false, code: 'UNEXPECTED', message: String(e) }
   }
 }
