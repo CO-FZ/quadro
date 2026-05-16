@@ -1,6 +1,6 @@
 # Sprints — Summary
 
-**Última atualização:** 2026-05-10 (Sprint 07-B fechada via Story 07B.4; `_summary.md` da 07-A escrito retroativamente; Final Artifacts retroativos das Sprints 05/06 entregues; débitos pós-Sprint 07 consolidados)
+**Última atualização:** 2026-05-16 (Sprint 07-C aberta; sprint-plan + stories + gates instanciados)
 
 > Index acumulativo das sprints. Cada sprint mantém seu próprio plano em `docs/sprints/<n>/sprint-plan.md`. Resumos de fase ficam em `docs/memory/sprints/<n>/_summary.md`. Logs detalhados de execução em `docs/memory/execution/`.
 
@@ -97,10 +97,12 @@ Hoje: `pnpm typecheck` ✅, `pnpm lint` ✅, `pnpm test:unit` ✅ 59/59. Camadas
 **Status:** 🟡 entregue parcialmente — 2026-05-09. **Só Camada 1 (Vitest unit) entregue.** Camadas 2/3/4 deferidas por Docker indisponível no sandbox; ADR 0005 segue `proposto`; CI não configurado.
 **Plano:** [docs/sprints/07A/sprint-plan.md](../../sprints/07A/sprint-plan.md)
 **Stories:**
+
 - ✅ [07A.1 — Domain layer tests (Vitest unit)](../../sprints/07A/story-07A.1-domain-tests.md) — 35 testes na entrega original; 59 hoje (com 07B.1+07B.2 somados).
 - ⏸️ [07A.2 — Integration tests (Vitest + Supabase local)](../../sprints/07A/story-07A.2-integration-tests.md) — bloqueada (Docker).
 - ⏸️ [07A.3 — Feature/E2E (Playwright + screenshot diff mobile)](../../sprints/07A/story-07A.3-feature-tests.md) — bloqueada (Docker + browsers).
 - ⏸️ [07A.4 — pgTAP triggers e schema](../../sprints/07A/story-07A.4-pgtap-tests.md) — bloqueada (Docker + Supabase CLI).
+
 **ADR:** [0005 — Estratégia de testes em camadas](../../spec/adr/0005-estrategia-de-testes.md) (`proposto` — não promovido por falta das Camadas 2/3/4).
 **Resumo de fase:** [07A/_summary.md](07A/_summary.md)
 **Plan Artifact (Gate 1):** [../execution/2026-05-09-sprint-07A-plan-artifact.md](../execution/2026-05-09-sprint-07A-plan-artifact.md)
@@ -114,10 +116,12 @@ Hoje: `pnpm typecheck` ✅, `pnpm lint` ✅, `pnpm test:unit` ✅ 59/59. Camadas
 **Status:** 🟡 fechada — 2026-05-10. 4/4 stories com entrega substantiva; 5 CAs deferidos para Camadas 2/3 da 07-A.
 **Plano:** [docs/sprints/07B/sprint-plan.md](../../sprints/07B/sprint-plan.md)
 **Stories:**
+
 - ✅ [07B.1 — Logger estruturado (`lib/logger`)](../../sprints/07B/story-07B.1-logger.md) — 16 testes unit, redação de 7 chaves sensíveis.
 - 🟡 [07B.2 — Mapeamento de erro na auth callback + UI domínio privilegiado](../../sprints/07B/story-07B.2-callback-mapping.md) — CA-03/CA-09 deferidas (E2E/integration).
 - 🟡 [07B.3 — Audit log de role privilegiada + smoke anti-spoofing](../../sprints/07B/story-07B.3-audit-log.md) — CA-02/CA-04 deferidas (integration); migration `20260510000001` pendente de `db push` em remoto.
 - ✅ [07B.4 — Fechamento retroativo Sprints 05/06 + ADR 0004 → Aceito + i18n base](../../sprints/07B/story-07B.4-retroactive-closure.md) — Final Artifacts retroativos 05/06; `_summary.md` 07-A; consolidação de débitos.
+
 **Resumo de fase:** [07B/_summary.md](07B/_summary.md)
 
 **Fechado:** `lib/logger` estruturado com redação automática + integração nos pontos sensíveis (Edge Function inclusive); callback mapping `not_authorized` vs `auth_failed` com UI amigável; trigger BEFORE UPDATE de email re-validando whitelist (migration `20260510000000`); UI de aviso para domínio privilegiado; tabela `privileged_role_audit` (RLS admin-only, INSERT best-effort); aba "Auditoria" no `/admin`; smoke anti-spoofing manual; `lib/i18n` base com 5 chaves de auth + 13 da audit tab; ADR 0004 a `Aceito`; documentação retroativa Sprints 05/06/07-A.
