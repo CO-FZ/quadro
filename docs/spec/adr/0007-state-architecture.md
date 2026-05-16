@@ -1,9 +1,9 @@
 # ADR 0007 — State Architecture
 
-**Status:** `Proposto`
+**Status:** `Aceito`
 **Data:** 2026-05-16
 **Autor:** Agente (Sprint 08)
-**Requer aprovação humana em Gate G2. Nenhuma dependência instalada nesta sprint.**
+**Aprovado em Gate G2 — 2026-05-16. Implementação parcial na Sprint 09; dependências ainda não instaladas.**
 
 ---
 

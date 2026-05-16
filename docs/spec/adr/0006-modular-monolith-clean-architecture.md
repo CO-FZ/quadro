@@ -1,9 +1,9 @@
 # ADR 0006 — Modular Monolith + Clean Architecture
 
-**Status:** `Proposto`
+**Status:** `Aceito`
 **Data:** 2026-05-16
 **Autor:** Agente (Sprint 08)
-**Requer aprovação humana em Gate G2 antes da Sprint 09 mover código estrutural.**
+**Aprovado em Gate G2 — 2026-05-16. Sprint 09 concluída.**
 
 ---
 
