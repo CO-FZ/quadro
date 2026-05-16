@@ -36,33 +36,41 @@
 }
 
 .dark {
-  --background: oklch(0.129 0.01 285); /* Slate 950 */
-  --foreground: oklch(0.985 0.002 247.839); /* Slate 50 */
+  /* Fundo escuro quase neutro (baixo chroma) para evitar aberração cromática e fadiga visual */
+  --background: oklch(0.14 0.005 260); 
+  --foreground: oklch(0.98 0 0);
   
-  --card: oklch(0.18 0.01 285); /* Slate 900 */
-  --card-foreground: oklch(0.985 0.002 247.839);
+  /* Contraste bem definido para cartões (Z-index visual mais claro) */
+  --card: oklch(0.19 0.005 260); 
+  --card-foreground: oklch(0.98 0 0);
   
-  --popover: oklch(0.18 0.01 285); /* Slate 900 */
-  --popover-foreground: oklch(0.985 0.002 247.839);
+  --popover: oklch(0.19 0.005 260); 
+  --popover-foreground: oklch(0.98 0 0);
   
-  --primary: oklch(0.6 0.15 260); /* Brighter Blue 500 para melhor contraste */
-  --primary-foreground: oklch(0.129 0.01 285); /* Slate 950 */
+  /* Primary: Azul claro adaptado para o modo escuro (alta luminosidade), texto escuro para WCAG AAA */
+  --primary: oklch(0.70 0.14 260); 
+  --primary-foreground: oklch(0.14 0.005 260);
   
-  --secondary: oklch(0.75 0.18 70); /* Amber 500 */
-  --secondary-foreground: oklch(0.129 0.01 285); /* Slate 950 */
+  /* Secondary: Âmbar suave para alta visibilidade sem agressividade */
+  --secondary: oklch(0.80 0.16 75); 
+  --secondary-foreground: oklch(0.14 0.005 260);
   
-  --muted: oklch(0.22 0.01 285); /* Slightly lighter than card */
-  --muted-foreground: oklch(0.7 0.01 285); /* Slate 400 */
+  /* Muted: Ajustado para oklch(0.75) para garantir que textos secundários sejam MUITO legíveis */
+  --muted: oklch(0.24 0.005 260); 
+  --muted-foreground: oklch(0.75 0.005 260);
   
-  --accent: oklch(0.25 0.01 285); /* Hover states */
-  --accent-foreground: oklch(0.985 0.002 247.839);
+  /* Accent: Destaques de hover com boa distinção do fundo */
+  --accent: oklch(0.26 0.005 260); 
+  --accent-foreground: oklch(0.98 0 0);
   
-  --destructive: oklch(0.6 0.2 25); /* Red 500 - mais visível que Red 900 */
-  --destructive-foreground: oklch(0.985 0.002 247.839);
+  /* Destructive: Vermelho equilibrado para não "vibrar" no fundo escuro */
+  --destructive: oklch(0.60 0.20 25); 
+  --destructive-foreground: oklch(0.98 0 0);
   
-  --border: oklch(0.25 0.01 285); /* Subtly delineates cards */
-  --input: oklch(0.25 0.01 285);
-  --ring: oklch(0.6 0.15 260);
+  /* Bordas: Contraste aumentado para demarcar melhor os limites estruturais (inputs, cards) */
+  --border: oklch(0.32 0.005 260); 
+  --input: oklch(0.32 0.005 260);
+  --ring: oklch(0.70 0.14 260);
 }
 
 @theme inline {
