@@ -4,7 +4,7 @@
 
 **Data de início:** 2026-05-16
 **Capacidade:** 1 dev humano + 1 agente
-**Status:** aguardando aprovação do Plan Artifact
+**Status:** em execução — aguardando Gate G1 (bounded contexts) e Gate G2 (ADRs)
 **Sprint precedente:** [Sprint 07-C — Fechar a suíte e os P0s remanescentes](../07C/sprint-plan.md)
 
 ---
