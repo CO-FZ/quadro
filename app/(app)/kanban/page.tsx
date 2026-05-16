@@ -27,6 +27,7 @@ export default async function KanbanPage() {
   const { data: profiles } = await supabase
     .from('profiles')
     .select('id, email, full_name, avatar_url, role')
+    .is('archived_at', null)
     .order('email')
 
   const { data: { user } } = await supabase.auth.getUser()

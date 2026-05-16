@@ -10,7 +10,12 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:unit": "vitest run tests/unit",
-    "test:unit:coverage": "vitest run tests/unit --coverage"
+    "test:unit:coverage": "vitest run tests/unit --coverage",
+    "test:integration": "vitest run -c tests/integration.config.ts",
+    "test:integration:watch": "vitest -c tests/integration.config.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:update": "playwright test --update-snapshots",
+    "test:db": "supabase test db"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -24,6 +29,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.50.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
