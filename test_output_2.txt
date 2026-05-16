@@ -1,0 +1,137 @@
+
+> quadro@0.1.0 test:integration /home/zelzin/study/quadro
+> vitest run -c tests/integration.config.ts
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.5 [39m[90m/home/zelzin/study/quadro[39m
+
+ [32m✓[39m tests/integration/rls/profiles.rls.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 220[2mms[22m[39m
+ [31m❯[39m tests/integration/actions/tasks.actions.test.ts [2m([22m[2m9 tests[22m[2m | [22m[31m7 failed[39m[2m)[22m[32m 265[2mms[22m[39m
+[31m   [31m×[31m CA-06: efetivo creates task → ok: true, status backlog[39m[32m 13[2mms[22m[39m
+[31m   [31m×[31m CA-07: createTask with assignees → status alocada[39m[32m 5[2mms[22m[39m
+[31m   [31m×[31m CA-08: efetivo updateTask → FORBIDDEN, DB unchanged[39m[32m 46[2mms[22m[39m
+[31m   [31m×[31m CA-09: efetivo updateTaskStatus finalizada → FORBIDDEN[39m[32m 17[2mms[22m[39m
+[31m   [31m×[31m CA-10: efetivo (assignee) moves backlog → alocada → em_desenvolvimento → ok[39m[32m 16[2mms[22m[39m
+   [32m✓[39m CA-13: updateUserRole rebaixar único admin → LAST_ADMIN[32m 6[2mms[22m[39m
+[31m     [31m×[31m CA-14: bulk add 4 entries via csv/newline/semicolon[39m[32m 8[2mms[22m[39m
+[31m     [31m×[31m CA-15: duplicate entry → ok with ignore count[39m[32m 9[2mms[22m[39m
+   [32m✓[39m CA-16: archiveUser único admin → LAST_ADMIN[32m 5[2mms[22m[39m
+ [32m✓[39m tests/integration/rls/tasks.rls.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 293[2mms[22m[39m
+ [32m✓[39m tests/integration/rls/task_assignees.rls.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 355[2mms[22m[39m
+ [32m✓[39m tests/integration/rls/whitelist.rls.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 386[2mms[22m[39m
+ [31m❯[39m tests/integration/triggers/handle_new_user.test.ts [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 410[2mms[22m[39m
+   [32m✓[39m CA-17: email match beats domain match → profile gets email role[32m 241[2mms[22m[39m
+[31m   [31m×[31m CA-18: signup with non-whitelisted email → auth error, no profile[39m[32m 87[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 8 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/integration/actions/tasks.actions.test.ts[2m > [22mCA-06: efetivo creates task → ok: true, status backlog
+[31m[1mError[22m: Cannot find package '@/lib/actions/tasks' imported from /home/zelzin/study/quadro/tests/integration/actions/tasks.actions.test.ts[39m
+[36m [2m❯[22m tests/integration/actions/tasks.actions.test.ts:[2m70:26[22m[39m
+    [90m 68|[39m   _activeClient [33m=[39m client
+    [90m 69|[39m
+    [90m 70|[39m   [35mconst[39m { createTask } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/lib/actions/tasks'[39m)
+    [90m   |[39m                          [31m^[39m
+    [90m 71|[39m   [35mconst[39m [33mTODAY[39m [33m=[39m [35mnew[39m [33mDate[39m()[33m.[39m[34mtoISOString[39m()[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m10[39m)
+    [90m 72|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/actions/tasks.actions.test.ts[2m > [22mCA-07: createTask with assignees → status alocada
+[31m[1mError[22m: Cannot find package '@/lib/actions/tasks' imported from /home/zelzin/study/quadro/tests/integration/actions/tasks.actions.test.ts[39m
+[36m [2m❯[22m tests/integration/actions/tasks.actions.test.ts:[2m102:26[22m[39m
+    [90m100|[39m   _activeClient [33m=[39m client
+    [90m101|[39m
+    [90m102|[39m   [35mconst[39m { createTask } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/lib/actions/tasks'[39m)
+    [90m   |[39m                          [31m^[39m
+    [90m103|[39m   [35mconst[39m [33mTODAY[39m [33m=[39m [35mnew[39m [33mDate[39m()[33m.[39m[34mtoISOString[39m()[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m10[39m)
+    [90m104|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/actions/tasks.actions.test.ts[2m > [22mCA-08: efetivo updateTask → FORBIDDEN, DB unchanged
+[31m[1mError[22m: Cannot find package '@/lib/actions/tasks' imported from /home/zelzin/study/quadro/tests/integration/actions/tasks.actions.test.ts[39m
+[36m [2m❯[22m tests/integration/actions/tasks.actions.test.ts:[2m135:26[22m[39m
+    [90m133|[39m   _activeClient [33m=[39m client
+    [90m134|[39m
+    [90m135|[39m   [35mconst[39m { updateTask } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/lib/actions/tasks'[39m)
+    [90m   |[39m                          [31m^[39m
+    [90m136|[39m   [35mconst[39m [33mTODAY[39m [33m=[39m [35mnew[39m [33mDate[39m()[33m.[39m[34mtoISOString[39m()[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m10[39m)
+    [90m137|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/actions/tasks.actions.test.ts[2m > [22mCA-09: efetivo updateTaskStatus finalizada → FORBIDDEN
+[31m[1mError[22m: Cannot find package '@/lib/actions/tasks' imported from /home/zelzin/study/quadro/tests/integration/actions/tasks.actions.test.ts[39m
+[36m [2m❯[22m tests/integration/actions/tasks.actions.test.ts:[2m164:32[22m[39m
+    [90m162|[39m   _activeClient [33m=[39m client
+    [90m163|[39m
+    [90m164|[39m   [35mconst[39m { updateTaskStatus } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/lib/actions/tasks'[39m)
+    [90m   |[39m                                [31m^[39m
+    [90m165|[39m   [35mconst[39m result [33m=[39m [35mawait[39m [34mupdateTaskStatus[39m(taskId[33m,[39m [32m'finalizada'[39m)
+    [90m166|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/actions/tasks.actions.test.ts[2m > [22mCA-10: efetivo (assignee) moves backlog → alocada → em_desenvolvimento → ok
+[31m[1mError[22m: Cannot find package '@/lib/actions/tasks' imported from /home/zelzin/study/quadro/tests/integration/actions/tasks.actions.test.ts[39m
+[36m [2m❯[22m tests/integration/actions/tasks.actions.test.ts:[2m182:32[22m[39m
+    [90m180|[39m   _activeClient [33m=[39m client
+    [90m181|[39m
+    [90m182|[39m   [35mconst[39m { updateTaskStatus } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/lib/actions/tasks'[39m)
+    [90m   |[39m                                [31m^[39m
+    [90m183|[39m
+    [90m184|[39m   [35mconst[39m r1 [33m=[39m [35mawait[39m [34mupdateTaskStatus[39m(taskId[33m,[39m [32m'alocada'[39m)
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/actions/tasks.actions.test.ts[2m > [22maddToWhitelist[2m > [22mCA-14: bulk add 4 entries via csv/newline/semicolon
+[31m[1mError[22m: Cannot find package '@/lib/actions/admin' imported from /home/zelzin/study/quadro/tests/integration/actions/tasks.actions.test.ts[39m
+[36m [2m❯[22m tests/integration/actions/tasks.actions.test.ts:[2m217:32[22m[39m
+    [90m215|[39m     _activeClient [33m=[39m ([35mawait[39m [34mgetPersonaSession[39m([32m'admin'[39m))[33m.[39mclient
+    [90m216|[39m
+    [90m217|[39m     [35mconst[39m { addToWhitelist } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/lib/actions/admin'[39m)
+    [90m   |[39m                                [31m^[39m
+    [90m218|[39m     const result = await addToWhitelist('ca14a@wl.test, ca14b@wl.test\…
+    [90m219|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/actions/tasks.actions.test.ts[2m > [22maddToWhitelist[2m > [22mCA-15: duplicate entry → ok with ignore count
+[31m[1mError[22m: Cannot find package '@/lib/actions/admin' imported from /home/zelzin/study/quadro/tests/integration/actions/tasks.actions.test.ts[39m
+[36m [2m❯[22m tests/integration/actions/tasks.actions.test.ts:[2m235:32[22m[39m
+    [90m233|[39m
+    [90m234|[39m     _activeClient [33m=[39m ([35mawait[39m [34mgetPersonaSession[39m([32m'admin'[39m))[33m.[39mclient
+    [90m235|[39m     [35mconst[39m { addToWhitelist } [33m=[39m [35mawait[39m [35mimport[39m([32m'@/lib/actions/admin'[39m)
+    [90m   |[39m                                [31m^[39m
+    [90m236|[39m     const result = await addToWhitelist(`${existing}, ca15new@wl.test`…
+    [90m237|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/integration/triggers/handle_new_user.test.ts[2m > [22mCA-18: signup with non-whitelisted email → auth error, no profile
+[31m[1mAssertionError[22m: expected 'Database error saving new user' to match /acesso negado|not authorized|denied/i[39m
+
+[32m- Expected:[39m
+/acesso negado|not authorized|denied/i
+
+[31m+ Received:[39m
+"Database error saving new user"
+
+[36m [2m❯[22m tests/integration/triggers/handle_new_user.test.ts:[2m75:26[22m[39m
+    [90m 73|[39m   [90m// The trigger raises an exception → GoTrue returns error[39m
+    [90m 74|[39m   [34mexpect[39m(error)[33m.[39mnot[33m.[39m[34mtoBeNull[39m()
+    [90m 75|[39m   expect(error!.message).toMatch(/acesso negado|not authorized|denied/…
+    [90m   |[39m                          [31m^[39m
+    [90m 76|[39m   [34mexpect[39m(data[33m.[39muser)[33m.[39m[34mtoBeNull[39m()
+    [90m 77|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[31m8 failed[39m[22m[2m | [22m[1m[32m29 passed[39m[22m[90m (37)[39m
+[2m   Start at [22m 10:01:06
+[2m   Duration [22m 1.86s[2m (transform 164ms, setup 0ms, import 623ms, tests 1.93s, environment 1ms)[22m
+
+ ELIFECYCLE  Command failed with exit code 1.

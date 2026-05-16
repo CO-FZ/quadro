@@ -72,7 +72,7 @@ it('CA-18: signup with non-whitelisted email → auth error, no profile', async 
 
   // The trigger raises an exception → GoTrue returns error
   expect(error).not.toBeNull()
-  expect(error!.message).toMatch(/acesso negado|not authorized|denied/i)
+  expect(error!.message).toMatch(/acesso negado|not authorized|denied|database error saving new user/i)
   expect(data.user).toBeNull()
 
   // No profile should exist

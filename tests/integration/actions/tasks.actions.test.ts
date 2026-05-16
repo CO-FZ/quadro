@@ -111,7 +111,6 @@ it('CA-07: createTask with assignees → status alocada', async () => {
     drive_url: '',
     assignee_ids: [adminId],
   })
-
   expect(result.ok).toBe(true)
 
   const { data } = await adminClient
