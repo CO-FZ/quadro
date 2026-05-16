@@ -1,5 +1,6 @@
 # Story 08.1: Docs Source of Truth
 
+**Status:** DONE — 2026-05-16
 **Sprint:** 08 — ver [sprint-plan.md](sprint-plan.md)
 **ADRs relacionadas:** [ADR 0001](../../spec/adr/0001-rbac-via-supabase-rls.md), [ADR 0003](../../spec/adr/0003-defesa-em-camadas-tasks.md), [ADR 0005](../../spec/adr/0005-estrategia-de-testes.md)
 **Origem:** recomendação arquitetural de transformar `docs/` no source of truth da engenharia do projeto.

@@ -38,41 +38,41 @@
 .dark {
   color-scheme: dark;
 
-  /* Fundo escuro quase neutro (baixo chroma) para evitar aberração cromática e fadiga visual */
-  --background: oklch(0.14 0.005 260); 
-  --foreground: oklch(0.98 0 0);
-  
-  /* Contraste bem definido para cartões (Z-index visual mais claro) */
-  --card: oklch(0.19 0.005 260); 
-  --card-foreground: oklch(0.98 0 0);
-  
-  --popover: oklch(0.19 0.005 260); 
-  --popover-foreground: oklch(0.98 0 0);
-  
-  /* Primary: Azul claro adaptado para o modo escuro (alta luminosidade), texto escuro para WCAG AAA */
-  --primary: oklch(0.70 0.14 260); 
-  --primary-foreground: oklch(0.14 0.005 260);
-  
-  /* Secondary: Âmbar suave para alta visibilidade sem agressividade */
-  --secondary: oklch(0.80 0.16 75); 
-  --secondary-foreground: oklch(0.14 0.005 260);
-  
-  /* Muted: Ajustado para oklch(0.75) para garantir que textos secundários sejam MUITO legíveis */
-  --muted: oklch(0.24 0.005 260); 
-  --muted-foreground: oklch(0.75 0.005 260);
-  
-  /* Accent: Destaques de hover com boa distinção do fundo */
-  --accent: oklch(0.31 0.005 260);
-  --accent-foreground: oklch(0.98 0 0);
-  
-  /* Destructive: Vermelho equilibrado para não "vibrar" no fundo escuro */
-  --destructive: oklch(0.60 0.20 25); 
-  --destructive-foreground: oklch(0.98 0 0);
-  
-  /* Bordas: Contraste aumentado para demarcar melhor os limites estruturais (inputs, cards) */
-  --border: oklch(0.32 0.005 260); 
-  --input: oklch(0.32 0.005 260);
-  --ring: oklch(0.70 0.14 260);
+  /* Fundo escuro neutro (baixo chroma) — evita aberração cromática e fadiga visual */
+  --background: oklch(0.13 0.006 220);
+  --foreground: oklch(0.97 0 0);
+
+  /* Cards: leve elevação acima do background */
+  --card: oklch(0.18 0.007 220);
+  --card-foreground: oklch(0.97 0 0);
+
+  --popover: oklch(0.18 0.007 220);
+  --popover-foreground: oklch(0.97 0 0);
+
+  /* Primary: Teal — distingue dark de light, percepção premium */
+  --primary: oklch(0.72 0.17 195);
+  --primary-foreground: oklch(0.13 0.006 220);
+
+  /* Secondary: Âmbar suave, mesmo tom do light mode */
+  --secondary: oklch(0.80 0.16 75);
+  --secondary-foreground: oklch(0.13 0.006 220);
+
+  --muted: oklch(0.23 0.006 220);
+  --muted-foreground: oklch(0.72 0.005 220);
+
+  --accent: oklch(0.28 0.010 195);
+  --accent-foreground: oklch(0.97 0 0);
+
+  --destructive: oklch(0.60 0.20 25);
+  --destructive-foreground: oklch(0.97 0 0);
+
+  --border: oklch(0.30 0.008 220);
+  --input: oklch(0.30 0.008 220);
+  --ring: oklch(0.72 0.17 195);
+
+  /* Glassmorphism — usar com backdrop-filter no elemento */
+  --glass-bg: oklch(0.22 0.012 195 / 0.55);
+  --glass-border: oklch(0.55 0.08 195 / 0.25);
 }
 
 @theme inline {
@@ -99,8 +99,10 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: var(--font-geist-sans), var(--font-inter), sans-serif;
+  --font-sans: var(--font-inter), sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
 }
 
 @layer base {
@@ -109,5 +111,14 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
   }
 }

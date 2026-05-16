@@ -4,7 +4,7 @@
 
 **Data de início:** 2026-05-16
 **Capacidade:** 1 dev humano + 1 agente
-**Status:** em execução — aguardando Gate G1 (bounded contexts) e Gate G2 (ADRs)
+**Status:** CONCLUÍDA — Gate G1 e G2 aprovados em 2026-05-16
 **Sprint precedente:** [Sprint 07-C — Fechar a suíte e os P0s remanescentes](../07C/sprint-plan.md)
 
 ---
@@ -155,19 +155,28 @@ Se Sprint 08 fechar, a Sprint 09 deve iniciar a primeira refatoração com baixo
 ## 11. Retrospectiva (preencher ao final)
 
 **O que funcionou:**
-- `[...]`
+
+- Estrutura canônica de `docs/` criada sem nenhuma alteração de código
+- `bounded-contexts.md` aprovado em Gate G1 sem revisões — contextos estavam claros
+- ADR 0006 e 0007 aprovados em Gate G2 em uma única sessão
+- Design System já existente (tokens oklch no globals.css) reduziu escopo desta sprint
 
 **O que não funcionou:**
-- `[...]`
+
+- Stories 08.1 e 08.2 não tinham campo de Status — detectado em auditoria pós-sprint
+- Sprint plan nunca foi atualizado para CONCLUÍDA durante execução
+- Nenhum execution log escrito ao final das stories
 
 **O que vamos mudar na próxima sprint:**
-- `[...]`
+
+- Escrever execution log imediatamente ao declarar story DONE
+- Atualizar status do sprint plan antes de fechar a sessão
 
 **Métrica da sprint:**
 
 | Métrica | Valor |
 |---------|-------|
-| Docs canônicas criadas | — |
-| ADRs abertas | — |
-| Bounded contexts aprovados | — |
-| Arquivos de código alterados | 0 esperado |
+| Docs canônicas criadas | 14 |
+| ADRs abertas | 2 (0006, 0007) |
+| Bounded contexts aprovados | 9 (5 atuais + 4 futuros) |
+| Arquivos de código alterados | 0 |
