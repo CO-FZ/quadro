@@ -13,6 +13,7 @@ const STATUS_LABELS: Record<TaskStatus, string> = {
   backlog: 'Backlog',
   alocada: 'Alocada',
   em_desenvolvimento: 'Em Desenvolvimento',
+  em_revisao: 'Em Revisão',
   finalizada: 'Finalizada',
   arquivada: 'Arquivada',
 }
@@ -21,6 +22,7 @@ const STATUS_COLORS: Record<TaskStatus, string> = {
   backlog: 'bg-muted text-muted-foreground border-muted-foreground/20',
   alocada: 'bg-secondary/20 text-secondary-foreground border-secondary/30',
   em_desenvolvimento: 'bg-primary/10 text-primary border-primary/20',
+  em_revisao: 'bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/20',
   finalizada: 'bg-green-50 text-green-700 border-green-200',
   arquivada: 'bg-muted text-muted-foreground border-border',
 }

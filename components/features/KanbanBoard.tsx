@@ -93,6 +93,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
     backlog: 'border-muted-foreground/30',
     alocada: 'border-secondary',
     em_desenvolvimento: 'border-primary',
+    em_revisao: 'border-violet-500',
     finalizada: 'border-green-500',
   }
 
@@ -100,6 +101,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
     backlog: 'bg-muted text-muted-foreground',
     alocada: 'bg-secondary/20 text-foreground',
     em_desenvolvimento: 'bg-primary/10 text-primary',
+    em_revisao: 'bg-violet-500/10 text-violet-700 dark:text-violet-400',
     finalizada: 'bg-green-500/10 text-green-700 dark:text-green-400',
   }
 
@@ -157,7 +159,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
       </div>
 
       {/* Kanban Columns */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex-1 min-h-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 flex-1 min-h-0">
         {activeColumns.map((col) => {
           const colTasks = getTasksByStatus(col.id)
           const isOver = dragOverColumn === col.id

@@ -20,10 +20,12 @@ export interface UserTaskStats {
   user_id: string
   email: string
   full_name: string | null
+  avatar_url: string | null
   role: AppRole
   total_tasks: number
   finished_tasks: number
   in_progress_tasks: number
+  in_review_tasks: number
 }
 
 // Identity & Access context

@@ -8,6 +8,7 @@ interface DashboardViewProps {
     backlog: number
     alocada: number
     em_desenvolvimento: number
+    em_revisao: number
     finalizada: number
   }
 }
@@ -16,6 +17,7 @@ const STATUS_CONFIG = [
   { key: 'backlog' as const, label: 'Backlog', color: 'bg-muted', textColor: 'text-muted-foreground', icon: '📋' },
   { key: 'alocada' as const, label: 'Alocadas', color: 'bg-secondary/20', textColor: 'text-foreground', icon: '👥' },
   { key: 'em_desenvolvimento' as const, label: 'Em Desenvolvimento', color: 'bg-primary/10', textColor: 'text-primary', icon: '⚡' },
+  { key: 'em_revisao' as const, label: 'Em Revisão', color: 'bg-violet-500/10', textColor: 'text-violet-700 dark:text-violet-400', icon: '🔍' },
   { key: 'finalizada' as const, label: 'Finalizadas', color: 'bg-green-500/10', textColor: 'text-green-700 dark:text-green-400', icon: '✅' },
 ]
 
@@ -31,7 +33,7 @@ export default function DashboardView({ stats, totalByStatus }: DashboardViewPro
       </div>
 
       {/* KPI Cards por status */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {STATUS_CONFIG.map((cfg) => {
           const count = totalByStatus[cfg.key]
           const pct = totalTasks > 0 ? Math.round((count / totalTasks) * 100) : 0
@@ -54,6 +56,7 @@ export default function DashboardView({ stats, totalByStatus }: DashboardViewPro
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${
                     cfg.key === 'finalizada' ? 'bg-green-500' :
+                    cfg.key === 'em_revisao' ? 'bg-violet-500' :
                     cfg.key === 'em_desenvolvimento' ? 'bg-primary' :
                     cfg.key === 'alocada' ? 'bg-secondary' :
                     'bg-muted-foreground/40'
@@ -105,9 +108,18 @@ export default function DashboardView({ stats, totalByStatus }: DashboardViewPro
                         {/* Avatar + email */}
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0">
-                              {s.email[0]?.toUpperCase() ?? '?'}
-                            </div>
+                            {s.avatar_url ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={s.avatar_url}
+                                alt={s.full_name ?? s.email}
+                                className="h-8 w-8 rounded-full object-cover shrink-0"
+                              />
+                            ) : (
+                              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0">
+                                {s.email[0]?.toUpperCase() ?? '?'}
+                              </div>
+                            )}
                             <span className="font-medium text-foreground truncate max-w-[160px]">{s.email}</span>
                           </div>
                         </td>

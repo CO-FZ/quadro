@@ -1,6 +1,6 @@
 export type AppRole = 'admin' | 'coordenador' | 'efetivo'
 export type TaskSector = 'DT' | 'DA'
-export type TaskStatus = 'backlog' | 'alocada' | 'em_desenvolvimento' | 'finalizada' | 'arquivada'
+export type TaskStatus = 'backlog' | 'alocada' | 'em_desenvolvimento' | 'em_revisao' | 'finalizada' | 'arquivada'
 
 export interface Profile {
   id: string
@@ -65,6 +65,7 @@ export const KANBAN_COLUMNS: { id: TaskStatus; label: string }[] = [
   { id: 'backlog', label: 'Backlog' },
   { id: 'alocada', label: 'Alocada' },
   { id: 'em_desenvolvimento', label: 'Em Desenvolvimento' },
+  { id: 'em_revisao', label: 'Em Revisão' },
   { id: 'finalizada', label: 'Finalizada' },
 ]
 

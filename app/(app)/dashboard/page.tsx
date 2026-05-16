@@ -18,6 +18,7 @@ export default async function DashboardPage() {
     backlog: 0,
     alocada: 0,
     em_desenvolvimento: 0,
+    em_revisao: 0,
     finalizada: 0,
   }
   for (const t of taskCounts ?? []) {

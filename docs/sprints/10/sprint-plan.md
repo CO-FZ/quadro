@@ -13,6 +13,6 @@ Implementar uma nova coluna de "Em revisão" no Kanban, melhorando o fluxo de va
    - Ajustar o `DashboardView.tsx` para exibir a imagem do avatar caso exista, com fallback para a inicial.
 
 ## Status da Sprint
-- **Início:** A definir
-- **Status Atual:** **PLANEJADA**
+- **Início:** 16/05/2026
+- **Status Atual:** **CONCLUÍDA**
 - **Riscos Mitigados:** Alterações no domínio de tarefas exigem atualização em todos os arrays/objetos que mapeiam `TaskStatus` (como `STATUS_CONFIG` no dashboard, e labels no profile view). O TypeScript em strict mode (garantido pelo `pnpm typecheck`) cobrirá todas as ramificações.
