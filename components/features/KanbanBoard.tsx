@@ -98,9 +98,9 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
 
   const columnHeaderColors: Record<string, string> = {
     backlog: 'bg-muted text-muted-foreground',
-    alocada: 'bg-secondary/20 text-secondary-foreground',
+    alocada: 'bg-secondary/20 text-foreground',
     em_desenvolvimento: 'bg-primary/10 text-primary',
-    finalizada: 'bg-green-50 text-green-700',
+    finalizada: 'bg-green-500/10 text-green-700 dark:text-green-400',
   }
 
   const activeColumns = KANBAN_COLUMNS.filter((c) => c.id !== 'arquivada')

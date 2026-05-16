@@ -14,9 +14,9 @@ interface DashboardViewProps {
 
 const STATUS_CONFIG = [
   { key: 'backlog' as const, label: 'Backlog', color: 'bg-muted', textColor: 'text-muted-foreground', icon: '📋' },
-  { key: 'alocada' as const, label: 'Alocadas', color: 'bg-secondary/20', textColor: 'text-secondary-foreground', icon: '👥' },
+  { key: 'alocada' as const, label: 'Alocadas', color: 'bg-secondary/20', textColor: 'text-foreground', icon: '👥' },
   { key: 'em_desenvolvimento' as const, label: 'Em Desenvolvimento', color: 'bg-primary/10', textColor: 'text-primary', icon: '⚡' },
-  { key: 'finalizada' as const, label: 'Finalizadas', color: 'bg-green-50', textColor: 'text-green-700', icon: '✅' },
+  { key: 'finalizada' as const, label: 'Finalizadas', color: 'bg-green-500/10', textColor: 'text-green-700 dark:text-green-400', icon: '✅' },
 ]
 
 export default function DashboardView({ stats, totalByStatus }: DashboardViewProps) {
@@ -85,7 +85,7 @@ export default function DashboardView({ stats, totalByStatus }: DashboardViewPro
                     <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden md:table-cell">Perfil</th>
                     <th className="text-center px-4 py-3 font-semibold text-muted-foreground">Total</th>
                     <th className="text-center px-4 py-3 font-semibold text-primary hidden sm:table-cell">Em Dev.</th>
-                    <th className="text-center px-4 py-3 font-semibold text-green-700">Finalizadas</th>
+                    <th className="text-center px-4 py-3 font-semibold text-green-700 dark:text-green-400">Finalizadas</th>
                     <th className="text-left px-5 py-3 font-semibold text-muted-foreground hidden lg:table-cell">Progresso</th>
                   </tr>
                 </thead>
@@ -133,7 +133,7 @@ export default function DashboardView({ stats, totalByStatus }: DashboardViewPro
 
                         {/* Finalizadas */}
                         <td className="px-4 py-4 text-center">
-                          <span className="font-semibold text-green-700">{s.finished_tasks}</span>
+                          <span className="font-semibold text-green-700 dark:text-green-400">{s.finished_tasks}</span>
                         </td>
 
                         {/* Progress bar */}

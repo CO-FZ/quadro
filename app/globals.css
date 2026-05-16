@@ -36,6 +36,8 @@
 }
 
 .dark {
+  color-scheme: dark;
+
   /* Fundo escuro quase neutro (baixo chroma) para evitar aberração cromática e fadiga visual */
   --background: oklch(0.14 0.005 260); 
   --foreground: oklch(0.98 0 0);
@@ -60,7 +62,7 @@
   --muted-foreground: oklch(0.75 0.005 260);
   
   /* Accent: Destaques de hover com boa distinção do fundo */
-  --accent: oklch(0.26 0.005 260); 
+  --accent: oklch(0.31 0.005 260);
   --accent-foreground: oklch(0.98 0 0);
   
   /* Destructive: Vermelho equilibrado para não "vibrar" no fundo escuro */

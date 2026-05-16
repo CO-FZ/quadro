@@ -88,7 +88,7 @@ export default function TaskCard({ task, onDragStart, onDragEnd, profiles, canMa
           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ml-auto ${
             overdue
               ? 'bg-destructive/10 text-destructive'
-              : task.status !== 'finalizada' ? 'bg-green-50 text-green-700' : 'bg-muted text-muted-foreground'
+              : task.status !== 'finalizada' ? 'bg-green-500/10 text-green-700 dark:text-green-400' : 'bg-muted text-muted-foreground'
           }`}>
             {task.status === 'finalizada' ? '✓ Concluída' : overdue ? '⚠ Atrasada' : '● No prazo'}
           </span>
