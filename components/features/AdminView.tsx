@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
+import Image from 'next/image'
 import type {
   Profile,
   AppRole,
@@ -216,8 +217,7 @@ export default function AdminView({
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {p.avatar_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.avatar_url} alt={p.email} className={`h-8 w-8 rounded-full object-cover ${isArchived ? 'grayscale' : ''}`} />
+                        <Image src={p.avatar_url} alt={p.email} width={32} height={32} className={`h-8 w-8 rounded-full object-cover ${isArchived ? 'grayscale' : ''}`} />
                       ) : (
                         <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
                           {p.email[0]?.toUpperCase()}

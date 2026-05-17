@@ -44,7 +44,9 @@ export class TaskUseCases {
     taskId: string,
     status: TaskStatus
   ): Promise<void> {
-    if (status === 'finalizada') {
+    // finalizada + arquivada: apenas admin/coordenador
+    // em_revisao + demais status ativos: qualquer autenticado
+    if (status === 'finalizada' || status === 'arquivada') {
       assertRole(caller, ['admin', 'coordenador'])
     } else if (!caller) {
       throw new Error('UNAUTHENTICATED')

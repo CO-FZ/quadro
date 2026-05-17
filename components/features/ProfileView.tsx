@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import type { Profile, TaskWithAssignees, TaskStatus } from '@/lib/supabase/types'
 import { SECTOR_LABELS } from '@/lib/supabase/types'
 import { isOverdue } from '@/lib/utils/task-status'
@@ -50,10 +51,11 @@ export default function ProfileView({ profile, tasks }: ProfileViewProps) {
           {/* Avatar */}
           <div className="relative shrink-0">
             {profile?.avatar_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={profile.avatar_url}
                 alt={profile.full_name ?? profile.email}
+                width={80}
+                height={80}
                 className="h-20 w-20 rounded-2xl object-cover border-4 border-card shadow-md"
               />
             ) : (

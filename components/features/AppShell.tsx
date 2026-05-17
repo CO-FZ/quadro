@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/supabase/types'
@@ -73,8 +74,7 @@ export default function AppShell({ profile, children }: AppShellProps) {
           <div className="flex items-center justify-between h-14">
             {/* Logo / Brand */}
             <div className="flex items-center gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/CO-FZ.png" alt="CO-FZ" className="h-8 w-auto object-contain" />
+              <Image src="/CO-FZ.png" alt="CO-FZ" width={200} height={50} className="h-8 w-auto object-contain" />
               <span className="font-bold text-sm tracking-wide hidden sm:block">
                 Quadro
               </span>
@@ -112,10 +112,11 @@ export default function AppShell({ profile, children }: AppShellProps) {
                   className="flex items-center gap-2 rounded-full p-1 hover:bg-primary-foreground/10 transition-colors"
                 >
                   {profile?.avatar_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       src={profile.avatar_url}
                       alt={profile.full_name ?? profile.email}
+                      width={32}
+                      height={32}
                       className="h-8 w-8 rounded-full object-cover border-2 border-primary-foreground/30"
                     />
                   ) : (

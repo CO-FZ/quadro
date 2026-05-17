@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import type { Profile, TaskWithAssignees } from '@/lib/supabase/types'
 import { isOverdue } from '@/lib/utils/task-status'
 import TaskDetailModal from '@/components/features/TaskDetailModal'
@@ -36,10 +37,11 @@ function UserAvatars({ assignees }: { assignees: TaskWithAssignees['task_assigne
       {shown.map((a) => (
         <div key={a.user_id} title={a.profiles?.full_name ?? a.profiles?.email} className="relative">
           {a.profiles?.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={a.profiles.avatar_url}
               alt={a.profiles.full_name ?? a.profiles.email}
+              width={24}
+              height={24}
               className="h-6 w-6 rounded-full border-2 border-card object-cover"
             />
           ) : (

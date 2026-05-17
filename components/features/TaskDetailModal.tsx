@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Image from 'next/image'
 import type { Profile, TaskWithAssignees } from '@/lib/supabase/types'
 import { isOverdue } from '@/lib/utils/task-status'
 import { updateTaskStatus, deleteTask, updateTaskAssignees, archiveTask, updateTask } from '@/lib/actions/tasks'
@@ -175,8 +176,7 @@ export default function TaskDetailModal({ task, profiles, canManage, onClose, on
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span>Criada por</span>
                 {creator?.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={creator.avatar_url} alt={label} className="h-5 w-5 rounded-full object-cover" />
+                  <Image src={creator.avatar_url} alt={label} width={20} height={20} className="h-5 w-5 rounded-full object-cover" />
                 ) : (
                   <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center text-[8px] font-bold text-primary-foreground">
                     {label[0]?.toUpperCase()}
@@ -219,8 +219,7 @@ export default function TaskDetailModal({ task, profiles, canManage, onClose, on
                         className="accent-primary"
                       />
                       {p.avatar_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.avatar_url} alt={p.full_name ?? p.email} className="h-6 w-6 rounded-full object-cover" />
+                        <Image src={p.avatar_url} alt={p.full_name ?? p.email} width={24} height={24} className="h-6 w-6 rounded-full object-cover" />
                       ) : (
                         <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-primary-foreground">
                           {(p.full_name ?? p.email)[0]?.toUpperCase()}
@@ -243,8 +242,7 @@ export default function TaskDetailModal({ task, profiles, canManage, onClose, on
                 {task.task_assignees.map((a) => (
                   <div key={a.user_id} className="flex items-center gap-1.5 bg-muted rounded-full px-2 py-1">
                     {a.profiles?.avatar_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={a.profiles.avatar_url} alt={a.profiles.full_name ?? a.profiles.email} className="h-5 w-5 rounded-full" />
+                      <Image src={a.profiles.avatar_url} alt={a.profiles.full_name ?? a.profiles.email} width={20} height={20} className="h-5 w-5 rounded-full" />
                     ) : (
                       <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center text-[8px] font-bold text-primary-foreground">
                         {(a.profiles?.full_name ?? a.profiles?.email)?.[0]?.toUpperCase()}

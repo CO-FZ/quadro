@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import type { UserTaskStats } from '@/lib/supabase/types'
 
 interface DashboardViewProps {
@@ -109,10 +110,11 @@ export default function DashboardView({ stats, totalByStatus }: DashboardViewPro
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
                             {s.avatar_url ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
+                              <Image
                                 src={s.avatar_url}
                                 alt={s.full_name ?? s.email}
+                                width={32}
+                                height={32}
                                 className="h-8 w-8 rounded-full object-cover shrink-0"
                               />
                             ) : (

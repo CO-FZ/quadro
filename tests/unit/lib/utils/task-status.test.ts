@@ -23,7 +23,7 @@ describe('isOverdue', () => {
   const tomorrow = '2026-05-10'
 
   describe('status ativo (atrasa se end_date < hoje)', () => {
-    const activeStatuses: TaskStatus[] = ['backlog', 'alocada', 'em_desenvolvimento']
+    const activeStatuses: TaskStatus[] = ['backlog', 'alocada', 'em_desenvolvimento', 'em_revisao']
 
     for (const status of activeStatuses) {
       it(`status=${status}, end_date=ontem → true`, () => {

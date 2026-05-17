@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Image from 'next/image'
 import type { Profile, TaskSector, TaskWithAssignees } from '@/lib/supabase/types'
 import { validateTaskDates } from '@/lib/utils/task-dates'
 
@@ -213,8 +214,7 @@ export default function TaskModal({ profiles, initialData, onClose, onSave }: Ta
                     className="accent-primary"
                   />
                   {p.avatar_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.avatar_url} alt={p.email} className="h-6 w-6 rounded-full object-cover" />
+                    <Image src={p.avatar_url} alt={p.email} width={24} height={24} className="h-6 w-6 rounded-full object-cover" />
                   ) : (
                     <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-primary-foreground">
                       {p.email[0]?.toUpperCase()}

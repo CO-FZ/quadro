@@ -36,9 +36,10 @@ export async function createTask(data: {
     
     revalidateKanban()
     return { ok: true }
-  } catch (e: any) {
-    if (e.message === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
-    return { ok: false, code: 'UNEXPECTED', message: String(e) }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
+    return { ok: false, code: 'UNEXPECTED', message: msg }
   }
 }
 
@@ -61,10 +62,11 @@ export async function updateTask(
     
     revalidateKanban()
     return { ok: true }
-  } catch (e: any) {
-    if (e.message === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
-    if (e.message === 'FORBIDDEN') return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
-    return { ok: false, code: 'UNEXPECTED', message: String(e) }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
+    if (msg === 'FORBIDDEN') return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
+    return { ok: false, code: 'UNEXPECTED', message: msg }
   }
 }
 
@@ -78,10 +80,11 @@ export async function updateTaskStatus(
     
     revalidateKanban()
     return { ok: true }
-  } catch (e: any) {
-    if (e.message === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
-    if (e.message === 'FORBIDDEN') return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
-    return { ok: false, code: 'UNEXPECTED', message: String(e) }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
+    if (msg === 'FORBIDDEN') return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
+    return { ok: false, code: 'UNEXPECTED', message: msg }
   }
 }
 
@@ -95,10 +98,11 @@ export async function updateTaskAssignees(
     
     revalidateKanban()
     return { ok: true }
-  } catch (e: any) {
-    if (e.message === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
-    if (e.message === 'FORBIDDEN') return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
-    return { ok: false, code: 'UNEXPECTED', message: String(e) }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
+    if (msg === 'FORBIDDEN') return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
+    return { ok: false, code: 'UNEXPECTED', message: msg }
   }
 }
 
@@ -109,10 +113,11 @@ export async function archiveTask(taskId: string): Promise<ActionResult> {
     
     revalidateKanban()
     return { ok: true }
-  } catch (e: any) {
-    if (e.message === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
-    if (e.message === 'FORBIDDEN') return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
-    return { ok: false, code: 'UNEXPECTED', message: String(e) }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
+    if (msg === 'FORBIDDEN') return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
+    return { ok: false, code: 'UNEXPECTED', message: msg }
   }
 }
 
@@ -123,9 +128,10 @@ export async function deleteTask(taskId: string): Promise<ActionResult> {
     
     revalidateKanban()
     return { ok: true }
-  } catch (e: any) {
-    if (e.message === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
-    if (e.message === 'FORBIDDEN') return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
-    return { ok: false, code: 'UNEXPECTED', message: String(e) }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e)
+    if (msg === 'UNAUTHENTICATED') return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
+    if (msg === 'FORBIDDEN') return { ok: false, code: 'FORBIDDEN', message: 'Você não tem permissão para esta ação.' }
+    return { ok: false, code: 'UNEXPECTED', message: msg }
   }
 }

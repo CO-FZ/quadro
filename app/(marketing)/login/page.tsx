@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { t } from '@/lib/i18n'
 
@@ -45,8 +46,7 @@ export default function LoginPage() {
       <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-6">
         {/* Logo */}
         <div className="flex flex-col items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/CO-FZ.png" alt="Logo CO-FZ" className="h-20 w-auto object-contain" />
+          <Image src="/CO-FZ.png" alt="Logo CO-FZ" width={200} height={50} className="h-20 w-auto object-contain" />
           <div className="text-center">
             <h1 className="text-2xl font-bold text-primary">CO-FZ</h1>
             <p className="text-sm text-muted-foreground mt-1">Quadro de Atividades</p>
