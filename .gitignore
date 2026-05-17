@@ -1,6 +1,10 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ──────────────────────────────────────────────────────────────────────────────
+# .gitignore — Quadro CO-FZ
+# Rastreamos apenas o que é necessário para rodar a aplicação em produção
+# e a documentação do projeto (docs/).
+# ──────────────────────────────────────────────────────────────────────────────
 
-# dependencies
+# ── Dependências ──────────────────────────────────────────────────────────────
 /node_modules
 /.pnp
 .pnp.*
@@ -10,37 +14,41 @@
 !.yarn/releases
 !.yarn/versions
 
-#skills
-/.gemnini
-
-# testing
-/coverage
-
-# next.js
+# ── Build / Next.js ───────────────────────────────────────────────────────────
 /.next/
 /out/
-
-# production
 /build
 
-# misc
-.DS_Store
-*.pem
+# ── TypeScript cache ──────────────────────────────────────────────────────────
+*.tsbuildinfo
+next-env.d.ts
 
-# debug
+# ── Variáveis de ambiente (nunca commitar valores reais) ──────────────────────
+.env*
+!.env*.example
+
+# ── Logs de debug ─────────────────────────────────────────────────────────────
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
-!.env*.example
+# ── Cobertura de testes e artefatos temporários ───────────────────────────────
+/coverage
+test_output*.txt
 
-# vercel
+# ── Agentes de IA e ferramentas de desenvolvimento ───────────────────────────
+# Pasta completa do Antigravity (skills, brain, cache do agente)
+.gemini/
+
+# Skills locais do projeto (não são código da aplicação)
+/skills/
+
+# Configuração de outros agentes de IA
+/.agents/
+.codex
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+.DS_Store
+*.pem
 .vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-coverage/
