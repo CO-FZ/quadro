@@ -1,7 +1,8 @@
 # ADR 0005 — Estratégia de testes em camadas (domain + integration + feature + pgTAP)
 
-**Status:** proposto
+**Status:** `Aceito`
 **Data:** 2026-05-09
+**Aprovado retroativamente:** 2026-05-17 (suite de testes implementada nas Sprints 08/09)
 **Decisores:** Eng Carlos Eduardo
 **Substitui:** —
 **Substituído por:** —

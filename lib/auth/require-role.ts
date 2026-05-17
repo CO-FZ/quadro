@@ -55,3 +55,18 @@ export async function requireRole(allowed: AppRole[]): Promise<RoleGuardError | 
   }
   return result
 }
+
+/**
+ * Shorthand: permite apenas admins.
+ * Substitui as implementações locais de `requireAdmin()` espalhadas nas Server Actions.
+ */
+export async function requireAdmin(): Promise<RoleGuardError | null> {
+  return requireRole(['admin'])
+}
+
+/**
+ * Shorthand: permite admins e coordenadores.
+ */
+export async function requirePrivileged(): Promise<RoleGuardError | null> {
+  return requireRole(['admin', 'coordenador'])
+}

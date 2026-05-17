@@ -3,7 +3,8 @@
 **Status:** `Aceito`
 **Data:** 2026-05-16
 **Autor:** Agente (Sprint 08)
-**Aprovado em Gate G2 — 2026-05-16. Implementação parcial na Sprint 09; dependências ainda não instaladas.**
+**Aprovado em Gate G2 — 2026-05-16. Implementação parcial na Sprint 09.**
+**⚠️ Pendência Sprint 10:** `@tanstack/react-query` ainda não instalado. Server State segue com `revalidatePath` + Server Components até a migração.
 
 ---
 

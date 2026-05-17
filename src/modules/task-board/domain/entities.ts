@@ -69,6 +69,15 @@ export type TaskDatesValidation =
   | { ok: true }
   | { ok: false; code: 'START_REQUIRED' | 'END_REQUIRED' | 'END_BEFORE_START'; message: string }
 
+/**
+ * Colunas visíveis no Kanban board.
+ *
+ * `arquivada` é propositalmente EXCLUÍDA desta lista — é um status de ciclo de vida
+ * (soft-delete), não uma coluna de trabalho. Tarefas arquivadas não aparecem no board.
+ *
+ * Para o tipo completo de status (incluindo arquivada) use `TaskStatus`.
+ * @see ADR 0010 — Evolução de Colunas Kanban e Status `arquivada`
+ */
 export const KANBAN_COLUMNS: { id: TaskStatus; label: string }[] = [
   { id: 'backlog', label: 'Backlog' },
   { id: 'alocada', label: 'Alocada' },
@@ -76,6 +85,7 @@ export const KANBAN_COLUMNS: { id: TaskStatus; label: string }[] = [
   { id: 'em_revisao', label: 'Em Revisão' },
   { id: 'finalizada', label: 'Finalizada' },
 ]
+
 
 export const SECTOR_LABELS: Record<TaskSector, string> = {
   DT: 'Divisão Técnica',

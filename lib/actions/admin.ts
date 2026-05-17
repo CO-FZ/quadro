@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { logger } from '@/lib/logger'
+import { requireAdmin } from '@/lib/auth/require-role'
 import type { AppRole, PatenteType, TaskSector, PrivilegedRoleAuditEntry } from '@/lib/supabase/types'
 
 const PRIVILEGED_ROLES: AppRole[] = ['admin', 'coordenador']
@@ -20,24 +21,8 @@ function revalidateAdmin() {
   revalidatePath('/admin')
 }
 
-// ─── Helper: checar se solicitante é admin ───────────────────────────────────
-
-async function requireAdmin(): Promise<{ ok: false; code: string; message: string } | null> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { ok: false, code: 'UNAUTHENTICATED', message: 'Não autenticado.' }
-
-  const { data: caller } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (caller?.role !== 'admin') {
-    return { ok: false, code: 'FORBIDDEN', message: 'Apenas admins podem realizar esta ação.' }
-  }
-  return null
-}
+// ─── Guard de admin: delegado ao módulo centralizado lib/auth/require-role ───
+// requireAdmin() importado acima — usa React.cache + logger unificado (ADR 0009)
 
 // ─── Alterar role de usuário ─────────────────────────────────────────────────
 
@@ -196,6 +181,10 @@ export async function updateUserDivisao(userId: string, divisao: TaskSector | nu
 // ─── Buscar whitelist ────────────────────────────────────────────────────────
 
 export async function getWhitelist() {
+  // Guard de autorização: apenas admins podem listar a whitelist (ADR 0003)
+  const deny = await requireAdmin()
+  if (deny) return { ok: false as const, message: deny.message, data: null }
+
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('whitelist')
