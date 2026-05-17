@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { getPersonaSession, adminClient } from '../fixtures/supabase'
+import { getPersonaSession, adminClient, SUPABASE_URL, SUPABASE_ANON_KEY } from '../fixtures/supabase'
 import { makeCleanupCtx, cleanup } from '../fixtures/cleanup'
 
 const ctx = makeCleanupCtx()
@@ -57,8 +57,8 @@ describe('SELECT tasks', () => {
     // adminClient bypasses RLS; use a truly unauthenticated client
     const { createClient } = await import('@supabase/supabase-js')
     const anonClient = createClient(
-      process.env.SUPABASE_URL ?? 'http://127.0.0.1:54321',
-      process.env.SUPABASE_ANON_KEY ?? '',
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY,
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
     const { data, error: anonError } = await anonClient.from('tasks').select('id')

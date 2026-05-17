@@ -1,10 +1,11 @@
-import type { AppRole } from '@/src/modules/task-board/domain/entities'
+import type { AppRole, PatenteType } from '@/src/modules/task-board/domain/entities'
 
 // Task-board domain types — canonical source is src/modules/task-board/domain/entities.ts
 export type {
   AppRole,
   TaskSector,
   TaskStatus,
+  PatenteType,
   Profile,
   Task,
   TaskAssignee,
@@ -13,7 +14,7 @@ export type {
   NormalizedTaskInput,
   TaskDatesValidation,
 } from '@/src/modules/task-board/domain/entities'
-export { KANBAN_COLUMNS, SECTOR_LABELS } from '@/src/modules/task-board/domain/entities'
+export { KANBAN_COLUMNS, SECTOR_LABELS, PATENTE_OPTIONS } from '@/src/modules/task-board/domain/entities'
 
 // Reporting context
 export interface UserTaskStats {
@@ -22,6 +23,7 @@ export interface UserTaskStats {
   full_name: string | null
   avatar_url: string | null
   role: AppRole
+  patente: PatenteType | null
   total_tasks: number
   finished_tasks: number
   in_progress_tasks: number

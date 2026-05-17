@@ -2,6 +2,13 @@
 
 import Image from 'next/image'
 import type { UserTaskStats } from '@/lib/supabase/types'
+import { formatNomeCompleto } from '@/lib/utils/format'
+
+interface SectorStats {
+  DT: { alocadas: number; finalizadas: number }
+  DA: { alocadas: number; finalizadas: number }
+  total: number
+}
 
 interface DashboardViewProps {
   stats: UserTaskStats[]
@@ -12,6 +19,7 @@ interface DashboardViewProps {
     em_revisao: number
     finalizada: number
   }
+  sectorStats: SectorStats
 }
 
 const STATUS_CONFIG = [
@@ -22,7 +30,7 @@ const STATUS_CONFIG = [
   { key: 'finalizada' as const, label: 'Finalizadas', color: 'bg-green-500/10', textColor: 'text-green-700 dark:text-green-400', icon: '✅' },
 ]
 
-export default function DashboardView({ stats, totalByStatus }: DashboardViewProps) {
+export default function DashboardView({ stats, totalByStatus, sectorStats }: DashboardViewProps) {
   const totalTasks = Object.values(totalByStatus).reduce((a, b) => a + b, 0)
 
   return (
@@ -68,6 +76,52 @@ export default function DashboardView({ stats, totalByStatus }: DashboardViewPro
             </div>
           )
         })}
+      </div>
+
+      {/* Distribuição por Divisão */}
+      <div className="flex flex-col gap-4">
+        <h2 className="text-base font-semibold text-foreground">Distribuição por Divisão</h2>
+        {sectorStats.total === 0 ? (
+          <div className="bg-card border border-border rounded-2xl p-6 text-center text-sm text-muted-foreground">
+            Nenhuma atividade alocada ou concluída registrada.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {(['DT', 'DA'] as const).map((sector) => {
+              const data = sectorStats[sector]
+              const totalSector = data.alocadas + data.finalizadas
+              const pct = sectorStats.total > 0 ? Math.round((totalSector / sectorStats.total) * 100) : 0
+              return (
+                <div key={sector} className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-foreground">{sector}</span>
+                    <span className="text-sm font-semibold text-muted-foreground">{pct}%</span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Alocadas</span>
+                      <span className="font-semibold text-foreground">{data.alocadas}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Concluídas</span>
+                      <span className="font-semibold text-green-700 dark:text-green-400">{data.finalizadas}</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-medium">
+                      <span className="text-muted-foreground">Total</span>
+                      <span className="text-foreground">{totalSector}</span>
+                    </div>
+                  </div>
+                  <div className="h-2 bg-border rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all duration-500"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Tabela de usuários */}
@@ -122,7 +176,9 @@ export default function DashboardView({ stats, totalByStatus }: DashboardViewPro
                                 {s.email[0]?.toUpperCase() ?? '?'}
                               </div>
                             )}
-                            <span className="font-medium text-foreground truncate max-w-[160px]">{s.email}</span>
+                            <span className="font-medium text-foreground truncate max-w-[160px]">
+                              {formatNomeCompleto(s.patente, s.full_name) || s.email}
+                            </span>
                           </div>
                         </td>
 

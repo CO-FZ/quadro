@@ -1,6 +1,11 @@
 export type AppRole = 'admin' | 'coordenador' | 'efetivo'
 export type TaskSector = 'DT' | 'DA'
 export type TaskStatus = 'backlog' | 'alocada' | 'em_desenvolvimento' | 'em_revisao' | 'finalizada' | 'arquivada'
+export type PatenteType = 'Cel' | 'TCel' | 'Maj' | 'Cap' | 'Ten' | 'SUB' | '1SGT' | '2SGT' | '3SGT' | 'CB' | 'SD'
+
+export const PATENTE_OPTIONS: PatenteType[] = [
+  'Cel', 'TCel', 'Maj', 'Cap', 'Ten', 'SUB', '1SGT', '2SGT', '3SGT', 'CB', 'SD',
+]
 
 export interface Profile {
   id: string
@@ -8,6 +13,7 @@ export interface Profile {
   full_name: string | null
   avatar_url: string | null
   role: AppRole
+  patente: PatenteType | null
   created_at: string
   updated_at: string
   archived_at: string | null

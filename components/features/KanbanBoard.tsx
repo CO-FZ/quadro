@@ -4,6 +4,7 @@ import { useOptimistic, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Profile, TaskStatus, TaskWithAssignees } from '@/lib/supabase/types'
 import { KANBAN_COLUMNS } from '@/lib/supabase/types'
+import { formatNomeCompleto } from '@/lib/utils/format'
 import TaskCard from '@/components/features/TaskCard'
 import TaskModal from '@/components/features/TaskModal'
 import { updateTaskStatus, createTask } from '@/lib/actions/tasks'
@@ -11,7 +12,7 @@ import { useToast } from '@/components/ui/ToastProvider'
 
 interface KanbanBoardProps {
   tasks: TaskWithAssignees[]
-  profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'avatar_url' | 'role'>[]
+  profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'avatar_url' | 'role' | 'patente'>[]
   currentUserId: string
   currentUserRole: string
 }
@@ -141,7 +142,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
           >
             <option value="all">Todos os responsáveis</option>
             {profiles.map((p) => (
-              <option key={p.id} value={p.id}>{p.full_name ?? p.email}</option>
+              <option key={p.id} value={p.id}>{formatNomeCompleto(p.patente, p.full_name) || p.email}</option>
             ))}
           </select>
 

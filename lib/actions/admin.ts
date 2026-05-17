@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { logger } from '@/lib/logger'
-import type { AppRole, PrivilegedRoleAuditEntry } from '@/lib/supabase/types'
+import type { AppRole, PatenteType, PrivilegedRoleAuditEntry } from '@/lib/supabase/types'
 
 const PRIVILEGED_ROLES: AppRole[] = ['admin', 'coordenador']
 
@@ -73,6 +73,24 @@ export async function updateUserRole(userId: string, role: AppRole): Promise<Act
     }
 
     const { error } = await supabase.from('profiles').update({ role }).eq('id', userId)
+    if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
+
+    revalidateAdmin()
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, code: 'UNEXPECTED', message: String(e) }
+  }
+}
+
+// ─── Alterar patente de usuário ──────────────────────────────────────────────
+
+export async function updateUserPatente(userId: string, patente: PatenteType | null): Promise<ActionResult> {
+  try {
+    const deny = await requireAdmin()
+    if (deny) return deny
+
+    const supabase = await createClient()
+    const { error } = await supabase.from('profiles').update({ patente }).eq('id', userId)
     if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
 
     revalidateAdmin()

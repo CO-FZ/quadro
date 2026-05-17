@@ -5,12 +5,15 @@ import Image from 'next/image'
 import type {
   Profile,
   AppRole,
+  PatenteType,
   WhitelistEntry,
   PrivilegedRoleAuditEntry,
   PrivilegedRoleAuditSource,
 } from '@/lib/supabase/types'
-import { updateUserRole, addToWhitelist, removeFromWhitelist, archiveUser, restoreUser } from '@/lib/actions/admin'
+import { PATENTE_OPTIONS } from '@/lib/supabase/types'
+import { updateUserRole, updateUserPatente, addToWhitelist, removeFromWhitelist, archiveUser, restoreUser } from '@/lib/actions/admin'
 import { isPrivilegedDomainEntry } from '@/lib/utils/admin-warnings'
+import { formatNomeCompleto } from '@/lib/utils/format'
 import { t } from '@/lib/i18n'
 
 interface AdminViewProps {
@@ -105,6 +108,13 @@ export default function AdminView({
 
   function handleRoleChange(userId: string, role: AppRole) {
     withFeedback(() => updateUserRole(userId, role), 'Role atualizado com sucesso.')
+  }
+
+  function handlePatenteChange(userId: string, patente: PatenteType | '') {
+    withFeedback(
+      () => updateUserPatente(userId, patente === '' ? null : patente),
+      'Patente atualizada com sucesso.',
+    )
   }
 
   function handleAddWhitelist(e: React.FormEvent) {
@@ -206,6 +216,7 @@ export default function AdminView({
               <tr className="border-b border-border bg-muted/50">
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Usuário</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Membro desde</th>
+                <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Patente</th>
                 <th className="text-right px-4 py-3 font-medium text-muted-foreground">Role</th>
               </tr>
             </thead>
@@ -225,7 +236,7 @@ export default function AdminView({
                       )}
                       <div className="flex flex-col">
                         <span className="font-medium truncate max-w-[180px] flex items-center gap-2">
-                          {p.full_name || p.email}
+                          {formatNomeCompleto(p.patente, p.full_name) || p.email}
                           {isArchived && <span className="text-[10px] px-2 py-0.5 rounded-full bg-destructive/10 text-destructive font-semibold">Arquivado</span>}
                         </span>
                         {p.full_name && <span className="text-xs text-muted-foreground">{p.email}</span>}
@@ -234,6 +245,20 @@ export default function AdminView({
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
                     {new Date(p.created_at).toLocaleDateString('pt-BR')}
+                  </td>
+                  <td className="px-4 py-3 text-right hidden md:table-cell">
+                    <select
+                      id={`patente-select-${p.id}`}
+                      value={p.patente ?? ''}
+                      onChange={(e) => handlePatenteChange(p.id, e.target.value as PatenteType | '')}
+                      disabled={isSubmitting || isArchived}
+                      className="text-xs font-semibold px-3 py-1 rounded-full border border-border bg-background cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
+                    >
+                      <option value="">—</option>
+                      {PATENTE_OPTIONS.map((pat) => (
+                        <option key={pat} value={pat}>{pat}</option>
+                      ))}
+                    </select>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-2">

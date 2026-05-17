@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Profile } from '@/lib/supabase/types'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { formatNomeCompleto } from '@/lib/utils/format'
 
 /** Retorna a inicial para o avatar fallback */
 function getInitial(profile: Profile | null): string {
@@ -22,6 +23,15 @@ interface AppShellProps {
 
 const NAV_ITEMS = [
   {
+    href: '/dashboard',
+    label: 'Dashboard',
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+      </svg>
+    ),
+  },
+  {
     href: '/kanban',
     label: 'Kanban',
     icon: (
@@ -31,11 +41,11 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: '/dashboard',
-    label: 'Dashboard',
+    href: '/matriz',
+    label: 'Matriz',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75.125v-7.5M6 18.375c0 .621-.504 1.125-1.125 1.125M6 18.375v-7.5m0 0a1.125 1.125 0 0 0-1.125-1.125H3.375m2.625 1.125h14.25M6 10.875c0-.621.504-1.125 1.125-1.125h9.75c.621 0 1.125.504 1.125 1.125M6 10.875v7.5m12 0v-7.5m0 7.5a1.125 1.125 0 0 1-1.125 1.125H7.5m10.5-8.625v-2.25c0-.621-.504-1.125-1.125-1.125H7.125C6.504 7.5 6 8.004 6 8.625v2.25m12 0H6m-1.5 0H3.375m17.25 0H20.625" />
       </svg>
     ),
   },
@@ -133,7 +143,9 @@ export default function AppShell({ profile, children }: AppShellProps) {
                   <div className="absolute right-0 top-full mt-2 w-56 bg-card border border-border rounded-xl shadow-xl py-2 z-50">
                     <div className="px-4 py-2 border-b border-border">
                       {profile?.full_name && (
-                        <p className="text-xs font-semibold text-foreground truncate">{profile.full_name}</p>
+                        <p className="text-xs font-semibold text-foreground truncate">
+                          {formatNomeCompleto(profile.patente, profile.full_name)}
+                        </p>
                       )}
                       <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
                       <p className="text-xs text-muted-foreground capitalize mt-0.5">{profile?.role}</p>

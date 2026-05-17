@@ -12,7 +12,7 @@ export default async function DashboardPage() {
 
   const { data: taskCounts } = await supabase
     .from('tasks')
-    .select('status')
+    .select('status, sector')
 
   const totalByStatus = {
     backlog: 0,
@@ -21,15 +21,34 @@ export default async function DashboardPage() {
     em_revisao: 0,
     finalizada: 0,
   }
+
+  const sectorStats = {
+    DT: { alocadas: 0, finalizadas: 0 },
+    DA: { alocadas: 0, finalizadas: 0 },
+    total: 0,
+  }
+
   for (const t of taskCounts ?? []) {
     const s = t.status as keyof typeof totalByStatus
     if (s in totalByStatus) totalByStatus[s]++
+
+    const sector = t.sector as 'DT' | 'DA'
+    if (sector === 'DT' || sector === 'DA') {
+      if (t.status === 'alocada') {
+        sectorStats[sector].alocadas++
+        sectorStats.total++
+      } else if (t.status === 'finalizada') {
+        sectorStats[sector].finalizadas++
+        sectorStats.total++
+      }
+    }
   }
 
   return (
     <DashboardView
       stats={(stats ?? []) as UserTaskStats[]}
       totalByStatus={totalByStatus}
+      sectorStats={sectorStats}
     />
   )
 }
