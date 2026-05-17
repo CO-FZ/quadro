@@ -134,17 +134,13 @@ Hoje: `pnpm typecheck` ✅, `pnpm lint` ✅, `pnpm test:unit` ✅ 59/59. Camadas
 
 Snapshot consolidado em 2026-05-10. Itens herdados (não fechados pelas Sprints 07-A/07-B) + débitos novos descobertos durante a arqueologia retroativa.
 
-### 🔴 P0 — entram na Sprint 07-C (a planejar)
+### 🟢 P2/P3 — backlog longo / pós-v1
 
-- **Camadas 2/3/4 da Sprint 07-A** — integration (Vitest+Supabase local), E2E (Playwright + screenshot diff mobile), pgTAP. Pré-condição para promover ADR 0005 a `aceito` e configurar CI.
-- **Filtro `archived_at IS NULL` no assignee selector** (`app/(app)/kanban/page.tsx`) — regra §2 da story 05 nunca implementada.
-- **Aplicar migrations remotas** `20260510000000_check_whitelist_on_email_update.sql` e `20260510000001_privileged_role_audit.sql` via `supabase db push` (gate humano).
+- **Camadas 2/3/4 da Sprint 07-A** — integration (Vitest+Supabase local), E2E (Playwright + screenshot diff mobile), pgTAP. Pré-condição para promover ADR 0005 a `aceito` e configurar CI. *(Ficará dependente do usuário validar localmente pois o Agent Sandbox não possui Docker)*.
 - **Rodar `tests/smoke/anti-spoofing.sh` em staging** após aplicar as migrations e registrar resultado em `docs/memory/deploys/_summary.md`.
 
 ### 🟡 P1 — formalizar / documentar
 
-- **`is_admin()` SECURITY DEFINER sem ADR** (introduzido em migration `20260507000004`) — virar ADR 0006 ou revisão do ADR 0001.
-- **Final Artifact da Sprint 07-A** — só o Plan Artifact existe; Final fica para acompanhar fechamento das Camadas 2/3/4.
 - **Audit log para `updateUserRole`** (mudança pós-cadastro) — Story 07B.3 só cobre criação automática.
 - **Migração total de mensagens hard-coded para `lib/i18n`** — hoje só 5 chaves críticas + 13 da audit tab.
 
