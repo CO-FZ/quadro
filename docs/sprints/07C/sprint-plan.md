@@ -4,8 +4,9 @@
 
 **Data de início:** 2026-05-16
 **Capacidade:** 1 dev humano + 1 agente (Sonnet 4.6)
-**Status:** ⬜ aguardando Gate 1 (Plan Artifact / instanciação aprovada)
+**Status:** 🟢 **fechada retroativamente em 2026-05-17** — escopo entregue ao longo das Sprints pre-08 (commits `b01c52b`, `1e42077`), sem closure formal à época. Reconciliação documental feita pela Sprint 11. Ver [Sprint 11 sprint-plan §1](../11/sprint-plan.md) e [07C/_summary.md](../../memory/sprints/07C/_summary.md).
 **Sprint precedente:** [Sprint 07-B — Débitos transversais](../07B/sprint-plan.md)
+**Sprint que fechou retroativamente:** [Sprint 11 — Estabilização](../11/sprint-plan.md)
 
 ---
 
@@ -13,10 +14,10 @@
 
 | ID | Story / Task | Tipo | Estimativa | Owner | Prioridade | Status |
 |----|--------------|------|-----------|-------|------------|--------|
-| Story 07C.1 | Camadas 2/3/4 + CI (integration + E2E + pgTAP + GitHub Actions) | story | L | agente | P0 | ⬜ |
-| Story 07C.2 | Bug: assignee arquivado aparece no selector do Kanban | bug | XS | agente | P0 | ⬜ |
-| Gate G1 | Aplicar migrations remotas `000000` e `000001` via `supabase db push` | gate humano | — | humano | P0 | ⬜ |
-| Gate G2 | Smoke anti-spoofing em staging com `tests/smoke/anti-spoofing.sh` | gate humano | — | humano | P0 | ⬜ |
+| Story 07C.1 | Camadas 2/3/4 + CI (integration + E2E + pgTAP + GitHub Actions) | story | L | agente | P0 | ✅ entregue out-of-band em `b01c52b`; fixes em `1e42077`. Validação operacional pendente em [Story 11.3](../11/story-11.3-runbook-validacao.md). |
+| Story 07C.2 | Bug: assignee arquivado aparece no selector do Kanban | bug | XS | agente | P0 | ✅ entregue (`app/(app)/kanban/page.tsx:30` aplica `.is('archived_at', null)`) |
+| Gate G1 | Aplicar migrations remotas `000000` e `000001` via `supabase db push` | gate humano | — | humano | P0 | ⬜ permanece em aberto — débito rastreado |
+| Gate G2 | Smoke anti-spoofing em staging com `tests/smoke/anti-spoofing.sh` | gate humano | — | humano | P0 | ⬜ permanece em aberto — débito rastreado |
 
 > **Story 07C.1** herda os critérios de aceite das Stories 07A.2, 07A.3 e 07A.4 (arquivos existentes). O bloco é tratado como entrega única porque as três camadas compartilham o mesmo `globalSetup` Docker + a mesma janela de capacidade.
 

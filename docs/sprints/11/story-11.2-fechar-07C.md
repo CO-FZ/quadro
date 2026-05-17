@@ -1,103 +1,100 @@
-# Story 11.2: Promover ADR 0005 + fechar Sprint 07-C retroativamente
+# Story 11.2: Fechar Sprint 07-C retroativamente + reconciliar índice global
 
 **Sprint:** 11 — ver [sprint-plan.md](sprint-plan.md)
-**Depende de:** [Story 11.1 — Estabilizar integration](story-11.1-estabilizar-integration.md) (DoD verde).
-**ADRs:** [0005 — Estratégia de testes em camadas](../../spec/adr/0005-estrategia-de-testes.md)
+**Tipo:** docs
 **Prioridade:** P0
-**Estimativa:** XS (puramente documental, executada após 11.1).
+**Estimativa:** S
+**Status:** ✅ entregue em 2026-05-17
+
+> Esta story executa apenas a parte documental que o agente pode fazer sem Docker. A promoção do ADR 0005 e o Final Artifact da própria Sprint 11 ficam para a [Story 11.3](story-11.3-runbook-validacao.md), gate humano.
 
 ---
 
 ## 1. Visão Geral
 
-Esta story reconcilia o sistema de memória (`docs/memory/sprints/_summary.md`, ADRs, Final Artifacts) com o estado real do código que vem sendo evoluído sem closure formal desde a Sprint 07-C. Não há código de produto envolvido.
+Reconcilia o sistema de memória (`docs/memory/sprints/_summary.md`, sprint-plans, ADRs) com o estado real do código. Nenhum código de produto é tocado.
 
-**Razão de existir:** o `_summary.md` ainda lista como **P0 em aberto** itens que estão entregues:
+**Razão de existir:** `_summary.md` listava como **P0 em aberto** itens que estão entregues há semanas:
 
 | P0 listado em aberto | Estado real | Commit/local |
 |----------------------|-------------|--------------|
-| Camadas 2/3/4 + CI | Scaffolding entregue; Camada 2 verde após Story 11.1 | `b01c52b`, validação desta sprint |
-| Filtro `archived_at IS NULL` no assignee selector | Aplicado | `app/(app)/kanban/page.tsx:30` (rastrear commit de origem via `git log --follow`) |
-| ADR 0005 promovido a `aceito` | Pendente — este é o último passo | esta story |
+| Camadas 2/3/4 + CI | Scaffolding entregue; fixes operacionais em `1e42077` | `b01c52b`, `1e42077` |
+| Filtro `archived_at IS NULL` no assignee selector | Aplicado | `app/(app)/kanban/page.tsx:30` |
+| ADR 0005 promovido a `aceito` | Pendente — depende de validação operacional | Story 11.3 |
 
-Manter esses itens listados como em aberto contamina o planning futuro e desinforma análises de status (como a que motivou esta sprint).
+E o índice nunca registrou as Sprints 08, 09, 10 que rodaram entre 2026-05-16 e 2026-05-16.
 
 ---
 
 ## 2. Critérios de Aceite
 
-### CA-01 — ADR 0005 promovido
+### CA-01 — Final Artifact retroativo da Sprint 07-C
 
-- **Given** `pnpm test:integration` verde (CA-01 da Story 11.1) e health-check Camadas 3/4 registrado.
-- **When** `docs/spec/adr/0005-estrategia-de-testes.md` é editado.
-- **Then** o campo `**Status:**` muda de `proposto` para `aceito`, com uma linha logo abaixo registrando a data: `**Aceito em:** 2026-05-17 — após Sprint 11 estabilizar integration tests; scaffolding Camadas 2/3/4 em `b01c52b`.`
-
-### CA-02 — Final Artifact retroativo da Sprint 07-C
-
-- **Given** o trabalho da 07-C foi feito em múltiplos commits (principalmente `b01c52b`, `1e42077`) sem closure formal.
+- **Given** o trabalho da 07-C foi feito em múltiplos commits sem closure formal.
 - **When** `docs/memory/execution/2026-05-17-sprint-07C-final.md` é criado.
-- **Then** o arquivo segue o template de Final Artifact (sumário, escopo entregue, débitos rastreados, gates pendentes G1/G2, links para commits e PRs).
+- **Then** segue o template (sumário 5 linhas, arquivos alterados por commit, como testar, riscos, próximo passo, limitação metodológica retroativa). ✅
 
-### CA-03 — `_summary.md` Sprint 07-C escrito
+### CA-02 — `_summary.md` da Sprint 07-C escrito
 
 - **Given** os outros docs da 07-C (sprint-plan, stories, gate guides) já existem.
 - **When** `docs/memory/sprints/07C/_summary.md` é criado.
-- **Then** o arquivo segue o padrão de resumo de fase usado em `docs/memory/sprints/07B/_summary.md` (status, fechado, aberto, débitos transferidos).
+- **Then** segue o padrão da Sprint 07-B (status, stories, débitos transferidos, notas metodológicas). ✅
 
-### CA-04 — Índice global atualizado
+### CA-03 — Status do sprint-plan da 07-C atualizado
 
-- **Given** `docs/memory/sprints/_summary.md` lista até a Sprint 07-B no índice principal.
+- **Given** sprint-plan ainda dizia `⬜ aguardando Gate 1`.
+- **When** o header e a tabela do backlog são editados.
+- **Then** status passa a `🟢 fechada retroativamente em 2026-05-17`; backlog mostra status real de cada item (07C.1 ✅ scaffolding + Story 11.3 para validação; 07C.2 ✅; G1/G2 ⬜ débito). ✅
+
+### CA-04 — Índice global reorganizado
+
+- **Given** `docs/memory/sprints/_summary.md` listava só até a Sprint 07-B.
 - **When** o índice é atualizado.
-- **Then**:
-  - Adicionar bloco "Sprint 07-C — Fechar a suíte e P0s remanescentes" com status `🟢 fechada retroativamente — 2026-05-17`, links para sprint-plan, stories, gates, e Final Artifact desta sprint.
-  - Mover os P0s da 07-C da seção "🔴 P0 — entram na Sprint 07-C (a planejar)" para uma seção nova "✅ P0s fechados via Sprints 08–11" com referência aos commits.
-  - Atualizar a linha `**Última atualização:**` no topo.
+- **Then**: ✅
+  - Data de "Última atualização" mudou para 2026-05-17.
+  - Blocos novos: Sprint 07-C, Sprint 08, Sprint 09, Sprint 10, Sprint 11.
+  - Seção "Débitos abertos pós-Sprint 07" reorganizada: P0s ex-07-C movidos para "✅ fechados via Sprints 07-C / 11"; P0s remanescentes (Story 11.3 + Gates G1/G2) ficam em "🔴 gates humanos remanescentes".
 
-### CA-05 — Sprints 08/09/10 referenciadas no índice
+### CA-05 — ADR 0005 não promovido nesta story
 
-- **Given** o índice global pula da 07-B direto para a seção de débitos, sem registrar 08/09/10 que já foram concluídas.
-- **When** o índice é atualizado.
-- **Then** blocos resumidos das Sprints 08, 09, 10 são adicionados — cada um com 3-5 linhas (status, plano, stories, escopo entregue), seguindo o padrão das sprints anteriores. **Conteúdo já documentado** em `docs/memory/execution/2026-05-16-*.md`.
+- **Given** a promoção depende de `pnpm test:integration` verde, que depende de Docker.
+- **When** o ADR é deixado inalterado.
+- **Then** segue `proposto`; promoção formal fica em Story 11.3 §3.8. ✅
 
-### CA-06 — Final Artifact da própria Sprint 11
+### CA-06 — Sprint 11 Final Artifact não escrito nesta story
 
-- **Given** Stories 11.1 e 11.2 concluídas.
-- **When** `docs/memory/execution/2026-05-17-sprint-11-final.md` é criado.
-- **Then** segue template: sumário em 5 linhas, arquivos alterados, como testar (`pnpm typecheck && pnpm lint && pnpm test:unit && pnpm test:integration`), riscos conhecidos, próximo passo sugerido.
+- **Given** Final Artifact descreve o que foi feito numa sprint; Sprint 11 ainda tem Story 11.3 aberta.
+- **When** nenhum arquivo `2026-05-17-sprint-11-final.md` é criado.
+- **Then** Final Artifact fica para o humano escrever ao concluir Story 11.3. ✅
 
 ---
 
-## 3. Arquivos a criar / editar
+## 3. Arquivos criados / editados
 
-**Criar:**
+**Criados:**
 
 - `docs/memory/sprints/07C/_summary.md`
 - `docs/memory/execution/2026-05-17-sprint-07C-final.md`
-- `docs/memory/execution/2026-05-17-sprint-11-final.md`
 
-**Editar:**
+**Editados:**
 
-- `docs/spec/adr/0005-estrategia-de-testes.md` — status + data de aceite.
-- `docs/memory/sprints/_summary.md` — novo bloco 07-C; blocos 08/09/10 resumidos; reorganização da seção de débitos abertos vs. fechados; data de atualização.
-- `docs/sprints/07C/sprint-plan.md` — status `⬜ aguardando` → `🟢 fechada — 2026-05-17` (campo Status no header e item 2 da retro).
-- `docs/sprints/11/sprint-plan.md` — preencher seção 10 (retrospectiva + métricas).
+- `docs/sprints/07C/sprint-plan.md` — header de status; tabela do backlog.
+- `docs/memory/sprints/_summary.md` — data de atualização; blocos 07-C/08/09/10/11; reorganização da seção de débitos.
+
+**Intencionalmente NÃO tocados (escopo da Story 11.3):**
+
+- `docs/spec/adr/0005-estrategia-de-testes.md`.
+- `docs/memory/execution/AAAA-MM-DD-sprint-11-final.md`.
+- `docs/sprints/11/sprint-plan.md` §10 (retrospectiva).
+- `docs/memory/sprints/11/_summary.md`.
+- `test_output.txt` / `test_output_2.txt` (cleanup proposto na 11.3).
 
 ---
 
 ## 4. Escopo negativo
 
-- ❌ Editar `docs/product/roadmap.md` para refletir P0s fechados — uma atualização derivada, fica como ação follow-up (mencionar em "Próximo passo sugerido" do Final Artifact, não fazer aqui).
-- ❌ Gates G1 (`supabase db push`) e G2 (smoke staging) — permanecem como **débitos abertos** referenciados no `_summary.md`; são operação humana fora do escopo de qualquer agente.
+- ❌ Promover ADR 0005 a `aceito` — escopo da Story 11.3.
+- ❌ Editar `docs/product/roadmap.md` para refletir débitos atualizados — follow-up; mencionar no Final Artifact da Sprint 11 (Story 11.3).
+- ❌ Gates G1 e G2 — operação humana; permanecem rastreados.
 - ❌ Reescrever histórico de commits ou mudar autoria — only forward-only docs.
-- ❌ Mudar ADRs 0001/0002/0003/0004 — fora de escopo.
-
----
-
-## 5. Verificação humana esperada
-
-O humano valida (Gate 2):
-
-- Diff só toca arquivos `.md` em `docs/`.
-- ADR 0005 com `Status: aceito` + data.
-- `_summary.md` consistente — débitos P0 ex-07-C removidos da seção "abertos".
-- Final Artifact reflete o que de fato foi feito nesta sprint.
+- ❌ Mexer em ADRs além do 0005 (e nem nesse — fica para 11.3).

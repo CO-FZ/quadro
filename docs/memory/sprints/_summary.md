@@ -1,6 +1,6 @@
 # Sprints — Summary
 
-**Última atualização:** 2026-05-16 (Sprint 07-C aberta; sprint-plan + stories + gates instanciados)
+**Última atualização:** 2026-05-17 (Sprint 11 reconcilia 07-C retroativamente; Sprints 08/09/10 documentadas; débitos P0 da 07-C movidos para "fechados")
 
 > Index acumulativo das sprints. Cada sprint mantém seu próprio plano em `docs/sprints/<n>/sprint-plan.md`. Resumos de fase ficam em `docs/memory/sprints/<n>/_summary.md`. Logs detalhados de execução em `docs/memory/execution/`.
 
@@ -128,25 +128,105 @@ Hoje: `pnpm typecheck` ✅, `pnpm lint` ✅, `pnpm test:unit` ✅ 59/59. Camadas
 
 **Aberto:** ver "Débitos abertos pós-Sprint 07" abaixo.
 
+## Sprint 07-C — Fechar a suíte e P0s remanescentes
+
+**Status:** 🟢 fechada retroativamente — 2026-05-17. Entrega operacional out-of-band em `b01c52b` (scaffolding) + `1e42077` (fixes de path do alias e regex CA-18). Closure documental pela Sprint 11.
+**Plano:** [docs/sprints/07C/sprint-plan.md](../../sprints/07C/sprint-plan.md)
+**Stories:**
+
+- 🟢 [07C.1 — Camadas 2/3/4 + CI](../../sprints/07C/story-07C.1-camadas-2-3-4-ci.md) — scaffolding + fixes entregues; validação operacional pendente em [Story 11.3](../../sprints/11/story-11.3-runbook-validacao.md).
+- ✅ [07C.2 — Bug assignee arquivado](../../sprints/07C/story-07C.2-assignee-arquivado.md) — `app/(app)/kanban/page.tsx:30` aplica `.is('archived_at', null)`.
+
+**Resumo de fase:** [07C/_summary.md](07C/_summary.md)
+**Final Artifact:** [../execution/2026-05-17-sprint-07C-final.md](../execution/2026-05-17-sprint-07C-final.md)
+
+**Fechado:** scaffolding completo de `tests/integration/**`, `tests/e2e/**`, `supabase/tests/**`, `playwright.config.ts`, `.github/workflows/ci.yml`, scripts `test:integration/e2e/db`; fix `tests/integration.config.ts` alias `@/` → repo root; regex CA-18 aceita mensagem mascarada do GoTrue; filtro `archived_at IS NULL` no assignee selector; migration RLS adicional `20260516130000_allow_task_creator_to_assign.sql` (out-of-band).
+
+**Aberto:** validação `pnpm test:integration` verde (Story 11.3); promoção do ADR 0005; Gate G1 (migrations `20260510000000/001` em remoto); Gate G2 (smoke anti-spoofing em staging).
+
+## Sprint 08 — Architecture Foundation & Docs Source of Truth
+
+**Status:** 🟢 concluída — 2026-05-16. Gates G1 e G2 aprovados.
+**Plano:** [docs/sprints/08/sprint-plan.md](../../sprints/08/sprint-plan.md)
+**Stories:**
+
+- ✅ [08.1 — Docs Source of Truth](../../sprints/08/story-08.1-docs-source-of-truth.md) — estrutura canônica `docs/{adr,api,architecture,diagrams,engineering,product,spec}`.
+- ✅ [08.2 — Architecture Baseline para Modular Monolith + Clean Architecture](../../sprints/08/story-08.2-architecture-baseline.md) — bounded contexts, ADR 0006 e 0007 abertos.
+
+**Execução registrada:** [../execution/2026-05-16-sprint-08-docs-architecture.md](../execution/2026-05-16-sprint-08-docs-architecture.md)
+
+**Fechado:** `docs/` reorganizado; bounded contexts mapeados; ADRs 0006 (Modular Monolith + Clean Architecture) e 0007 (State Architecture) aceitos após Gate G2 (commit `18ba07b`); roadmap arquitetural Sprints 08–18.
+
+**Aberto:** nenhum específico — toda a fundação serve como base para 09+.
+
+## Sprint 09 — Refatoração Task Board (Modular Monolith) + Premium Dark Mode
+
+**Status:** 🟢 concluída — 2026-05-16.
+**Plano:** [docs/sprints/09/sprint-plan.md](../../sprints/09/sprint-plan.md)
+**Stories:**
+
+- ✅ [09.1 — Task Board Modular Monolith](../../sprints/09/story-09.1-task-board-modular-monolith.md) — domínio extraído para `src/modules/task-board/{domain,application,infrastructure}/`; `lib/actions/tasks.ts` vira facade chamando `TaskUseCases`.
+- ✅ [09.2 — Premium Dark Mode UI](../../sprints/09/story-09.2-premium-dark-mode-ui.md) — `app/globals.css` com paleta HSL teal + glassmorphism via Tailwind v4 `@theme`.
+
+**Execução registrada:** [../execution/2026-05-16-story-09.1-task-board-modular-monolith.md](../execution/2026-05-16-story-09.1-task-board-modular-monolith.md), [../execution/2026-05-16-story-09.2-premium-dark-mode-ui.md](../execution/2026-05-16-story-09.2-premium-dark-mode-ui.md)
+
+**Fechado:** primeira fatia da migração arquitetural (ADR 0006) sem regressão; design system v1 (Inter + paleta HSL teal); 59/59 testes unit verdes.
+
+**Aberto:** estender Clean Architecture aos outros bounded contexts (`whitelist`, `dashboard`); migrar mensagens restantes para `lib/i18n` (P1 herdado).
+
+## Sprint 10 — Kanban & Dashboard Improvements
+
+**Status:** 🟢 concluída — 2026-05-16. Migration `20260516140000_em_revisao_status.sql` pendente de `supabase db push` em remoto (operação humana).
+**Plano:** [docs/sprints/10/sprint-plan.md](../../sprints/10/sprint-plan.md)
+**Stories:**
+
+- ✅ [10.1 — Kanban & Dashboard Improvements](../../sprints/10/story-10.1-kanban-dashboard.md) — status `em_revisao` no `TaskStatus` + Kanban + Dashboard; view `user_task_stats` ganha `avatar_url`/`full_name`/`in_review_tasks`; avatar Google real no Dashboard com fallback.
+
+**Execução registrada:** [../execution/2026-05-16-story-10.1-kanban-dashboard.md](../execution/2026-05-16-story-10.1-kanban-dashboard.md)
+
+**Fechado:** novo status `em_revisao` (violet, entre `em_desenvolvimento` e `finalizada`); migration ALTER TYPE ADD VALUE + recriação da view; avatar real do Google no Dashboard com fallback para inicial; grid de 5 colunas no Kanban (`sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5`).
+
+**Aberto:** aplicar migration `20260516140000` em remoto; validação visual da nova coluna e do avatar via browser subagent.
+
+## Sprint 11 — Estabilização da suíte + fechamento retroativo da Sprint 07-C
+
+**Status:** 🟡 entregue parcialmente — 2026-05-17. Stories 11.1 (retroativa) e 11.2 (docs) fechadas pelo agente; Story 11.3 aguarda gate humano com Docker.
+**Plano:** [docs/sprints/11/sprint-plan.md](../../sprints/11/sprint-plan.md)
+**Stories:**
+
+- ✅ [11.1 — Estabilizar `pnpm test:integration`](../../sprints/11/story-11.1-estabilizar-integration.md) — fixes operacionais já estavam em `1e42077`; closure retroativa documental.
+- ✅ [11.2 — Fechar Sprint 07-C retroativamente](../../sprints/11/story-11.2-fechar-07C.md) — `07C/_summary.md`, Final Artifact retroativo, índice global atualizado.
+- ⬜ [11.3 — Runbook humano para validar Camada 2 + promover ADR 0005](../../sprints/11/story-11.3-runbook-validacao.md) — aguardando humano com Docker funcional.
+
+**Fechado:** reconciliação entre `_summary.md` e estado real do código; Sprint 07-C com closure documental completa; Sprints 08/09/10 registradas no índice global.
+
+**Aberto:** Story 11.3 (validação operacional `pnpm test:integration` + promoção do ADR 0005 + Sprint 11 Final Artifact); Gates G1 e G2 permanecem.
+
 ---
 
-## Débitos abertos pós-Sprint 07
+## Débitos abertos pós-Sprint 07 (snapshot 2026-05-17)
 
-Snapshot consolidado em 2026-05-10. Itens herdados (não fechados pelas Sprints 07-A/07-B) + débitos novos descobertos durante a arqueologia retroativa.
+Reconciliado em 2026-05-17. P0s da 07-C que estavam listados como abertos foram movidos para "fechados via Sprints 07-C / 11" abaixo, refletindo o estado real do código.
 
-### 🔴 P0 — entram na Sprint 07-C (a planejar)
+### 🔴 P0 — gates humanos remanescentes
 
-- **Camadas 2/3/4 da Sprint 07-A** — integration (Vitest+Supabase local), E2E (Playwright + screenshot diff mobile), pgTAP. Pré-condição para promover ADR 0005 a `aceito` e configurar CI.
-- **Filtro `archived_at IS NULL` no assignee selector** (`app/(app)/kanban/page.tsx`) — regra §2 da story 05 nunca implementada.
-- **Aplicar migrations remotas** `20260510000000_check_whitelist_on_email_update.sql` e `20260510000001_privileged_role_audit.sql` via `supabase db push` (gate humano).
-- **Rodar `tests/smoke/anti-spoofing.sh` em staging** após aplicar as migrations e registrar resultado em `docs/memory/deploys/_summary.md`.
+- **Validação operacional `pnpm test:integration` + promoção do ADR 0005** — escopo da [Story 11.3](../../sprints/11/story-11.3-runbook-validacao.md). Depende de Docker funcional na máquina do humano.
+- **Gate G1 — Aplicar migrations remotas** `20260510000000_check_whitelist_on_email_update.sql` e `20260510000001_privileged_role_audit.sql` via `supabase db push`. Detalhes: [gate-07C.G1-migrations-remotas.md](../../sprints/07C/gate-07C.G1-migrations-remotas.md).
+- **Gate G2 — Rodar `tests/smoke/anti-spoofing.sh` em staging** após G1 aplicado e registrar `3 PASS / 0 FAIL` em `docs/memory/deploys/_summary.md`. Detalhes: [gate-07C.G2-smoke-staging.md](../../sprints/07C/gate-07C.G2-smoke-staging.md).
+
+### ✅ P0 — fechados via Sprints 07-C / 11
+
+- ~~**Camadas 2/3/4 da Sprint 07-A** (scaffolding)~~ — entregue em `b01c52b`; fix de path do alias e regex CA-18 em `1e42077`. Validação operacional pendente em Story 11.3.
+- ~~**Filtro `archived_at IS NULL` no assignee selector**~~ — aplicado em `app/(app)/kanban/page.tsx:30`.
+- ~~**Sprint 07-C sem closure formal**~~ — `_summary.md`, Final Artifact e atualização do índice global feitas em 2026-05-17.
 
 ### 🟡 P1 — formalizar / documentar
 
-- **`is_admin()` SECURITY DEFINER sem ADR** (introduzido em migration `20260507000004`) — virar ADR 0006 ou revisão do ADR 0001.
-- **Final Artifact da Sprint 07-A** — só o Plan Artifact existe; Final fica para acompanhar fechamento das Camadas 2/3/4.
+- **`is_admin()` SECURITY DEFINER sem ADR** (introduzido em migration `20260507000004`) — virar ADR 0006 ou revisão do ADR 0001. (Nota: ADR 0006 foi usado em Sprint 08 para Modular Monolith + Clean Architecture; o ADR específico de `is_admin()` ainda não tem número alocado.)
+- **Final Artifact da Sprint 07-A** — só o Plan Artifact existe; Final fica para acompanhar fechamento das Camadas 2/3/4 (depende da Story 11.3).
 - **Audit log para `updateUserRole`** (mudança pós-cadastro) — Story 07B.3 só cobre criação automática.
-- **Migração total de mensagens hard-coded para `lib/i18n`** — hoje só 5 chaves críticas + 13 da audit tab.
+- **Migração total de mensagens hard-coded para `lib/i18n`** — hoje 18 chaves (5 de auth + 13 da audit tab).
+- **Cleanup de `test_output*.txt`** no repo root (stale após `1e42077`) — proposto na Story 11.3 §3.9.
 
 ### 🟢 P2/P3 — backlog longo / pós-v1
 
