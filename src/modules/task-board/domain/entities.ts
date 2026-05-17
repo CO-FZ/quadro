@@ -29,6 +29,7 @@ export interface Task {
   end_date: string
   sector: TaskSector
   status: TaskStatus
+  is_servico: boolean
   drive_url: string | null
   created_by: string | null
   created_at: string
@@ -54,6 +55,7 @@ export interface RawTaskInput {
   end_date: string
   sector: TaskSector
   drive_url: string
+  is_servico: boolean
 }
 
 export interface NormalizedTaskInput {
@@ -63,6 +65,7 @@ export interface NormalizedTaskInput {
   end_date: string
   sector: TaskSector
   drive_url: string | null
+  is_servico: boolean
 }
 
 export type TaskDatesValidation =

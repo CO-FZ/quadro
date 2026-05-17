@@ -78,6 +78,7 @@ it('CA-06: efetivo creates task → ok: true, status backlog', async () => {
     sector: 'DT',
     drive_url: '',
     assignee_ids: [],
+    is_servico: false,
   })
 
   expect(result.ok).toBe(true)
@@ -110,6 +111,7 @@ it('CA-07: createTask with assignees → status alocada', async () => {
     sector: 'DT',
     drive_url: '',
     assignee_ids: [adminId],
+    is_servico: false,
   })
   expect(result.ok).toBe(true)
 
@@ -142,6 +144,7 @@ it('CA-08: efetivo updateTask → FORBIDDEN, DB unchanged', async () => {
     sector: 'DT',
     drive_url: '',
     assignee_ids: [],
+    is_servico: false,
   })
 
   expect(result.ok).toBe(false)

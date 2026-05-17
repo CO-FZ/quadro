@@ -14,6 +14,7 @@ export default async function DashboardPage() {
   const { data: taskCounts } = await supabase
     .from('tasks')
     .select('status, sector')
+    .eq('is_servico', false)
 
   const totalByStatus = {
     backlog: 0,

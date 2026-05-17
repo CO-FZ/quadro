@@ -13,6 +13,7 @@ describe('normalizeTaskInput', () => {
     end_date: '2026-05-15',
     sector: 'DT' as TaskSector,
     drive_url: 'https://drive.google.com/abc',
+    is_servico: false,
   }
 
   it('title é trimado', () => {

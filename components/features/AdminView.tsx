@@ -16,8 +16,6 @@ import {
   updateUserProfile,
   addToWhitelist,
   removeFromWhitelist,
-  archiveUser,
-  restoreUser,
 } from '@/lib/actions/admin'
 import { isPrivilegedDomainEntry } from '@/lib/utils/admin-warnings'
 import { formatNomeCompleto } from '@/lib/utils/format'
@@ -318,15 +316,6 @@ export default function AdminView({
     setNewDefaultRole('efetivo')
   }
 
-  function handleArchive(userId: string, email: string) {
-    if (!confirm(`Tem certeza que deseja arquivar o usuário ${email}?`)) return
-    withFeedback(() => archiveUser(userId), `Usuário ${email} arquivado.`)
-  }
-
-  function handleRestore(userId: string, email: string) {
-    withFeedback(() => restoreUser(userId), `Usuário ${email} restaurado.`)
-  }
-
   function handleRemoveWhitelist(id: string, identifier: string) {
     if (!confirm(`Remover "${identifier}" da whitelist?`)) return
     withFeedback(() => removeFromWhitelist(id), `"${identifier}" removido.`)
@@ -502,23 +491,6 @@ export default function AdminView({
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
                               </svg>
                               Editar
-                            </button>
-                          )}
-                          {isArchived ? (
-                            <button
-                              onClick={() => handleRestore(p.id, p.email)}
-                              disabled={isSubmitting}
-                              className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
-                            >
-                              Restaurar
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleArchive(p.id, p.email)}
-                              disabled={isSubmitting}
-                              className="text-xs font-medium text-destructive hover:underline disabled:opacity-50"
-                            >
-                              Arquivar
                             </button>
                           )}
                         </div>

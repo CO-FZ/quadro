@@ -9,10 +9,11 @@ import { KANBAN_COLUMNS } from '@/lib/supabase/types'
 import type { TaskStatus } from '@/lib/supabase/types'
 import TaskModal from '@/components/features/TaskModal'
 import { useToast } from '@/components/ui/ToastProvider'
+import { formatNomeCompleto } from '@/lib/utils/format'
 
 interface TaskDetailModalProps {
   task: TaskWithAssignees
-  profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'avatar_url' | 'role'>[]
+  profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'nome_guerra' | 'avatar_url' | 'role' | 'patente'>[]
   canManage: boolean
   onClose: () => void
   onRefresh: () => void
@@ -171,7 +172,7 @@ export default function TaskDetailModal({ task, profiles, canManage, onClose, on
           {/* Histórico — criada por */}
           {task.created_by && (() => {
             const creator = profiles.find((p) => p.id === task.created_by)
-            const label = creator?.full_name ?? creator?.email ?? 'usuário removido'
+            const label = formatNomeCompleto(creator?.patente, creator?.nome_guerra ?? creator?.full_name) || creator?.email || 'usuário removido'
             return (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span>Criada por</span>
@@ -225,7 +226,7 @@ export default function TaskDetailModal({ task, profiles, canManage, onClose, on
                           {(p.full_name ?? p.email)[0]?.toUpperCase()}
                         </div>
                       )}
-                      <span className="text-sm truncate">{p.full_name ?? p.email}</span>
+                      <span className="text-sm truncate">{formatNomeCompleto(p.patente, p.nome_guerra ?? p.full_name) || p.email}</span>
                     </label>
                   ))}
                 </div>
@@ -248,7 +249,7 @@ export default function TaskDetailModal({ task, profiles, canManage, onClose, on
                         {(a.profiles?.full_name ?? a.profiles?.email)?.[0]?.toUpperCase()}
                       </div>
                     )}
-                    <span className="text-xs text-muted-foreground">{a.profiles?.full_name ?? a.profiles?.email}</span>
+                    <span className="text-xs text-muted-foreground">{formatNomeCompleto(a.profiles?.patente, a.profiles?.nome_guerra ?? a.profiles?.full_name) || a.profiles?.email}</span>
                   </div>
                 ))}
                 {task.task_assignees.length === 0 && (

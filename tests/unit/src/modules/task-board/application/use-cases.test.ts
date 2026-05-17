@@ -27,6 +27,7 @@ const baseInput: NormalizedTaskInput = {
   end_date: '2026-05-31',
   sector: 'DT',
   drive_url: null,
+  is_servico: false,
 }
 
 describe('TaskUseCases.createTask', () => {

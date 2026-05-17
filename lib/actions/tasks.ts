@@ -28,6 +28,7 @@ export async function createTask(data: {
   sector: TaskSector
   drive_url: string
   assignee_ids: string[]
+  is_servico: boolean
 }): Promise<ActionResult> {
   try {
     const caller = await getCallerRole()
@@ -53,6 +54,7 @@ export async function updateTask(
     sector: TaskSector
     drive_url: string
     assignee_ids: string[]
+    is_servico: boolean
   }
 ): Promise<ActionResult> {
   try {

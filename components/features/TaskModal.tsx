@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import type { Profile, TaskSector, TaskWithAssignees } from '@/lib/supabase/types'
 import { validateTaskDates } from '@/lib/utils/task-dates'
+import { formatNomeCompleto } from '@/lib/utils/format'
 
 interface TaskFormData {
   title: string
@@ -13,11 +14,11 @@ interface TaskFormData {
   sector: TaskSector
   drive_url: string
   assignee_ids: string[]
+  is_servico: boolean
 }
 
 interface TaskModalProps {
-  profiles: Pick<Profile, 'id' | 'email' | 'avatar_url' | 'role'>[]
-  /** Se fornecido, abre no modo edição com os dados pré-preenchidos */
+  profiles: Pick<Profile, 'id' | 'email' | 'avatar_url' | 'role' | 'full_name' | 'nome_guerra' | 'patente'>[]
   initialData?: TaskWithAssignees
   onClose: () => void
   onSave: (data: TaskFormData) => Promise<{ ok: boolean; message?: string } | void>
@@ -37,7 +38,8 @@ const DRIVE_ICON = (
 export default function TaskModal({ profiles, initialData, onClose, onSave }: TaskModalProps) {
   const isEdit = !!initialData
   const [isPending, startTransition] = useTransition()
-  const [form, setForm] = useState<Omit<TaskFormData, 'assignee_ids'>>({
+  const [isServico, setIsServico] = useState<boolean>(initialData?.is_servico ?? false)
+  const [form, setForm] = useState<Omit<TaskFormData, 'assignee_ids' | 'is_servico'>>({
     title: initialData?.title ?? '',
     description: initialData?.description ?? '',
     start_date: initialData?.start_date ?? new Date().toISOString().split('T')[0],
@@ -56,14 +58,21 @@ export default function TaskModal({ profiles, initialData, onClose, onSave }: Ta
     )
   }
 
+  function handleServicoChange(checked: boolean) {
+    setIsServico(checked)
+    if (checked) {
+      setForm((f) => ({ ...f, title: 'Serviço', description: '', drive_url: '' }))
+    }
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.title.trim()) { setError('O título é obrigatório.'); return }
+    if (!isServico && !form.title.trim()) { setError('O título é obrigatório.'); return }
     const datesValidation = validateTaskDates(form.start_date, form.end_date)
     if (!datesValidation.ok) { setError(datesValidation.message); return }
     setError(null)
     startTransition(async () => {
-      const result = await onSave({ ...form, assignee_ids: assigneeIds })
+      const result = await onSave({ ...form, assignee_ids: assigneeIds, is_servico: isServico })
       if (result && !result.ok) {
         setError(result.message ?? 'Erro ao salvar.')
       }
@@ -97,37 +106,51 @@ export default function TaskModal({ profiles, initialData, onClose, onSave }: Ta
             </div>
           )}
 
-          {/* Título */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground" htmlFor="task-title">
-              Título <span className="text-destructive">*</span>
-            </label>
+          {/* Checkbox Serviço */}
+          <label className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 cursor-pointer transition-all ${
+            isServico
+              ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/30'
+              : 'border-border hover:border-amber-300'
+          }`}>
             <input
-              id="task-title"
-              type="text"
-              value={form.title}
-              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              placeholder="Ex: Elaborar relatório mensal"
-              className="border border-input rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+              type="checkbox"
+              checked={isServico}
+              onChange={(e) => handleServicoChange(e.target.checked)}
+              className="h-4 w-4 accent-amber-500 cursor-pointer"
             />
-          </div>
+            <div className="flex flex-col">
+              <span className={`text-sm font-semibold ${isServico ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}`}>
+                Serviço
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Escala de serviço — não contabiliza nas métricas
+              </span>
+            </div>
+            {isServico && (
+              <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-700 dark:text-amber-400">
+                Ativo
+              </span>
+            )}
+          </label>
 
-          {/* Descrição */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground" htmlFor="task-desc">
-              Descrição
-            </label>
-            <textarea
-              id="task-desc"
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              placeholder="Descreva os detalhes da tarefa..."
-              rows={3}
-              className="border border-input rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring transition-all resize-none"
-            />
-          </div>
+          {/* Título — desabilitado se serviço */}
+          {!isServico && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-foreground" htmlFor="task-title">
+                Título <span className="text-destructive">*</span>
+              </label>
+              <input
+                id="task-title"
+                type="text"
+                value={form.title}
+                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                placeholder="Ex: Elaborar relatório mensal"
+                className="border border-input rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+              />
+            </div>
+          )}
 
-          {/* Datas */}
+          {/* Datas — sempre editáveis */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-foreground" htmlFor="task-start">
@@ -155,50 +178,70 @@ export default function TaskModal({ profiles, initialData, onClose, onSave }: Ta
             </div>
           </div>
 
-          {/* Setor */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground">Setor</label>
-            <div className="flex gap-2">
-              {(['DT', 'DA'] as TaskSector[]).map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setForm((f) => ({ ...f, sector: s }))}
-                  className={`flex-1 py-2 rounded-lg text-sm font-semibold border-2 transition-all ${
-                    form.sector === s
-                      ? s === 'DT'
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-secondary text-secondary-foreground border-secondary'
-                      : 'bg-background text-muted-foreground border-border hover:border-primary/40'
-                  }`}
-                >
-                  {s === 'DT' ? 'Divisão Técnica' : 'Divisão Administrativa'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Drive URL */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground" htmlFor="task-drive">
-              Link Google Drive (evidência)
-            </label>
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                {DRIVE_ICON}
+          {/* Campos desabilitados em modo serviço */}
+          {!isServico && (
+            <>
+              {/* Descrição */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground" htmlFor="task-desc">
+                  Descrição
+                </label>
+                <textarea
+                  id="task-desc"
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  placeholder="Descreva os detalhes da tarefa..."
+                  rows={3}
+                  className="border border-input rounded-lg px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring transition-all resize-none"
+                />
               </div>
-              <input
-                id="task-drive"
-                type="url"
-                value={form.drive_url}
-                onChange={(e) => setForm((f) => ({ ...f, drive_url: e.target.value }))}
-                placeholder="https://drive.google.com/..."
-                className="w-full border border-input rounded-lg pl-9 pr-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring transition-all"
-              />
-            </div>
-          </div>
 
-          {/* Responsáveis */}
+              {/* Setor */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground">Setor</label>
+                <div className="flex gap-2">
+                  {(['DT', 'DA'] as TaskSector[]).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, sector: s }))}
+                      className={`flex-1 py-2 rounded-lg text-sm font-semibold border-2 transition-all ${
+                        form.sector === s
+                          ? s === 'DT'
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-secondary text-secondary-foreground border-secondary'
+                          : 'bg-background text-muted-foreground border-border hover:border-primary/40'
+                      }`}
+                    >
+                      {s === 'DT' ? 'Divisão Técnica' : 'Divisão Administrativa'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Drive URL */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground" htmlFor="task-drive">
+                  Link Google Drive (evidência)
+                </label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                    {DRIVE_ICON}
+                  </div>
+                  <input
+                    id="task-drive"
+                    type="url"
+                    value={form.drive_url}
+                    onChange={(e) => setForm((f) => ({ ...f, drive_url: e.target.value }))}
+                    placeholder="https://drive.google.com/..."
+                    className="w-full border border-input rounded-lg pl-9 pr-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Responsáveis — sempre visível */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-foreground">Responsáveis</label>
             <div className="border border-border rounded-xl overflow-hidden max-h-36 overflow-y-auto">
@@ -217,11 +260,12 @@ export default function TaskModal({ profiles, initialData, onClose, onSave }: Ta
                     <Image src={p.avatar_url} alt={p.email} width={24} height={24} className="h-6 w-6 rounded-full object-cover" />
                   ) : (
                     <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-primary-foreground">
-                      {p.email[0]?.toUpperCase()}
+                      {(p.nome_guerra ?? p.full_name ?? p.email)[0]?.toUpperCase()}
                     </div>
                   )}
-                  <span className="text-sm text-foreground truncate">{p.email}</span>
-                  <span className="ml-auto text-xs text-muted-foreground capitalize">{p.role}</span>
+                  <span className="text-sm text-foreground truncate">
+                    {formatNomeCompleto(p.patente, p.nome_guerra ?? p.full_name) || p.email}
+                  </span>
                 </label>
               ))}
             </div>

@@ -277,7 +277,10 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
           profiles={profiles}
           onClose={() => setShowModal(false)}
           onSave={async (data) => {
-            const result = await createTask(data)
+            const result = await createTask({
+              ...data,
+              is_servico: data.is_servico,
+            })
             if (result.ok) {
               toast('Tarefa criada com sucesso!', 'success')
               router.refresh()

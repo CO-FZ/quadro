@@ -2,12 +2,13 @@ import type { RawTaskInput, NormalizedTaskInput, TaskStatus, TaskDatesValidation
 
 export function normalizeTaskInput(data: RawTaskInput): NormalizedTaskInput {
   return {
-    title: data.title.trim(),
-    description: data.description.trim() || null,
+    title: data.is_servico ? 'Serviço' : data.title.trim(),
+    description: data.is_servico ? null : (data.description.trim() || null),
     start_date: data.start_date,
     end_date: data.end_date,
     sector: data.sector,
-    drive_url: data.drive_url.trim() || null,
+    drive_url: data.is_servico ? null : (data.drive_url.trim() || null),
+    is_servico: data.is_servico,
   }
 }
 

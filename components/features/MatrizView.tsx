@@ -130,22 +130,26 @@ export default function MatrizView({
             </tr>
           </thead>
           <tbody>
-            {days.map((day) => {
+            {days.map((day, rowIdx) => {
               const isToday = day === today
+              const isEven = rowIdx % 2 === 0
               const { weekday, day: dayNum, month } = formatDay(day)
+              const rowBg = isToday ? 'bg-primary/10' : isEven ? 'bg-muted/20' : ''
+              const dateCellBg = isToday
+                ? 'bg-primary/10 ring-1 ring-inset ring-primary/30'
+                : isEven
+                ? 'bg-muted/20'
+                : 'bg-background'
+              const taskCellBg = isToday ? 'bg-primary/5' : isEven ? 'bg-muted/10' : ''
               return (
                 <tr
                   key={day}
                   ref={isToday ? todayRowRef : undefined}
-                  className={isToday ? 'bg-primary/10' : 'hover:bg-muted/30'}
+                  className={`${rowBg} ${!isToday ? 'hover:bg-muted/30' : ''}`}
                 >
                   {/* Date column — frozen left */}
                   <td
-                    className={`sticky left-0 z-10 border-b border-r border-border px-3 py-2 whitespace-nowrap ${
-                      isToday
-                        ? 'bg-primary/10 ring-1 ring-inset ring-primary/30'
-                        : 'bg-background'
-                    }`}
+                    className={`sticky left-0 z-10 border-b border-r border-border px-3 py-2 whitespace-nowrap ${dateCellBg}`}
                     style={{ minWidth: 180 }}
                   >
                     <div className="flex items-center gap-2">
@@ -169,9 +173,7 @@ export default function MatrizView({
                     return (
                       <td
                         key={p.id}
-                        className={`border-b border-r border-border px-2 py-1.5 align-top ${
-                          isToday ? 'bg-primary/5' : ''
-                        }`}
+                        className={`border-b border-r border-border px-2 py-1.5 align-top ${taskCellBg}`}
                         style={{ minWidth: 160 }}
                       >
                         {cellTasks.length > 0 ? (
@@ -180,9 +182,13 @@ export default function MatrizView({
                               <span
                                 key={t.id}
                                 title={t.title}
-                                className={`block text-[11px] font-medium px-2 py-0.5 rounded-md truncate max-w-full ${STATUS_BADGE[t.status as TaskStatus]}`}
+                                className={`block text-[11px] font-medium px-2 py-0.5 rounded-md truncate max-w-full ${
+                                  t.is_servico
+                                    ? 'bg-amber-400/20 text-amber-700 dark:text-amber-400'
+                                    : STATUS_BADGE[t.status as TaskStatus]
+                                }`}
                               >
-                                {t.title}
+                                {t.is_servico ? 'Serviço' : t.title}
                               </span>
                             ))}
                           </div>

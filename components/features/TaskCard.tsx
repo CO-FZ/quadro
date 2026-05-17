@@ -10,7 +10,7 @@ interface TaskCardProps {
   task: TaskWithAssignees
   onDragStart: () => void
   onDragEnd: () => void
-  profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'avatar_url' | 'role'>[]
+  profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'nome_guerra' | 'avatar_url' | 'role' | 'patente'>[]
   canManage: boolean
   currentUserId: string
   onRefresh: () => void
