@@ -1,11 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import type { TaskWithAssignees } from '@/lib/supabase/types'
-import KanbanBoard from '@/components/features/KanbanBoard'
+import ArquivadosView from '@/components/features/ArquivadosView'
 
-export default async function KanbanPage() {
+export default async function ArquivadosPage() {
   const supabase = await createClient()
 
-  // Tarefas arquivadas vivem em /arquivados (Sprint 13 — Story 13.4).
   const { data: tasks } = await supabase
     .from('tasks')
     .select(`
@@ -18,13 +17,15 @@ export default async function KanbanPage() {
           id,
           email,
           full_name,
+          nome_guerra,
           avatar_url,
-          role
+          role,
+          patente
         )
       )
     `)
-    .neq('status', 'arquivada')
-    .order('created_at', { ascending: false })
+    .in('status', ['finalizada', 'arquivada'])
+    .order('updated_at', { ascending: false })
 
   const { data: profiles } = await supabase
     .from('profiles')
@@ -40,10 +41,9 @@ export default async function KanbanPage() {
     .single()
 
   return (
-    <KanbanBoard
-      tasks={(tasks ?? []) as TaskWithAssignees[]}
+    <ArquivadosView
+      initialTasks={(tasks ?? []) as TaskWithAssignees[]}
       profiles={profiles ?? []}
-      currentUserId={user?.id ?? ''}
       currentUserRole={currentProfile?.role ?? 'efetivo'}
     />
   )

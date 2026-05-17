@@ -233,7 +233,8 @@ Criar uma aba dedicada **"Arquivados"** que funcione como histórico consultáve
 
 ## Status da Sprint
 
-- **Início:** TBD
-- **Status Atual:** **PLANEJADA**
-- **Aprovação requerida:** humana, antes de iniciar execução (Gate G1 — AGENTS.md §5).
-- **Dívida técnica explícita:** Story 13.4 (existente — duplicação inline `KanbanBoard.tsx` × aba dedicada).
+- **Início:** 17/05/2026
+- **Status Atual:** **CONCLUÍDA**
+- **Aprovação:** dada em 17/05/2026.
+- **Dívida técnica explícita:** Story 13.4 (existente — duplicação inline `KanbanBoard.tsx` × aba dedicada) — saneada.
+- **Execução:** ver [`docs/memory/execution/2026-05-17-sprint-13-arquivados.md`](../../memory/execution/2026-05-17-sprint-13-arquivados.md).
