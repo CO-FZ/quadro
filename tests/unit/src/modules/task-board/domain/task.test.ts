@@ -76,6 +76,51 @@ describe('normalizeTaskInput', () => {
     expect(r.drive_url).toBeNull()
     expect(r.is_servico).toBe(true)
   })
+
+  it('is_servico false preserva título, description e drive_url normalmente', () => {
+    const r = normalizeTaskInput({
+      ...base,
+      title: 'Tarefa real',
+      description: 'Detalhes',
+      drive_url: 'https://drive.google.com/real',
+      is_servico: false,
+    })
+    expect(r.title).toBe('Tarefa real')
+    expect(r.description).toBe('Detalhes')
+    expect(r.drive_url).toBe('https://drive.google.com/real')
+    expect(r.is_servico).toBe(false)
+  })
+
+  it('is_servico true ignora whitespace no title de entrada', () => {
+    const r = normalizeTaskInput({
+      ...base,
+      title: '   nome qualquer com espaço   ',
+      is_servico: true,
+    })
+    expect(r.title).toBe('Serviço')
+  })
+
+  it('is_servico true ignora drive_url só com whitespace', () => {
+    const r = normalizeTaskInput({
+      ...base,
+      drive_url: '   ',
+      is_servico: true,
+    })
+    expect(r.drive_url).toBeNull()
+  })
+
+  it('is_servico true normaliza para o conjunto canônico mesmo com strings vazias', () => {
+    const r = normalizeTaskInput({
+      ...base,
+      title: '',
+      description: '',
+      drive_url: '',
+      is_servico: true,
+    })
+    expect(r.title).toBe('Serviço')
+    expect(r.description).toBeNull()
+    expect(r.drive_url).toBeNull()
+  })
 })
 
 describe('initialStatusFor', () => {

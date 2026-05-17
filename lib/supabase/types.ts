@@ -1,5 +1,9 @@
 import type { AppRole, PatenteType, TaskSector } from '@/src/modules/task-board/domain/entities'
 
+// Domain types — canonical source is `src/modules/task-board/domain/entities.ts` (ADR 0006).
+// Não usar `supabase gen types` para sobrescrever este arquivo: o módulo task-board é a fonte
+// de verdade do schema relevante ao app. Tipos derivados de view (`UserTaskStats`) e de tabelas
+// fora do domínio task-board ficam aqui.
 // Task-board domain types — canonical source is src/modules/task-board/domain/entities.ts
 export type {
   AppRole,
