@@ -144,7 +144,7 @@ export default function AppShell({ profile, children }: AppShellProps) {
                     <div className="px-4 py-2 border-b border-border">
                       {profile?.full_name && (
                         <p className="text-xs font-semibold text-foreground truncate">
-                          {formatNomeCompleto(profile.patente, profile.full_name)}
+                          {formatNomeCompleto(profile.patente, profile.nome_guerra ?? profile.full_name)}
                         </p>
                       )}
                       <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>

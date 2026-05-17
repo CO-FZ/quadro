@@ -11,9 +11,11 @@ export interface Profile {
   id: string
   email: string
   full_name: string | null
+  nome_guerra: string | null
   avatar_url: string | null
   role: AppRole
   patente: PatenteType | null
+  divisao: TaskSector | null
   created_at: string
   updated_at: string
   archived_at: string | null

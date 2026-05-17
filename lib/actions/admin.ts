@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { logger } from '@/lib/logger'
-import type { AppRole, PatenteType, PrivilegedRoleAuditEntry } from '@/lib/supabase/types'
+import type { AppRole, PatenteType, TaskSector, PrivilegedRoleAuditEntry } from '@/lib/supabase/types'
 
 const PRIVILEGED_ROLES: AppRole[] = ['admin', 'coordenador']
 
@@ -91,6 +91,43 @@ export async function updateUserPatente(userId: string, patente: PatenteType | n
 
     const supabase = await createClient()
     const { error } = await supabase.from('profiles').update({ patente }).eq('id', userId)
+    if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
+
+    revalidateAdmin()
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, code: 'UNEXPECTED', message: String(e) }
+  }
+}
+
+// ─── Atualizar nome de guerra ────────────────────────────────────────────────
+
+export async function updateUserNomeGuerra(userId: string, nomeGuerra: string | null): Promise<ActionResult> {
+  try {
+    const deny = await requireAdmin()
+    if (deny) return deny
+
+    const supabase = await createClient()
+    const value = nomeGuerra?.trim() || null
+    const { error } = await supabase.from('profiles').update({ nome_guerra: value }).eq('id', userId)
+    if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
+
+    revalidateAdmin()
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, code: 'UNEXPECTED', message: String(e) }
+  }
+}
+
+// ─── Atualizar divisão do usuário ────────────────────────────────────────────
+
+export async function updateUserDivisao(userId: string, divisao: TaskSector | null): Promise<ActionResult> {
+  try {
+    const deny = await requireAdmin()
+    if (deny) return deny
+
+    const supabase = await createClient()
+    const { error } = await supabase.from('profiles').update({ divisao }).eq('id', userId)
     if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
 
     revalidateAdmin()

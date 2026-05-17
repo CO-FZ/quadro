@@ -177,20 +177,27 @@ export default function DashboardView({ stats, totalByStatus, sectorStats }: Das
                               </div>
                             )}
                             <span className="font-medium text-foreground truncate max-w-[160px]">
-                              {formatNomeCompleto(s.patente, s.full_name) || s.email}
+                              {formatNomeCompleto(s.patente, s.nome_guerra ?? s.full_name) || s.email}
                             </span>
                           </div>
                         </td>
 
-                        {/* Role */}
+                        {/* Role + Divisão */}
                         <td className="px-4 py-4 hidden md:table-cell">
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${
-                            s.role === 'admin' ? 'bg-destructive/10 text-destructive' :
-                            s.role === 'coordenador' ? 'bg-primary/10 text-primary' :
-                            'bg-muted text-muted-foreground'
-                          }`}>
-                            {s.role}
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize w-fit ${
+                              s.role === 'admin' ? 'bg-destructive/10 text-destructive' :
+                              s.role === 'coordenador' ? 'bg-primary/10 text-primary' :
+                              'bg-muted text-muted-foreground'
+                            }`}>
+                              {s.role}
+                            </span>
+                            {s.divisao && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full w-fit bg-secondary/20 text-foreground">
+                                {s.divisao}
+                              </span>
+                            )}
+                          </div>
                         </td>
 
                         {/* Total */}

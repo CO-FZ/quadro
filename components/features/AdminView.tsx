@@ -6,12 +6,13 @@ import type {
   Profile,
   AppRole,
   PatenteType,
+  TaskSector,
   WhitelistEntry,
   PrivilegedRoleAuditEntry,
   PrivilegedRoleAuditSource,
 } from '@/lib/supabase/types'
 import { PATENTE_OPTIONS } from '@/lib/supabase/types'
-import { updateUserRole, updateUserPatente, addToWhitelist, removeFromWhitelist, archiveUser, restoreUser } from '@/lib/actions/admin'
+import { updateUserRole, updateUserPatente, updateUserNomeGuerra, updateUserDivisao, addToWhitelist, removeFromWhitelist, archiveUser, restoreUser } from '@/lib/actions/admin'
 import { isPrivilegedDomainEntry } from '@/lib/utils/admin-warnings'
 import { formatNomeCompleto } from '@/lib/utils/format'
 import { t } from '@/lib/i18n'
@@ -117,6 +118,19 @@ export default function AdminView({
     )
   }
 
+  function handleNomeGuerraBlur(userId: string, currentValue: string | null, newValue: string) {
+    const trimmed = newValue.trim() || null
+    if (trimmed === (currentValue ?? null)) return
+    withFeedback(() => updateUserNomeGuerra(userId, trimmed), 'Nome de guerra atualizado.')
+  }
+
+  function handleDivisaoChange(userId: string, divisao: TaskSector | '') {
+    withFeedback(
+      () => updateUserDivisao(userId, divisao === '' ? null : divisao),
+      'Divisão atualizada com sucesso.',
+    )
+  }
+
   function handleAddWhitelist(e: React.FormEvent) {
     e.preventDefault()
     if (!newIdentifier.trim()) return
@@ -215,8 +229,10 @@ export default function AdminView({
             <thead>
               <tr className="border-b border-border bg-muted/50">
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground">Usuário</th>
+                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">Nome de Guerra</th>
                 <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Membro desde</th>
                 <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Patente</th>
+                <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Divisão</th>
                 <th className="text-right px-4 py-3 font-medium text-muted-foreground">Role</th>
               </tr>
             </thead>
@@ -236,12 +252,23 @@ export default function AdminView({
                       )}
                       <div className="flex flex-col">
                         <span className="font-medium truncate max-w-[180px] flex items-center gap-2">
-                          {formatNomeCompleto(p.patente, p.full_name) || p.email}
+                          {formatNomeCompleto(p.patente, p.nome_guerra ?? p.full_name) || p.email}
                           {isArchived && <span className="text-[10px] px-2 py-0.5 rounded-full bg-destructive/10 text-destructive font-semibold">Arquivado</span>}
                         </span>
                         {p.full_name && <span className="text-xs text-muted-foreground">{p.email}</span>}
                       </div>
                     </div>
+                  </td>
+                  <td className="px-4 py-3 hidden lg:table-cell">
+                    <input
+                      type="text"
+                      defaultValue={p.nome_guerra ?? ''}
+                      placeholder="Ex: Eduardo Lima"
+                      disabled={isSubmitting || isArchived}
+                      onBlur={(e) => handleNomeGuerraBlur(p.id, p.nome_guerra, e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+                      className="text-sm w-full min-w-[140px] border border-border rounded-lg px-2 py-1 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 placeholder:text-muted-foreground/50"
+                    />
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
                     {new Date(p.created_at).toLocaleDateString('pt-BR')}
@@ -258,6 +285,19 @@ export default function AdminView({
                       {PATENTE_OPTIONS.map((pat) => (
                         <option key={pat} value={pat}>{pat}</option>
                       ))}
+                    </select>
+                  </td>
+                  <td className="px-4 py-3 text-right hidden md:table-cell">
+                    <select
+                      id={`divisao-select-${p.id}`}
+                      value={p.divisao ?? ''}
+                      onChange={(e) => handleDivisaoChange(p.id, e.target.value as TaskSector | '')}
+                      disabled={isSubmitting || isArchived}
+                      className="text-xs font-semibold px-3 py-1 rounded-full border border-border bg-background cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
+                    >
+                      <option value="">—</option>
+                      <option value="DT">DT</option>
+                      <option value="DA">DA</option>
                     </select>
                   </td>
                   <td className="px-4 py-3 text-right">

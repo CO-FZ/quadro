@@ -40,13 +40,13 @@ export default async function MatrizPage() {
 
   const { data: profiles } = await supabase
     .from('profiles')
-    .select('id, email, full_name, avatar_url, role, patente')
+    .select('id, email, full_name, nome_guerra, avatar_url, role, patente')
     .is('archived_at', null)
 
   return (
     <MatrizView
       tasks={(tasks ?? []) as TaskWithAssignees[]}
-      profiles={(profiles ?? []) as Pick<Profile, 'id' | 'email' | 'full_name' | 'avatar_url' | 'role' | 'patente'>[]}
+      profiles={(profiles ?? []) as Pick<Profile, 'id' | 'email' | 'full_name' | 'nome_guerra' | 'avatar_url' | 'role' | 'patente'>[]}
       today={fmt(today)}
       windowStart={fmt(windowStart)}
       windowEnd={fmt(windowEnd)}

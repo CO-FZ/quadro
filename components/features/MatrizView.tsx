@@ -8,7 +8,7 @@ import { sortByPatente } from '@/lib/utils/patente'
 
 interface MatrizViewProps {
   tasks: TaskWithAssignees[]
-  profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'avatar_url' | 'role' | 'patente'>[]
+  profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'nome_guerra' | 'avatar_url' | 'role' | 'patente'>[]
   today: string
   windowStart: string
   windowEnd: string
@@ -118,11 +118,11 @@ export default function MatrizView({
                       />
                     ) : (
                       <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground">
-                        {(p.full_name ?? p.email)[0]?.toUpperCase()}
+                        {(p.nome_guerra ?? p.full_name ?? p.email)[0]?.toUpperCase()}
                       </div>
                     )}
                     <span className="text-xs font-semibold text-foreground leading-tight text-center">
-                      {formatNomeCompleto(p.patente, p.full_name) || p.email}
+                      {formatNomeCompleto(p.patente, p.nome_guerra ?? p.full_name) || p.email}
                     </span>
                   </div>
                 </th>

@@ -12,7 +12,7 @@ import { useToast } from '@/components/ui/ToastProvider'
 
 interface KanbanBoardProps {
   tasks: TaskWithAssignees[]
-  profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'avatar_url' | 'role' | 'patente'>[]
+  profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'nome_guerra' | 'avatar_url' | 'role' | 'patente'>[]
   currentUserId: string
   currentUserRole: string
 }
@@ -142,7 +142,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
           >
             <option value="all">Todos os responsáveis</option>
             {profiles.map((p) => (
-              <option key={p.id} value={p.id}>{formatNomeCompleto(p.patente, p.full_name) || p.email}</option>
+              <option key={p.id} value={p.id}>{formatNomeCompleto(p.patente, p.nome_guerra ?? p.full_name) || p.email}</option>
             ))}
           </select>
 

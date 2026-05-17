@@ -1,4 +1,4 @@
-import type { AppRole, PatenteType } from '@/src/modules/task-board/domain/entities'
+import type { AppRole, PatenteType, TaskSector } from '@/src/modules/task-board/domain/entities'
 
 // Task-board domain types — canonical source is src/modules/task-board/domain/entities.ts
 export type {
@@ -21,10 +21,13 @@ export interface UserTaskStats {
   user_id: string
   email: string
   full_name: string | null
+  nome_guerra: string | null
   avatar_url: string | null
   role: AppRole
   patente: PatenteType | null
+  divisao: TaskSector | null
   total_tasks: number
+  alocada_tasks: number
   finished_tasks: number
   in_progress_tasks: number
   in_review_tasks: number

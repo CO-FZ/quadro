@@ -8,6 +8,7 @@ export default async function DashboardPage() {
   const { data: stats } = await supabase
     .from('user_task_stats')
     .select('*')
+    .order('alocada_tasks', { ascending: false })
     .order('total_tasks', { ascending: false })
 
   const { data: taskCounts } = await supabase
