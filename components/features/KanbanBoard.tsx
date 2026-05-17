@@ -1,7 +1,8 @@
 'use client'
 
-import { useOptimistic, useState, useTransition } from 'react'
+import { startTransition, useOptimistic, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Profile, TaskStatus, TaskWithAssignees } from '@/lib/supabase/types'
 import { KANBAN_COLUMNS } from '@/lib/supabase/types'
 import { formatNomeCompleto } from '@/lib/utils/format'
@@ -21,7 +22,7 @@ type StatusOverride = { taskId: string; status: TaskStatus }
 
 export default function KanbanBoard({ tasks, profiles, currentUserId, currentUserRole }: KanbanBoardProps) {
   const router = useRouter()
-  const [, startTransition] = useTransition()
+  const queryClient = useQueryClient()
   const { toast } = useToast()
   const [showModal, setShowModal] = useState(false)
   const [dragOverColumn, setDragOverColumn] = useState<TaskStatus | null>(null)
@@ -37,6 +38,21 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
     (state: TaskWithAssignees[], override: StatusOverride) =>
       state.map((t) => (t.id === override.taskId ? { ...t, status: override.status } : t))
   )
+
+  const moveStatusMutation = useMutation({
+    mutationFn: async ({ taskId, status }: StatusOverride) => {
+      const result = await updateTaskStatus(taskId, status)
+      if (!result.ok) throw new Error(result.message ?? 'Erro ao mover tarefa.')
+      return result
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      router.refresh()
+    },
+    onError: (err) => {
+      toast(err instanceof Error ? err.message : 'Erro ao mover tarefa.', 'error')
+    },
+  })
 
   const activeTasks = optimisticTasks.filter((t) => t.status !== 'arquivada')
   const archivedTasks = optimisticTasks.filter((t) => t.status === 'arquivada')
@@ -75,12 +91,10 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
 
     startTransition(async () => {
       applyOptimistic({ taskId: movingId, status })
-      const result = await updateTaskStatus(movingId, status)
-      if (!result.ok) {
-        toast(result.message ?? 'Erro ao mover tarefa.', 'error')
-        router.refresh()
-      } else {
-        router.refresh()
+      try {
+        await moveStatusMutation.mutateAsync({ taskId: movingId, status })
+      } catch {
+        // Erro tratado em onError do useMutation; rollback otimista ocorre ao fim da transição.
       }
     })
   }

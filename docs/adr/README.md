@@ -20,6 +20,7 @@ Migração física para `docs/adr/` planejada para sprint dedicada futura.
 | 0009 | Centralização dos Guards de Autorização | Aceito | [0009-centralizacao-guards-autorizacao.md](../spec/adr/0009-centralizacao-guards-autorizacao.md) |
 | 0010 | Evolução de Colunas Kanban e Status `arquivada` | Aceito | [0010-evolucao-colunas-kanban.md](../spec/adr/0010-evolucao-colunas-kanban.md) |
 | 0011 | Extensão de Perfil: Campos Militares | Aceito | [0011-extensao-perfil-militar.md](../spec/adr/0011-extensao-perfil-militar.md) |
+| 0012 | Introdução de Tarefas de Serviço (`is_servico`) | Aceito | [0012-introducao-tarefas-de-servico.md](../spec/adr/0012-introducao-tarefas-de-servico.md) |
 
 ---
 
@@ -37,7 +38,7 @@ Migração física para `docs/adr/` planejada para sprint dedicada futura.
 ## Como abrir um novo ADR
 
 1. Copie o template de qualquer ADR aceito.
-2. Nomeie `NNNN-titulo-kebab-case.md` seguindo a sequência (próximo: `0012`).
+2. Nomeie `NNNN-titulo-kebab-case.md` seguindo a sequência (próximo: `0013`).
 3. Status inicial: `Proposto`.
 4. Abra PR — o ADR só vira `Aceito` após revisão humana explícita.
 5. Adicione entrada neste índice no mesmo PR.
