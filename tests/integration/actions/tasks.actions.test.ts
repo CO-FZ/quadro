@@ -265,3 +265,39 @@ it('CA-16: archiveUser único admin → LAST_ADMIN', async () => {
   expect(result.ok).toBe(false)
   if (!result.ok) expect(result.code).toBe('LAST_ADMIN')
 })
+
+// CA-17: createTask with is_servico=true → title forced 'Serviço', description/drive_url null
+it('CA-17: createTask is_servico=true → título "Serviço", description e drive_url nulos no DB', async () => {
+  _activeClient = (await getPersonaSession('admin')).client
+  const { createTask } = await import('@/lib/actions/tasks')
+  const TODAY = new Date().toISOString().slice(0, 10)
+
+  const result = await createTask({
+    title: 'Qualquer Coisa',
+    description: 'Isso não deve ser salvo',
+    start_date: TODAY,
+    end_date: TODAY,
+    sector: 'DT',
+    drive_url: 'https://drive.google.com/ignored',
+    assignee_ids: [],
+    is_servico: true,
+  })
+
+  expect(result.ok).toBe(true)
+
+  const { data } = await adminClient
+    .from('tasks')
+    .select('id, title, description, drive_url, is_servico')
+    .eq('is_servico', true)
+    .eq('created_by', adminId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  expect(data!.title).toBe('Serviço')
+  expect(data!.description).toBeNull()
+  expect(data!.drive_url).toBeNull()
+  expect(data!.is_servico).toBe(true)
+
+  ctx.taskIds.push(data!.id)
+})

@@ -11,7 +11,7 @@ test.describe('Kanban — admin', () => {
   })
 
   test('kanban board renders columns', async ({ page }) => {
-    for (const col of ['Backlog', 'Alocada', 'Em Desenvolvimento', 'Finalizada']) {
+    for (const col of ['Backlog', 'Alocada', 'Em Desenvolvimento', 'Em Revisão', 'Finalizada']) {
       await expect(page.getByText(col)).toBeVisible()
     }
   })
@@ -32,6 +32,28 @@ test.describe('Kanban — admin', () => {
     await page.getByRole('button', { name: /salvar|criar/i }).click()
 
     await expect(page.getByText('E2E Test Task')).toBeVisible({ timeout: 5_000 })
+  })
+
+  test('admin creates serviço task — title/description fields hidden', async ({ page }) => {
+    await page.getByRole('button', { name: /nova tarefa|criar/i }).click()
+
+    // Check Serviço checkbox
+    const servicoCheckbox = page.getByRole('checkbox', { name: /serviço/i })
+    await servicoCheckbox.check()
+
+    // Title and description fields should not be visible
+    await expect(page.getByLabel(/título/i)).not.toBeVisible()
+    await expect(page.getByLabel(/descrição/i)).not.toBeVisible()
+
+    // Dates should still be editable
+    const TODAY = new Date().toISOString().slice(0, 10)
+    await page.locator('#task-start').fill(TODAY)
+    await page.locator('#task-end').fill(TODAY)
+
+    await page.getByRole('button', { name: /salvar|criar/i }).click()
+
+    // "Serviço" card should appear on the board
+    await expect(page.getByText('Serviço').first()).toBeVisible({ timeout: 5_000 })
   })
 })
 

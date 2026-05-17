@@ -1,5 +1,7 @@
 {
   "imports": {
-    "@supabase/functions-js": "jsr:@supabase/functions-js@^2"
+    "@supabase/functions-js": "jsr:@supabase/functions-js@^2",
+    "jsr:@std/assert@^1": "jsr:@std/assert@^1",
+    "jsr:@std/testing@^1/mock": "jsr:@std/testing@^1/mock"
   }
 }

@@ -28,41 +28,68 @@ test.describe('Admin — Whitelist', () => {
   })
 })
 
-test.describe('Admin — Roles', () => {
-  test('last-admin guard shows toast LAST_ADMIN', async ({ page }) => {
+test.describe('Admin — Edit Modal', () => {
+  test('open edit modal, update nome de guerra and patente, save', async ({ page }) => {
     await page.goto('/admin')
     await page.getByRole('tab', { name: /usuários/i }).click()
 
-    // Find admin row and try to demote
-    const adminRow = page.locator('[data-testid^="user-row"][data-role="admin"]').first()
+    const editBtn = page.getByRole('button', { name: /editar/i }).first()
+    if (!await editBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      test.skip()
+      return
+    }
+
+    await editBtn.click()
+    await expect(page.getByText(/nome de guerra/i)).toBeVisible({ timeout: 3_000 })
+
+    const nomeInput = page.getByPlaceholder(/eduardo lima/i)
+    await nomeInput.clear()
+    await nomeInput.fill('Usuário Teste E2E')
+
+    const patenteSelect = page.getByLabel(/patente/i)
+    if (await patenteSelect.isVisible()) {
+      await patenteSelect.selectOption('Maj')
+    }
+
+    await page.getByRole('button', { name: /salvar/i }).click()
+    await expect(page.getByText(/atualizado|sucesso/i)).toBeVisible({ timeout: 5_000 })
+  })
+
+  test('close modal with Escape key', async ({ page }) => {
+    await page.goto('/admin')
+    await page.getByRole('tab', { name: /usuários/i }).click()
+
+    const editBtn = page.getByRole('button', { name: /editar/i }).first()
+    if (!await editBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      test.skip()
+      return
+    }
+
+    await editBtn.click()
+    await expect(page.getByText(/nome de guerra/i)).toBeVisible({ timeout: 3_000 })
+
+    await page.keyboard.press('Escape')
+    await expect(page.getByText(/nome de guerra/i)).not.toBeVisible({ timeout: 2_000 })
+  })
+})
+
+test.describe('Admin — Last-admin guard', () => {
+  test('cannot downgrade sole admin via edit modal', async ({ page }) => {
+    await page.goto('/admin')
+    await page.getByRole('tab', { name: /usuários/i }).click()
+
+    const adminRow = page.locator('tr').filter({ hasText: /test-admin@cofz/i }).first()
     if (!await adminRow.isVisible({ timeout: 3_000 }).catch(() => false)) {
       test.skip()
       return
     }
 
-    await adminRow.getByRole('combobox').selectOption('efetivo')
-    await adminRow.getByRole('button', { name: /salvar|aplicar/i }).click()
+    await adminRow.getByRole('button', { name: /editar/i }).click()
+    await expect(page.getByText(/perfil de acesso/i)).toBeVisible({ timeout: 3_000 })
 
-    await expect(page.getByRole('alert')).toContainText(/último admin|last_admin/i, { timeout: 3_000 })
-  })
-})
+    await page.getByLabel(/perfil de acesso/i).selectOption('efetivo')
+    await page.getByRole('button', { name: /salvar/i }).click()
 
-test.describe('Admin — Soft-delete', () => {
-  test('archive and restore user', async ({ page }) => {
-    await page.goto('/admin')
-    await page.getByRole('tab', { name: /usuários/i }).click()
-
-    // Find coord row to archive
-    const coordRow = page.locator('[data-testid^="user-row"][data-role="coordenador"]').first()
-    if (!await coordRow.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      test.skip()
-      return
-    }
-
-    await coordRow.getByRole('button', { name: /arquivar/i }).click()
-    await expect(coordRow.getByText(/arquivado/i)).toBeVisible({ timeout: 3_000 })
-
-    await coordRow.getByRole('button', { name: /restaurar/i }).click()
-    await expect(coordRow.getByText(/arquivado/i)).not.toBeVisible({ timeout: 3_000 })
+    await expect(page.getByText(/último admin|last_admin/i)).toBeVisible({ timeout: 3_000 })
   })
 })

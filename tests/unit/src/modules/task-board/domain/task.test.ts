@@ -62,6 +62,20 @@ describe('normalizeTaskInput', () => {
     const r = normalizeTaskInput({ ...base, sector: 'DA' })
     expect(r.sector).toBe('DA')
   })
+
+  it('força título "Serviço", description null e drive_url null se is_servico for true', () => {
+    const r = normalizeTaskInput({
+      ...base,
+      title: 'Título Ignorado',
+      description: 'Descrição Ignorada',
+      drive_url: 'https://drive.google.com/ignorado',
+      is_servico: true,
+    })
+    expect(r.title).toBe('Serviço')
+    expect(r.description).toBeNull()
+    expect(r.drive_url).toBeNull()
+    expect(r.is_servico).toBe(true)
+  })
 })
 
 describe('initialStatusFor', () => {
