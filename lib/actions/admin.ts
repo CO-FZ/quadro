@@ -100,6 +100,62 @@ export async function updateUserPatente(userId: string, patente: PatenteType | n
   }
 }
 
+// ─── Atualizar perfil completo do usuário (batch) ───────────────────────────
+
+interface UserProfileUpdate {
+  nome_guerra: string | null
+  patente: PatenteType | null
+  divisao: TaskSector | null
+  role: AppRole
+}
+
+export async function updateUserProfile(userId: string, data: UserProfileUpdate): Promise<ActionResult> {
+  try {
+    const deny = await requireAdmin()
+    if (deny) return deny
+
+    const supabase = await createClient()
+
+    // Last-admin guard: se está rebaixando um admin, garantir que não é o único.
+    if (data.role !== 'admin') {
+      const { data: target } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single()
+
+      if (target?.role === 'admin') {
+        const { count } = await supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+          .eq('role', 'admin')
+
+        if ((count ?? 0) <= 1) {
+          return {
+            ok: false,
+            code: 'LAST_ADMIN',
+            message: 'Não é possível rebaixar o único admin do sistema. Promova outro usuário a admin antes.',
+          }
+        }
+      }
+    }
+
+    const { error } = await supabase.from('profiles').update({
+      nome_guerra: data.nome_guerra?.trim() || null,
+      patente: data.patente,
+      divisao: data.divisao,
+      role: data.role,
+    }).eq('id', userId)
+
+    if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
+
+    revalidateAdmin()
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, code: 'UNEXPECTED', message: String(e) }
+  }
+}
+
 // ─── Atualizar nome de guerra ────────────────────────────────────────────────
 
 export async function updateUserNomeGuerra(userId: string, nomeGuerra: string | null): Promise<ActionResult> {

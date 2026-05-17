@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 import Image from 'next/image'
 import type {
   Profile,
@@ -12,7 +12,13 @@ import type {
   PrivilegedRoleAuditSource,
 } from '@/lib/supabase/types'
 import { PATENTE_OPTIONS } from '@/lib/supabase/types'
-import { updateUserRole, updateUserPatente, updateUserNomeGuerra, updateUserDivisao, addToWhitelist, removeFromWhitelist, archiveUser, restoreUser } from '@/lib/actions/admin'
+import {
+  updateUserProfile,
+  addToWhitelist,
+  removeFromWhitelist,
+  archiveUser,
+  restoreUser,
+} from '@/lib/actions/admin'
 import { isPrivilegedDomainEntry } from '@/lib/utils/admin-warnings'
 import { formatNomeCompleto } from '@/lib/utils/format'
 import { t } from '@/lib/i18n'
@@ -56,6 +62,191 @@ function isEntryPending(entry: WhitelistEntry, profileEmails: Set<string>): bool
   return !profileEmails.has(entry.identifier)
 }
 
+// ─── Edit Modal ──────────────────────────────────────────────────────────────
+
+interface EditModalProps {
+  profile: Profile
+  onClose: () => void
+  onSuccess: (msg: string) => void
+  onError: (msg: string) => void
+}
+
+function EditModal({ profile, onClose, onSuccess, onError }: EditModalProps) {
+  const [isSubmitting, startTransition] = useTransition()
+  const [nomeGuerra, setNomeGuerra] = useState(profile.nome_guerra ?? '')
+  const [patente, setPatente] = useState<PatenteType | ''>(profile.patente ?? '')
+  const [divisao, setDivisao] = useState<TaskSector | ''>(profile.divisao ?? '')
+  const [role, setRole] = useState<AppRole>(profile.role)
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [onClose])
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    startTransition(async () => {
+      const result = await updateUserProfile(profile.id, {
+        nome_guerra: nomeGuerra || null,
+        patente: patente || null,
+        divisao: divisao || null,
+        role,
+      })
+      if (!result.ok) {
+        onError((result as { message?: string }).message ?? 'Erro inesperado.')
+      } else {
+        onSuccess('Perfil atualizado com sucesso.')
+        onClose()
+      }
+    })
+  }
+
+  const displayName = formatNomeCompleto(profile.patente, profile.nome_guerra ?? profile.full_name) || profile.email
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md flex flex-col gap-0 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <div className="flex items-center gap-3">
+            {profile.avatar_url ? (
+              <Image
+                src={profile.avatar_url}
+                alt={profile.email}
+                width={36}
+                height={36}
+                className="h-9 w-9 rounded-full object-cover"
+              />
+            ) : (
+              <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center text-sm font-bold text-primary-foreground">
+                {(profile.nome_guerra ?? profile.full_name ?? profile.email)[0]?.toUpperCase()}
+              </div>
+            )}
+            <div>
+              <p className="font-semibold text-sm text-foreground truncate max-w-[220px]">{displayName}</p>
+              <p className="text-xs text-muted-foreground truncate max-w-[220px]">{profile.email}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5 px-6 py-5">
+          {/* Nome de Guerra */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-foreground">Nome de Guerra</label>
+            <input
+              type="text"
+              value={nomeGuerra}
+              onChange={(e) => setNomeGuerra(e.target.value)}
+              placeholder="Ex: Eduardo Lima"
+              disabled={isSubmitting}
+              className="text-sm border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 placeholder:text-muted-foreground/50"
+            />
+            <p className="text-xs text-muted-foreground">
+              Nome exibido em todo o app. Ex: nome completo é &quot;Carlos Eduardo Silva Lima&quot;, nome de guerra é &quot;Eduardo Lima&quot;.
+            </p>
+          </div>
+
+          {/* Patente + Divisão lado a lado */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-foreground">Patente</label>
+              <select
+                value={patente}
+                onChange={(e) => setPatente(e.target.value as PatenteType | '')}
+                disabled={isSubmitting}
+                className="text-sm border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
+              >
+                <option value="">—</option>
+                {PATENTE_OPTIONS.map((pat) => (
+                  <option key={pat} value={pat}>{pat}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-foreground">Divisão</label>
+              <select
+                value={divisao}
+                onChange={(e) => setDivisao(e.target.value as TaskSector | '')}
+                disabled={isSubmitting}
+                className="text-sm border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
+              >
+                <option value="">—</option>
+                <option value="DT">DT — Divisão Técnica</option>
+                <option value="DA">DA — Divisão Administrativa</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Prévia do nome */}
+          {(nomeGuerra || patente) && (
+            <div className="bg-muted/50 rounded-xl px-4 py-3">
+              <p className="text-xs text-muted-foreground mb-0.5">Prévia do nome no app</p>
+              <p className="text-sm font-semibold text-foreground">
+                {formatNomeCompleto(patente || null, nomeGuerra || profile.full_name)}
+              </p>
+            </div>
+          )}
+
+          {/* Role */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-foreground">Perfil de acesso</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as AppRole)}
+              disabled={isSubmitting}
+              className="text-sm border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
+            >
+              {(Object.keys(ROLE_LABELS) as AppRole[]).map((r) => (
+                <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-5 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              {isSubmitting && (
+                <div className="h-3.5 w-3.5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+              )}
+              Salvar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 export default function AdminView({
   profiles,
   whitelist: initialWhitelist,
@@ -70,6 +261,7 @@ export default function AdminView({
   const [newDefaultRole, setNewDefaultRole] = useState<AppRole>('efetivo')
   const [activeTab, setActiveTab] = useState<AdminTab>('usuarios')
   const [searchQuery, setSearchQuery] = useState('')
+  const [editingProfile, setEditingProfile] = useState<Profile | null>(null)
 
   const showAuditTab = currentUserRole === 'admin'
   const whitelistById = useMemo(
@@ -94,7 +286,12 @@ export default function AdminView({
   const filteredProfiles = useMemo(() => {
     if (!searchQuery.trim()) return profiles
     const q = searchQuery.toLowerCase()
-    return profiles.filter(p => p.email.toLowerCase().includes(q) || (p.full_name && p.full_name.toLowerCase().includes(q)))
+    return profiles.filter(
+      (p) =>
+        p.email.toLowerCase().includes(q) ||
+        (p.full_name && p.full_name.toLowerCase().includes(q)) ||
+        (p.nome_guerra && p.nome_guerra.toLowerCase().includes(q)),
+    )
   }, [profiles, searchQuery])
 
   function withFeedback(fn: () => Promise<{ ok: boolean; code?: string; message?: string }>, successText: string) {
@@ -105,30 +302,6 @@ export default function AdminView({
       if (!result.ok) setErrorMsg((result as { message?: string }).message ?? 'Erro inesperado.')
       else setSuccessMsg(successText)
     })
-  }
-
-  function handleRoleChange(userId: string, role: AppRole) {
-    withFeedback(() => updateUserRole(userId, role), 'Role atualizado com sucesso.')
-  }
-
-  function handlePatenteChange(userId: string, patente: PatenteType | '') {
-    withFeedback(
-      () => updateUserPatente(userId, patente === '' ? null : patente),
-      'Patente atualizada com sucesso.',
-    )
-  }
-
-  function handleNomeGuerraBlur(userId: string, currentValue: string | null, newValue: string) {
-    const trimmed = newValue.trim() || null
-    if (trimmed === (currentValue ?? null)) return
-    withFeedback(() => updateUserNomeGuerra(userId, trimmed), 'Nome de guerra atualizado.')
-  }
-
-  function handleDivisaoChange(userId: string, divisao: TaskSector | '') {
-    withFeedback(
-      () => updateUserDivisao(userId, divisao === '' ? null : divisao),
-      'Divisão atualizada com sucesso.',
-    )
   }
 
   function handleAddWhitelist(e: React.FormEvent) {
@@ -161,6 +334,16 @@ export default function AdminView({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Edit Modal */}
+      {editingProfile && (
+        <EditModal
+          profile={editingProfile}
+          onClose={() => setEditingProfile(null)}
+          onSuccess={(msg) => { setErrorMsg(null); setSuccessMsg(msg) }}
+          onError={(msg) => { setSuccessMsg(null); setErrorMsg(msg) }}
+        />
+      )}
+
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold text-foreground">Painel Administrativo</h1>
@@ -218,133 +401,142 @@ export default function AdminView({
           <div className="flex items-center gap-2">
             <input
               type="text"
-              placeholder="Buscar por e-mail ou nome..."
+              placeholder="Buscar por e-mail, nome ou nome de guerra..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-80 text-sm border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="w-full sm:w-96 text-sm border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
+
           <div className="bg-card border border-border rounded-2xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground">Usuário</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden lg:table-cell">Nome de Guerra</th>
-                <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Membro desde</th>
-                <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Patente</th>
-                <th className="text-right px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Divisão</th>
-                <th className="text-right px-4 py-3 font-medium text-muted-foreground">Role</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProfiles.map((p) => {
-                const isArchived = !!p.archived_at
-                return (
-                <tr key={p.id} className={`border-b border-border last:border-0 hover:bg-muted/30 transition-colors ${isArchived ? 'opacity-50' : ''}`}>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      {p.avatar_url ? (
-                        <Image src={p.avatar_url} alt={p.email} width={32} height={32} className={`h-8 w-8 rounded-full object-cover ${isArchived ? 'grayscale' : ''}`} />
-                      ) : (
-                        <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">
-                          {p.email[0]?.toUpperCase()}
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="text-left px-4 py-3 font-medium text-muted-foreground">Usuário</th>
+                  <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden sm:table-cell">Membro desde</th>
+                  <th className="text-left px-4 py-3 font-medium text-muted-foreground hidden md:table-cell">Perfil</th>
+                  <th className="text-right px-4 py-3 font-medium text-muted-foreground">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredProfiles.map((p) => {
+                  const isArchived = !!p.archived_at
+                  const displayName = formatNomeCompleto(p.patente, p.nome_guerra ?? p.full_name) || p.email
+                  return (
+                    <tr
+                      key={p.id}
+                      className={`border-b border-border last:border-0 hover:bg-muted/30 transition-colors ${isArchived ? 'opacity-50' : ''}`}
+                    >
+                      {/* Avatar + nome */}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          {p.avatar_url ? (
+                            <Image
+                              src={p.avatar_url}
+                              alt={p.email}
+                              width={36}
+                              height={36}
+                              className={`h-9 w-9 rounded-full object-cover shrink-0 ${isArchived ? 'grayscale' : ''}`}
+                            />
+                          ) : (
+                            <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground shrink-0">
+                              {(p.nome_guerra ?? p.full_name ?? p.email)[0]?.toUpperCase()}
+                            </div>
+                          )}
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-semibold text-foreground truncate max-w-[200px] flex items-center gap-2">
+                              {displayName}
+                              {isArchived && (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-destructive/10 text-destructive font-semibold shrink-0">
+                                  Arquivado
+                                </span>
+                              )}
+                            </span>
+                            <span className="text-xs text-muted-foreground truncate max-w-[200px]">{p.email}</span>
+                            {/* Mobile: mostra patente + divisão abaixo do email */}
+                            <div className="flex items-center gap-1.5 mt-0.5 md:hidden">
+                              {p.patente && (
+                                <span className="text-[10px] font-bold text-muted-foreground">{p.patente}</span>
+                              )}
+                              {p.divisao && (
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-secondary/20 text-foreground">{p.divisao}</span>
+                              )}
+                              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${ROLE_COLORS[p.role]}`}>
+                                {ROLE_LABELS[p.role]}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                      )}
-                      <div className="flex flex-col">
-                        <span className="font-medium truncate max-w-[180px] flex items-center gap-2">
-                          {formatNomeCompleto(p.patente, p.nome_guerra ?? p.full_name) || p.email}
-                          {isArchived && <span className="text-[10px] px-2 py-0.5 rounded-full bg-destructive/10 text-destructive font-semibold">Arquivado</span>}
-                        </span>
-                        {p.full_name && <span className="text-xs text-muted-foreground">{p.email}</span>}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 hidden lg:table-cell">
-                    <input
-                      type="text"
-                      defaultValue={p.nome_guerra ?? ''}
-                      placeholder="Ex: Eduardo Lima"
-                      disabled={isSubmitting || isArchived}
-                      onBlur={(e) => handleNomeGuerraBlur(p.id, p.nome_guerra, e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
-                      className="text-sm w-full min-w-[140px] border border-border rounded-lg px-2 py-1 bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 placeholder:text-muted-foreground/50"
-                    />
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
-                    {new Date(p.created_at).toLocaleDateString('pt-BR')}
-                  </td>
-                  <td className="px-4 py-3 text-right hidden md:table-cell">
-                    <select
-                      id={`patente-select-${p.id}`}
-                      value={p.patente ?? ''}
-                      onChange={(e) => handlePatenteChange(p.id, e.target.value as PatenteType | '')}
-                      disabled={isSubmitting || isArchived}
-                      className="text-xs font-semibold px-3 py-1 rounded-full border border-border bg-background cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
-                    >
-                      <option value="">—</option>
-                      {PATENTE_OPTIONS.map((pat) => (
-                        <option key={pat} value={pat}>{pat}</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3 text-right hidden md:table-cell">
-                    <select
-                      id={`divisao-select-${p.id}`}
-                      value={p.divisao ?? ''}
-                      onChange={(e) => handleDivisaoChange(p.id, e.target.value as TaskSector | '')}
-                      disabled={isSubmitting || isArchived}
-                      className="text-xs font-semibold px-3 py-1 rounded-full border border-border bg-background cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
-                    >
-                      <option value="">—</option>
-                      <option value="DT">DT</option>
-                      <option value="DA">DA</option>
-                    </select>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-2">
-                      <select
-                        id={`role-select-${p.id}`}
-                        value={p.role}
-                        onChange={(e) => handleRoleChange(p.id, e.target.value as AppRole)}
-                        disabled={isSubmitting || isArchived}
-                        className={`text-xs font-semibold px-3 py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-50 ${ROLE_COLORS[p.role]}`}
-                      >
-                        {(Object.keys(ROLE_LABELS) as AppRole[]).map((r) => (
-                          <option key={r} value={r}>{ROLE_LABELS[r]}</option>
-                        ))}
-                      </select>
-                      {isArchived ? (
-                        <button
-                          onClick={() => handleRestore(p.id, p.email)}
-                          disabled={isSubmitting}
-                          className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
-                        >
-                          Restaurar
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleArchive(p.id, p.email)}
-                          disabled={isSubmitting}
-                          className="text-xs font-medium text-destructive hover:underline disabled:opacity-50"
-                        >
-                          Arquivar
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              )})}
-              {filteredProfiles.length === 0 && (
-                <tr>
-                  <td colSpan={3} className="px-4 py-8 text-center text-muted-foreground text-sm">
-                    Nenhum usuário cadastrado.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                      </td>
+
+                      {/* Membro desde */}
+                      <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell whitespace-nowrap">
+                        {new Date(p.created_at).toLocaleDateString('pt-BR')}
+                      </td>
+
+                      {/* Perfil (patente + divisão + role) */}
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {p.patente && (
+                            <span className="text-xs font-bold text-muted-foreground">{p.patente}</span>
+                          )}
+                          {p.divisao && (
+                            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-secondary/20 text-foreground">{p.divisao}</span>
+                          )}
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${ROLE_COLORS[p.role]}`}>
+                            {ROLE_LABELS[p.role]}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Ações */}
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {!isArchived && (
+                            <button
+                              onClick={() => setEditingProfile(p)}
+                              disabled={isSubmitting}
+                              className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-border hover:bg-muted transition-colors disabled:opacity-50"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-3.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                              </svg>
+                              Editar
+                            </button>
+                          )}
+                          {isArchived ? (
+                            <button
+                              onClick={() => handleRestore(p.id, p.email)}
+                              disabled={isSubmitting}
+                              className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
+                            >
+                              Restaurar
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleArchive(p.id, p.email)}
+                              disabled={isSubmitting}
+                              className="text-xs font-medium text-destructive hover:underline disabled:opacity-50"
+                            >
+                              Arquivar
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+                {filteredProfiles.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground text-sm">
+                      Nenhum usuário encontrado.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
       )}
 
       {/* Tab: Whitelist */}
