@@ -1,23 +1,4 @@
 -- Adiciona status 'em_revisao' ao enum task_status
--- Postgres ADD VALUE não é transacional — deve rodar fora de BEGIN/COMMIT
+-- ALTER TYPE ADD VALUE é não-transacional: auto-commita mesmo dentro de BEGIN/COMMIT.
+-- A view que usa o novo valor deve ficar em migration separada (20260516140001).
 ALTER TYPE task_status ADD VALUE IF NOT EXISTS 'em_revisao' AFTER 'em_desenvolvimento';
-
--- Recria view user_task_stats com avatar_url, full_name e novo status
-DROP VIEW IF EXISTS public.user_task_stats;
-CREATE VIEW public.user_task_stats
-WITH (security_invoker = true)
-AS
-SELECT
-    p.id          AS user_id,
-    p.email,
-    p.full_name,
-    p.avatar_url,
-    p.role,
-    COUNT(t.id)                                                      AS total_tasks,
-    COUNT(t.id) FILTER (WHERE t.status = 'finalizada')              AS finished_tasks,
-    COUNT(t.id) FILTER (WHERE t.status = 'em_desenvolvimento')      AS in_progress_tasks,
-    COUNT(t.id) FILTER (WHERE t.status = 'em_revisao')              AS in_review_tasks
-FROM public.profiles p
-LEFT JOIN public.task_assignees ta ON ta.user_id = p.id
-LEFT JOIN public.tasks t ON t.id = ta.task_id
-GROUP BY p.id, p.email, p.full_name, p.avatar_url, p.role;
