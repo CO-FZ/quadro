@@ -37,9 +37,19 @@ yarn-error.log*
 /coverage
 test_output*.txt
 
-# ── Agentes de IA e ferramentas de desenvolvimento ───────────────────────────
-# Pasta completa do Antigravity (skills, brain, cache do agente)
-.gemini/
+# Pasta completa do Antigravity (skills, brain, cache do agente), exceto templates/docs
+.gemini/*
+!.gemini/antigravity/
+.gemini/antigravity/*
+!.gemini/antigravity/skills/
+.gemini/antigravity/skills/*
+!.gemini/antigravity/skills/agent-product-harness/
+.gemini/antigravity/skills/agent-product-harness/*
+!.gemini/antigravity/skills/agent-product-harness/agent-product-harness/
+.gemini/antigravity/skills/agent-product-harness/agent-product-harness/*
+!.gemini/antigravity/skills/agent-product-harness/agent-product-harness/templates/
+.gemini/antigravity/skills/agent-product-harness/agent-product-harness/templates/*
+!.gemini/antigravity/skills/agent-product-harness/agent-product-harness/templates/docs/
 
 # Skills locais do projeto (não são código da aplicação)
 /skills/
