@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 // Auth callback tests — no storageState (testing login flows)
 
 test.describe('Auth callback', () => {
-  test('whitelisted email → redirected to /kanban', async ({ page }) => {
+  test('whitelisted email → redirected to /kanban', async () => {
     // We can't automate Google OAuth, so we verify the redirect behavior
     // by injecting a valid session directly (same as loginAs helper) and
     // navigating to the callback URL.

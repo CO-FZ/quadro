@@ -53,7 +53,7 @@ describe('SELECT tasks', () => {
   })
 
   it('anon cannot select tasks', async () => {
-    const { error } = await adminClient.from('tasks').select('id')
+    await adminClient.from('tasks').select('id')
     // adminClient bypasses RLS; use a truly unauthenticated client
     const { createClient } = await import('@supabase/supabase-js')
     const anonClient = createClient(
@@ -61,9 +61,8 @@ describe('SELECT tasks', () => {
       SUPABASE_ANON_KEY,
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
-    const { data, error: anonError } = await anonClient.from('tasks').select('id')
+    const { data } = await anonClient.from('tasks').select('id')
     expect(data?.length ?? 0).toBe(0) // RLS returns empty for anon, not 403
-    void error
   })
 })
 

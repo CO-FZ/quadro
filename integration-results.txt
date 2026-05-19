@@ -1,0 +1,108 @@
+
+> quadro@0.1.0 test:integration /home/zelzin/study/quadro
+> vitest run -c tests/integration.config.ts
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.5 [39m[90m/home/zelzin/study/quadro[39m
+
+Error fetching supabase status via json: Error: Command failed: npx supabase status --output json
+npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+npm warn Unknown env config "npm-globalconfig". This will stop working in the next major version of npm.
+npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+failed to inspect container health: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?
+Try rerunning the command with --debug to troubleshoot the error.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:882:11)
+    at execSync (node:child_process:954:15)
+    at /home/zelzin/study/quadro/tests/integration/fixtures/supabase.ts:11:26
+    at VitestModuleEvaluator._runInlinedModule (file:///home/zelzin/study/quadro/node_modules/.pnpm/vitest@4.1.5_@types+node@20.19.39_@vitest+coverage-v8@4.1.5_vite@8.0.11_@types+node@20.19.39_jiti@2.7.0_/node_modules/vitest/dist/module-evaluator.js:206:4)
+    at ServerModuleRunner.directRequest (file:///home/zelzin/study/quadro/node_modules/.pnpm/vite@8.0.11_@types+node@20.19.39_jiti@2.7.0/node_modules/vite/dist/node/module-runner.js:1247:59)
+    at ServerModuleRunner.cachedRequest (file:///home/zelzin/study/quadro/node_modules/.pnpm/vite@8.0.11_@types+node@20.19.39_jiti@2.7.0/node_modules/vite/dist/node/module-runner.js:1154:73)
+    at /home/zelzin/study/quadro/tests/integration/fixtures/seed.ts:3:1
+    at VitestModuleEvaluator._runInlinedModule (file:///home/zelzin/study/quadro/node_modules/.pnpm/vitest@4.1.5_@types+node@20.19.39_@vitest+coverage-v8@4.1.5_vite@8.0.11_@types+node@20.19.39_jiti@2.7.0_/node_modules/vitest/dist/module-evaluator.js:206:4) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    '',
+    'npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.\n' +
+      'npm warn Unknown env config "npm-globalconfig". This will stop working in the next major version of npm.\n' +
+      'npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.\n' +
+      'failed to inspect container health: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?\n' +
+      'Try rerunning the command with --debug to troubleshoot the error.\n'
+  ],
+  pid: 15136,
+  stdout: '',
+  stderr: 'npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.\n' +
+    'npm warn Unknown env config "npm-globalconfig". This will stop working in the next major version of npm.\n' +
+    'npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.\n' +
+    'failed to inspect container health: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?\n' +
+    'Try rerunning the command with --debug to troubleshoot the error.\n'
+}
+Error fetching supabase status via regex: Error: Command failed: npx supabase status
+npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+npm warn Unknown env config "npm-globalconfig". This will stop working in the next major version of npm.
+npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+failed to inspect container health: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?
+Try rerunning the command with --debug to troubleshoot the error.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:882:11)
+    at execSync (node:child_process:954:15)
+    at /home/zelzin/study/quadro/tests/integration/fixtures/supabase.ts:19:28
+    at VitestModuleEvaluator._runInlinedModule (file:///home/zelzin/study/quadro/node_modules/.pnpm/vitest@4.1.5_@types+node@20.19.39_@vitest+coverage-v8@4.1.5_vite@8.0.11_@types+node@20.19.39_jiti@2.7.0_/node_modules/vitest/dist/module-evaluator.js:206:4)
+    at ServerModuleRunner.directRequest (file:///home/zelzin/study/quadro/node_modules/.pnpm/vite@8.0.11_@types+node@20.19.39_jiti@2.7.0/node_modules/vite/dist/node/module-runner.js:1247:59)
+    at ServerModuleRunner.cachedRequest (file:///home/zelzin/study/quadro/node_modules/.pnpm/vite@8.0.11_@types+node@20.19.39_jiti@2.7.0/node_modules/vite/dist/node/module-runner.js:1154:73)
+    at /home/zelzin/study/quadro/tests/integration/fixtures/seed.ts:3:1
+    at VitestModuleEvaluator._runInlinedModule (file:///home/zelzin/study/quadro/node_modules/.pnpm/vitest@4.1.5_@types+node@20.19.39_@vitest+coverage-v8@4.1.5_vite@8.0.11_@types+node@20.19.39_jiti@2.7.0_/node_modules/vitest/dist/module-evaluator.js:206:4) {
+  status: 1,
+  signal: null,
+  output: [
+    null,
+    '',
+    'npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.\n' +
+      'npm warn Unknown env config "npm-globalconfig". This will stop working in the next major version of npm.\n' +
+      'npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.\n' +
+      'failed to inspect container health: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?\n' +
+      'Try rerunning the command with --debug to troubleshoot the error.\n'
+  ],
+  pid: 15203,
+  stdout: '',
+  stderr: 'npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.\n' +
+    'npm warn Unknown env config "npm-globalconfig". This will stop working in the next major version of npm.\n' +
+    'npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.\n' +
+    'failed to inspect container health: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?\n' +
+    'Try rerunning the command with --debug to troubleshoot the error.\n'
+}
+[31mNo test files found, exiting with code 1
+[39m
+[2minclude: [22m[33mtests/integration/**/*.test.ts[39m
+[2mexclude:  [22m[33m**/node_modules/**[2m, [22m**/.git/**[39m
+
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Unhandled Error [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+[31m[1mError[22m: supabaseKey is required.[39m
+[90m [2m❯[22m new SupabaseClient node_modules/.pnpm/@supabase+supabase-js@2.105.3/node_modules/@supabase/supabase-js/dist/index.mjs:[2m367:27[22m[39m
+[90m [2m❯[22m createClient node_modules/.pnpm/@supabase+supabase-js@2.105.3/node_modules/@supabase/supabase-js/dist/index.mjs:[2m591:9[22m[39m
+[36m [2m❯[22m tests/integration/fixtures/supabase.ts:[2m34:44[22m[39m
+    [90m 32|[39m
+    [90m 33|[39m [90m// adminClient — service_role, bypasses RLS. Only for fixtures.[39m
+    [90m 34|[39m export const adminClient: SupabaseClient = createClient(SUPABASE_URL, …
+    [90m   |[39m                                            [31m^[39m
+    [90m 35|[39m   auth[33m:[39m { autoRefreshToken[33m:[39m [35mfalse[39m[33m,[39m persistSession[33m:[39m [35mfalse[39m }[33m,[39m
+    [90m 36|[39m })
+[90m [2m❯[22m VitestModuleEvaluator._runInlinedModule node_modules/.pnpm/vitest@4.1.5_@types+node@20.19.39_@vitest+coverage-v8@4.1.5_vite@8.0.11_@types+node@20.19.39_jiti@2.7.0_/node_modules/vitest/dist/module-evaluator.js:[2m206:4[22m[39m
+[90m [2m❯[22m ServerModuleRunner.directRequest node_modules/.pnpm/vite@8.0.11_@types+node@20.19.39_jiti@2.7.0/node_modules/vite/dist/node/module-runner.js:[2m1247:59[22m[39m
+[90m [2m❯[22m ServerModuleRunner.cachedRequest node_modules/.pnpm/vite@8.0.11_@types+node@20.19.39_jiti@2.7.0/node_modules/vite/dist/node/module-runner.js:[2m1154:73[22m[39m
+[90m [2m❯[22m tests/integration/fixtures/seed.ts:[2m3:1[22m[39m
+[90m [2m❯[22m VitestModuleEvaluator._runInlinedModule node_modules/.pnpm/vitest@4.1.5_@types+node@20.19.39_@vitest+coverage-v8@4.1.5_vite@8.0.11_@types+node@20.19.39_jiti@2.7.0_/node_modules/vitest/dist/module-evaluator.js:[2m206:4[22m[39m
+[90m [2m❯[22m ServerModuleRunner.directRequest node_modules/.pnpm/vite@8.0.11_@types+node@20.19.39_jiti@2.7.0/node_modules/vite/dist/node/module-runner.js:[2m1247:59[22m[39m
+[90m [2m❯[22m ServerModuleRunner.cachedRequest node_modules/.pnpm/vite@8.0.11_@types+node@20.19.39_jiti@2.7.0/node_modules/vite/dist/node/module-runner.js:[2m1154:73[22m[39m
+
+
+
+
+ ELIFECYCLE  Command failed with exit code 1.

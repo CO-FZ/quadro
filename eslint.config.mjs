@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Edge Functions rodam em Deno, não Node — não usar a config do Next aqui.
     "supabase/functions/**",
+    "coverage/**",
   ]),
 ]);
 

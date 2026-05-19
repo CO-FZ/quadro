@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { TaskUseCases, type UseCaseCaller } from '@/src/modules/task-board/application/use-cases'
 import type { TaskRepository } from '@/src/modules/task-board/domain/repository'
 import type { Task, TaskWithAssignees, NormalizedTaskInput } from '@/src/modules/task-board/domain/entities'
