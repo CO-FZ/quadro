@@ -20,6 +20,7 @@ interface DashboardViewProps {
     finalizada: number
   }
   sectorStats: SectorStats
+  overdueCount: number
 }
 
 const STATUS_CONFIG = [
@@ -30,7 +31,7 @@ const STATUS_CONFIG = [
   { key: 'finalizada' as const, label: 'Finalizadas', color: 'bg-green-500/10', textColor: 'text-green-700 dark:text-green-400', icon: '✅' },
 ]
 
-export default function DashboardView({ stats, totalByStatus, sectorStats }: DashboardViewProps) {
+export default function DashboardView({ stats, totalByStatus, sectorStats, overdueCount }: DashboardViewProps) {
   const totalTasks = Object.values(totalByStatus).reduce((a, b) => a + b, 0)
 
   return (
@@ -77,6 +78,31 @@ export default function DashboardView({ stats, totalByStatus, sectorStats }: Das
           )
         })}
       </div>
+
+      {/* Alerta de tarefas atrasadas */}
+      {overdueCount > 0 && (
+        <div className="flex items-center gap-4 rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
+          <span className="text-3xl">⚠</span>
+          <div>
+            <p className="text-sm font-semibold text-destructive">
+              {overdueCount} {overdueCount === 1 ? 'tarefa atrasada' : 'tarefas atrasadas'}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {overdueCount === 1 ? 'Tarefa ativa com prazo vencido' : 'Tarefas ativas com prazo vencido'} — verifique o Kanban.
+            </p>
+          </div>
+          <div className="ml-auto rounded-2xl bg-destructive/10 px-4 py-2">
+            <p className="text-3xl font-bold text-destructive">{overdueCount}</p>
+          </div>
+        </div>
+      )}
+
+      {overdueCount === 0 && (
+        <div className="flex items-center gap-3 rounded-2xl border border-green-500/20 bg-green-500/5 px-5 py-4">
+          <span className="text-lg">✅</span>
+          <p className="text-sm text-green-700 dark:text-green-400 font-medium">Nenhuma tarefa atrasada</p>
+        </div>
+      )}
 
       {/* Distribuição por Divisão */}
       <div className="flex flex-col gap-4">

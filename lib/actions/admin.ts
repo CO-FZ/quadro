@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { logger } from '@/lib/logger'
 import { requireAdmin } from '@/lib/auth/require-role'
-import type { AppRole, PatenteType, TaskSector, PrivilegedRoleAuditEntry } from '@/lib/supabase/types'
+import type { AppRole, PatenteType, TaskSector, PrivilegedRoleAuditEntry, RoleChangeAuditEntry } from '@/lib/supabase/types'
 
 const PRIVILEGED_ROLES: AppRole[] = ['admin', 'coordenador']
 
@@ -125,6 +125,12 @@ export async function updateUserProfile(userId: string, data: UserProfileUpdate)
       }
     }
 
+    const { data: currentProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+
     const { error } = await supabase.from('profiles').update({
       nome_guerra: data.nome_guerra?.trim() || null,
       patente: data.patente,
@@ -133,6 +139,26 @@ export async function updateUserProfile(userId: string, data: UserProfileUpdate)
     }).eq('id', userId)
 
     if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
+
+    // Best-effort audit: log role change without blocking the update.
+    if (currentProfile && currentProfile.role !== data.role) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { error: auditError } = await supabase.from('role_change_audit').insert({
+          target_profile_id: userId,
+          actor_profile_id: user.id,
+          old_role: currentProfile.role,
+          new_role: data.role,
+        })
+        if (auditError) {
+          logger.warn('role_change_audit_insert_failed', {
+            event: 'role_change_audit_insert_failed',
+            target_profile_id: userId,
+            error: auditError.message,
+          })
+        }
+      }
+    }
 
     revalidateAdmin()
     return { ok: true }
@@ -344,6 +370,36 @@ export async function getPrivilegedRoleAudit(
     if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
 
     return { ok: true, data: (data ?? []) as PrivilegedRoleAuditEntry[] }
+  } catch (e) {
+    return { ok: false, code: 'UNEXPECTED', message: String(e) }
+  }
+}
+
+// ─── Audit log de mudança de role pós-cadastro ───────────────────────────────
+
+type RoleChangeAuditResult =
+  | { ok: true; data: RoleChangeAuditEntry[] }
+  | { ok: false; code: string; message: string }
+
+export async function getRoleChangeAudit(
+  targetUserId: string,
+  limit = 5,
+): Promise<RoleChangeAuditResult> {
+  try {
+    const deny = await requireAdmin()
+    if (deny) return deny
+
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('role_change_audit')
+      .select('*')
+      .eq('target_profile_id', targetUserId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
+
+    return { ok: true, data: (data ?? []) as RoleChangeAuditEntry[] }
   } catch (e) {
     return { ok: false, code: 'UNEXPECTED', message: String(e) }
   }

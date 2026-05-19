@@ -10,12 +10,14 @@ import type {
   WhitelistEntry,
   PrivilegedRoleAuditEntry,
   PrivilegedRoleAuditSource,
+  RoleChangeAuditEntry,
 } from '@/lib/supabase/types'
 import { PATENTE_OPTIONS } from '@/lib/supabase/types'
 import {
   updateUserProfile,
   addToWhitelist,
   removeFromWhitelist,
+  getRoleChangeAudit,
 } from '@/lib/actions/admin'
 import { isPrivilegedDomainEntry } from '@/lib/utils/admin-warnings'
 import { formatNomeCompleto } from '@/lib/utils/format'
@@ -75,6 +77,7 @@ function EditModal({ profile, onClose, onSuccess, onError }: EditModalProps) {
   const [patente, setPatente] = useState<PatenteType | ''>(profile.patente ?? '')
   const [divisao, setDivisao] = useState<TaskSector | ''>(profile.divisao ?? '')
   const [role, setRole] = useState<AppRole>(profile.role)
+  const [roleHistory, setRoleHistory] = useState<RoleChangeAuditEntry[]>([])
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -83,6 +86,12 @@ function EditModal({ profile, onClose, onSuccess, onError }: EditModalProps) {
     document.addEventListener('keydown', handleKey)
     return () => document.removeEventListener('keydown', handleKey)
   }, [onClose])
+
+  useEffect(() => {
+    getRoleChangeAudit(profile.id, 5).then((result) => {
+      if (result.ok) setRoleHistory(result.data)
+    })
+  }, [profile.id])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -215,6 +224,23 @@ function EditModal({ profile, onClose, onSuccess, onError }: EditModalProps) {
               ))}
             </select>
           </div>
+
+          {/* Histórico de mudanças de role */}
+          {roleHistory.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <p className="text-xs font-medium text-muted-foreground">Histórico de perfil de acesso</p>
+              <div className="flex flex-col gap-1 rounded-xl border border-border bg-muted/30 px-3 py-2">
+                {roleHistory.map((entry) => (
+                  <div key={entry.id} className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="shrink-0 text-[10px]">{new Date(entry.created_at).toLocaleDateString('pt-BR')}</span>
+                    <span className={`shrink-0 font-medium px-1.5 py-0.5 rounded ${ROLE_COLORS[entry.old_role]}`}>{ROLE_LABELS[entry.old_role]}</span>
+                    <span className="shrink-0">→</span>
+                    <span className={`shrink-0 font-medium px-1.5 py-0.5 rounded ${ROLE_COLORS[entry.new_role]}`}>{ROLE_LABELS[entry.new_role]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-1">

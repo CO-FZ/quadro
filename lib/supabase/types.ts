@@ -60,3 +60,12 @@ export interface PrivilegedRoleAuditEntry {
   whitelist_entry_id: string | null
   created_at: string
 }
+
+export interface RoleChangeAuditEntry {
+  id: string
+  target_profile_id: string
+  actor_profile_id: string
+  old_role: AppRole
+  new_role: AppRole
+  created_at: string
+}

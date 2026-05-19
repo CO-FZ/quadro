@@ -13,7 +13,7 @@ export default async function DashboardPage() {
 
   const { data: taskCounts } = await supabase
     .from('tasks')
-    .select('status, sector')
+    .select('status, sector, end_date')
     .eq('is_servico', false)
 
   const totalByStatus = {
@@ -30,9 +30,19 @@ export default async function DashboardPage() {
     total: 0,
   }
 
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const ACTIVE_STATUSES = new Set(['backlog', 'alocada', 'em_desenvolvimento', 'em_revisao'])
+  let overdueCount = 0
+
   for (const t of taskCounts ?? []) {
     const s = t.status as keyof typeof totalByStatus
     if (s in totalByStatus) totalByStatus[s]++
+
+    if (ACTIVE_STATUSES.has(t.status) && t.end_date) {
+      const endDate = new Date(t.end_date + 'T00:00:00')
+      if (endDate < today) overdueCount++
+    }
 
     const sector = t.sector as 'DT' | 'DA'
     if (sector === 'DT' || sector === 'DA') {
@@ -51,6 +61,7 @@ export default async function DashboardPage() {
       stats={(stats ?? []) as UserTaskStats[]}
       totalByStatus={totalByStatus}
       sectorStats={sectorStats}
+      overdueCount={overdueCount}
     />
   )
 }

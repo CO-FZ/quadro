@@ -231,9 +231,11 @@ Expandir o produto com três eixos: (1) nova aba **Matriz** com visão de grade 
 ## Status da Sprint
 
 - **Início:** 18/05/2026
-- **Status Atual:** **PLANEJADA**
-- **Riscos:**
-  - Story 12.3 (Matriz): CSS `sticky` com scroll duplo (X+Y) pode ter comportamento inconsistente entre browsers — testar em Chrome e Firefox.
-  - Story 12.2: muitos pontos de exibição de nome; usar `pnpm typecheck` para garantir cobertura total após adicionar `patente` ao tipo `Profile`.
-  - Story 12.1: migration de enum no Postgres exige ordem específica (`CREATE TYPE` antes de `ALTER TABLE`) — atenção à migration sequencial.
-  - Story 12.6: a revisão pode revelar bugs reais nas queries de dashboard; se a correção envolver mudança de schema ou view, pode requerer migration adicional — avaliar escopo antes de implementar.
+- **Conclusão:** 19/05/2026
+- **Status Atual:** **CONCLUÍDA**
+- **Stories entregues:** 12.1 ✅ 12.2 ✅ 12.3 ✅ 12.4 ✅ 12.5 ✅ 12.6 ✅
+- **Riscos Mitigados:**
+  - Story 12.3 (Matriz): CSS `sticky` implementado com `z-index` em layers (z-10/20/30). `pnpm typecheck` e `pnpm lint` passaram.
+  - Story 12.2: `pnpm typecheck` cobriu todos os pontos de uso de `formatNomeCompleto`.
+  - Story 12.1: migration sequencial (`CREATE TYPE` → `ALTER TABLE`) respeitada.
+  - Story 12.6: auditoria não revelou bugs de schema; correções foram pontuais em `null` handling e guards de `0`.
