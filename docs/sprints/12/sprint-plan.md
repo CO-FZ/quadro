@@ -1,8 +1,8 @@
-# Sprint 12: Matriz, Patente e Métricas DT/DA
+# Sprint 12: Matriz, Patente, Métricas DT/DA e Revisão de Renderização
 
 ## Meta
 
-Expandir o produto com três eixos: (1) nova aba **Matriz** com visão de grade cronológica por efetivo, (2) campo **Patente** militar no perfil exibido em todo o app, e (3) métricas de divisão **DT vs DA** no Dashboard.
+Expandir o produto com três eixos: (1) nova aba **Matriz** com visão de grade cronológica por efetivo, (2) campo **Patente** militar no perfil exibido em todo o app, e (3) métricas de divisão **DT vs DA** no Dashboard. Inclui ainda (4) **revisão e correção de renderização das métricas existentes** no Dashboard antes de adicionar novos indicadores.
 
 ---
 
@@ -164,6 +164,37 @@ Expandir o produto com três eixos: (1) nova aba **Matriz** com visão de grade 
 
 ---
 
+### [Story 12.6] Dashboard — Revisão de Renderização das Métricas
+
+**Objetivo:** Auditar e corrigir a renderização das métricas existentes no Dashboard antes de adicionar novos indicadores (Story 12.5), garantindo que os KPI cards exibem dados corretos e sem regressões visuais.
+
+**Escopo técnico:**
+- `app/(app)/dashboard/page.tsx`:
+  - Verificar todas as queries de métricas existentes (total de tarefas, por status, por assignee)
+  - Confirmar que filtros de `status` excluem `'arquivada'` corretamente dos contadores ativos
+  - Validar que a view `user_task_stats` retorna dados consistentes com a query direta
+  - Checar tratamento de `null` / `undefined` antes de renderizar números (evitar NaN ou `-`)
+- `components/features/DashboardView.tsx`:
+  - Auditar cada KPI card: título, valor, unidade e estado vazio
+  - Garantir que cards com `value = 0` exibem `0` (não ficam em branco)
+  - Verificar responsividade da grade de cards em viewport mobile (< 640px)
+  - Confirmar que o Skeleton/loading state cobre todos os cards durante SSR
+- Browser subagent:
+  - Screenshot de smoke test do Dashboard com dados reais
+  - Validar ausência de quebras de layout ou valores `NaN`/`undefined` na UI
+
+**Arquivos afetados:**
+- `app/(app)/dashboard/page.tsx`
+- `components/features/DashboardView.tsx`
+
+**Critério de aceite:**
+- Todos os KPI cards exibem valores numéricos corretos (incluindo `0`)
+- Nenhum card renderiza `NaN`, `undefined` ou string vazia no lugar de um número
+- `pnpm typecheck` e `pnpm lint` passam sem erros
+- Screenshot do browser subagent anexado sem regressão visual
+
+---
+
 ## Dependências entre Stories
 
 ```
@@ -174,12 +205,13 @@ Expandir o produto com três eixos: (1) nova aba **Matriz** com visão de grade 
 12.3 (componente Matriz)
   └─► 12.4 (nav — depende da rota existir)
 
-12.5 — independente, pode rodar em paralelo com 12.1–12.4
+12.6 (revisão de renderização — pré-requisito de 12.5)
+  └─► 12.5 (métricas DT/DA — depende do Dashboard estar saneado)
 ```
 
 ## Ordem de execução sugerida
 
-1. **12.1** → 2. **12.2 + 12.5** (paralelo) → 3. **12.3** → 4. **12.4**
+1. **12.1** → 2. **12.2 + 12.6** (paralelo) → 3. **12.5 + 12.3** (paralelo) → 4. **12.4**
 
 ---
 
@@ -192,6 +224,7 @@ Expandir o produto com três eixos: (1) nova aba **Matriz** com visão de grade 
 | 12.3 | Alta | Componente novo com lógica de grid + sticky + dates |
 | 12.4 | Baixa | Edição pontual em `NAV_ITEMS` |
 | 12.5 | Média | Query nova + componente de card DT/DA |
+| 12.6 | Baixa | Auditoria + correções pontuais em componente e page existentes |
 
 ---
 
@@ -203,3 +236,4 @@ Expandir o produto com três eixos: (1) nova aba **Matriz** com visão de grade 
   - Story 12.3 (Matriz): CSS `sticky` com scroll duplo (X+Y) pode ter comportamento inconsistente entre browsers — testar em Chrome e Firefox.
   - Story 12.2: muitos pontos de exibição de nome; usar `pnpm typecheck` para garantir cobertura total após adicionar `patente` ao tipo `Profile`.
   - Story 12.1: migration de enum no Postgres exige ordem específica (`CREATE TYPE` antes de `ALTER TABLE`) — atenção à migration sequencial.
+  - Story 12.6: a revisão pode revelar bugs reais nas queries de dashboard; se a correção envolver mudança de schema ou view, pode requerer migration adicional — avaliar escopo antes de implementar.
