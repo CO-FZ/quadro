@@ -1,7 +1,8 @@
 'use client'
 
-import { startTransition, useOptimistic, useState } from 'react'
+import { memo, startTransition, useCallback, useMemo, useOptimistic, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Profile, TaskStatus, TaskWithAssignees } from '@/lib/supabase/types'
 import { KANBAN_COLUMNS } from '@/lib/supabase/types'
@@ -19,6 +20,143 @@ interface KanbanBoardProps {
 }
 
 type StatusOverride = { taskId: string; status: TaskStatus }
+
+const COLUMN_COLORS: Record<string, string> = {
+  backlog: 'border-muted-foreground/30',
+  alocada: 'border-secondary',
+  em_desenvolvimento: 'border-primary',
+  em_revisao: 'border-violet-500',
+  finalizada: 'border-green-500',
+}
+
+const COLUMN_HEADER_COLORS: Record<string, string> = {
+  backlog: 'bg-muted text-muted-foreground',
+  alocada: 'bg-secondary/20 text-foreground',
+  em_desenvolvimento: 'bg-primary/10 text-primary',
+  em_revisao: 'bg-violet-500/10 text-violet-700 dark:text-violet-400',
+  finalizada: 'bg-green-500/10 text-green-700 dark:text-green-400',
+}
+
+// Estimated card height (px) + gap-2 (8px). Virtualizer adjusts as items are measured.
+const CARD_ESTIMATE_PX = 130
+
+const ACTIVE_COLUMNS = KANBAN_COLUMNS.filter((c) => c.id !== 'arquivada')
+
+interface KanbanColumnProps {
+  status: TaskStatus
+  label: string
+  colTasks: TaskWithAssignees[]
+  isOver: boolean
+  onColumnDragEnter: (status: TaskStatus) => void
+  onColumnDrop: (status: TaskStatus) => void
+  onColumnDragLeave: () => void
+  onTaskDragStart: (taskId: string) => void
+  onTaskDragEnd: () => void
+  onTaskRefresh: () => void
+  profiles: KanbanBoardProps['profiles']
+  canManage: boolean
+  currentUserId: string
+}
+
+const KanbanColumn = memo(function KanbanColumn({
+  status,
+  label,
+  colTasks,
+  isOver,
+  onColumnDragEnter,
+  onColumnDrop,
+  onColumnDragLeave,
+  onTaskDragStart,
+  onTaskDragEnd,
+  onTaskRefresh,
+  profiles,
+  canManage,
+  currentUserId,
+}: KanbanColumnProps) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // status comes from ACTIVE_COLUMNS (module-level constant) — stable value.
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    onColumnDragEnter(status)
+  }, [onColumnDragEnter, status])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    onColumnDrop(status)
+  }, [onColumnDrop, status])
+
+  const virtualizer = useVirtualizer({
+    count: colTasks.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => CARD_ESTIMATE_PX,
+    overscan: 4,
+    paddingStart: 12,
+    paddingEnd: 12,
+  })
+
+  return (
+    <div
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onDragLeave={onColumnDragLeave}
+      className={`flex flex-col rounded-2xl border-2 transition-all duration-150 ${COLUMN_COLORS[status]} ${
+        isOver ? 'ring-2 ring-primary/30 bg-primary/5' : 'bg-card'
+      }`}
+    >
+      {/* Column Header */}
+      <div className={`px-4 py-3 rounded-t-xl border-b border-border ${COLUMN_HEADER_COLORS[status]}`}>
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-semibold">{label}</span>
+          <span className="text-xs font-bold bg-background/60 px-2 py-0.5 rounded-full">
+            {colTasks.length}
+          </span>
+        </div>
+      </div>
+
+      {/* Virtualized task list */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto min-h-[200px] max-h-[calc(100vh-320px)]"
+      >
+        {colTasks.length === 0 ? (
+          <div className="flex items-center justify-center h-full py-4">
+            <p className="text-xs text-muted-foreground text-center">Nenhuma tarefa</p>
+          </div>
+        ) : (
+          <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+            {virtualizer.getVirtualItems().map((virtualItem) => {
+              const task = colTasks[virtualItem.index]
+              return (
+                <div
+                  key={task.id}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: `translateY(${virtualItem.start}px)`,
+                    padding: '0 12px 8px',
+                  }}
+                >
+                  <TaskCard
+                    task={task}
+                    onDragStart={onTaskDragStart}
+                    onDragEnd={onTaskDragEnd}
+                    profiles={profiles}
+                    canManage={canManage}
+                    currentUserId={currentUserId}
+                    onRefresh={onTaskRefresh}
+                  />
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+})
 
 export default function KanbanBoard({ tasks, profiles, currentUserId, currentUserRole }: KanbanBoardProps) {
   const router = useRouter()
@@ -54,37 +192,59 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
     },
   })
 
-  const activeTasks = optimisticTasks.filter((t) => t.status !== 'arquivada')
-  const archivedTasks = optimisticTasks.filter((t) => t.status === 'arquivada')
+  const activeTasks = useMemo(
+    () => optimisticTasks.filter((t) => t.status !== 'arquivada'),
+    [optimisticTasks],
+  )
+  const archivedTasks = useMemo(
+    () => optimisticTasks.filter((t) => t.status === 'arquivada'),
+    [optimisticTasks],
+  )
 
-  function applyFilters(list: TaskWithAssignees[]) {
-    return list
-      .filter((t) => filterSector === 'all' || t.sector === filterSector)
-      .filter(
-        (t) =>
-          filterAssignee === 'all' ||
-          t.task_assignees.some((a) => a.user_id === filterAssignee)
-      )
-  }
+  const tasksByStatus = useMemo(() => {
+    const map: Partial<Record<TaskStatus, TaskWithAssignees[]>> = {}
+    for (const task of activeTasks) {
+      const keep =
+        (filterSector === 'all' || task.sector === filterSector) &&
+        (filterAssignee === 'all' || task.task_assignees.some((a) => a.user_id === filterAssignee))
+      if (!keep) continue
+      const arr = map[task.status] ?? (map[task.status] = [])
+      arr.push(task)
+    }
+    return map
+  }, [activeTasks, filterSector, filterAssignee])
 
-  function getTasksByStatus(status: TaskStatus) {
-    return applyFilters(activeTasks).filter((t) => t.status === status)
-  }
-
-  function handleDragStart(taskId: string) {
+  const handleDragStart = useCallback((taskId: string) => {
     setDraggingId(taskId)
-  }
+  }, [])
 
-  function handleDragOver(e: React.DragEvent, status: TaskStatus) {
-    e.preventDefault()
+  const handleDragEnd = useCallback(() => {
+    setDraggingId(null)
+    setDragOverColumn(null)
+  }, [])
+
+  const handleRefresh = useCallback(() => {
+    router.refresh()
+  }, [router])
+
+  // Refs give handleColumnDrop a stable identity while always reading fresh values.
+  const draggingIdRef = useRef(draggingId)
+  draggingIdRef.current = draggingId
+  const optimisticTasksRef = useRef(optimisticTasks)
+  optimisticTasksRef.current = optimisticTasks
+
+  const handleColumnDragEnter = useCallback((status: TaskStatus) => {
     setDragOverColumn(status)
-  }
+  }, [])
 
-  function handleDrop(e: React.DragEvent, status: TaskStatus) {
-    e.preventDefault()
-    if (!draggingId) return
-    const task = optimisticTasks.find((t) => t.id === draggingId)
-    const movingId = draggingId
+  const handleColumnDragLeave = useCallback(() => {
+    setDragOverColumn(null)
+  }, [])
+
+  const handleColumnDrop = useCallback((status: TaskStatus) => {
+    const movingId = draggingIdRef.current
+    if (!movingId) return
+    const task = optimisticTasksRef.current.find((t) => t.id === movingId)
     setDraggingId(null)
     setDragOverColumn(null)
     if (!task || task.status === status) return
@@ -97,30 +257,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
         // Erro tratado em onError do useMutation; rollback otimista ocorre ao fim da transição.
       }
     })
-  }
-
-  function handleDragEnd() {
-    setDraggingId(null)
-    setDragOverColumn(null)
-  }
-
-  const columnColors: Record<string, string> = {
-    backlog: 'border-muted-foreground/30',
-    alocada: 'border-secondary',
-    em_desenvolvimento: 'border-primary',
-    em_revisao: 'border-violet-500',
-    finalizada: 'border-green-500',
-  }
-
-  const columnHeaderColors: Record<string, string> = {
-    backlog: 'bg-muted text-muted-foreground',
-    alocada: 'bg-secondary/20 text-foreground',
-    em_desenvolvimento: 'bg-primary/10 text-primary',
-    em_revisao: 'bg-violet-500/10 text-violet-700 dark:text-violet-400',
-    finalizada: 'bg-green-500/10 text-green-700 dark:text-green-400',
-  }
-
-  const activeColumns = KANBAN_COLUMNS.filter((c) => c.id !== 'arquivada')
+  }, [applyOptimistic, moveStatusMutation])
 
   return (
     <div className="flex flex-col gap-6 h-full">
@@ -175,55 +312,24 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
 
       {/* Kanban Columns */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 flex-1 min-h-0">
-        {activeColumns.map((col) => {
-          const colTasks = getTasksByStatus(col.id)
-          const isOver = dragOverColumn === col.id
-
-          return (
-            <div
-              key={col.id}
-              onDragOver={(e) => handleDragOver(e, col.id)}
-              onDrop={(e) => handleDrop(e, col.id)}
-              onDragLeave={() => setDragOverColumn(null)}
-              className={`flex flex-col rounded-2xl border-2 transition-all duration-150 ${columnColors[col.id]} ${
-                isOver ? 'ring-2 ring-primary/30 bg-primary/5' : 'bg-card'
-              }`}
-            >
-              {/* Column Header */}
-              <div className={`px-4 py-3 rounded-t-xl border-b border-border ${columnHeaderColors[col.id]}`}>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold">{col.label}</span>
-                  <span className="text-xs font-bold bg-background/60 px-2 py-0.5 rounded-full">
-                    {colTasks.length}
-                  </span>
-                </div>
-              </div>
-
-              {/* Task Cards */}
-              <div className="flex-1 p-3 flex flex-col gap-2 overflow-y-auto min-h-[200px] max-h-[calc(100vh-320px)]">
-                {colTasks.map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onDragStart={() => handleDragStart(task.id)}
-                    onDragEnd={handleDragEnd}
-                    profiles={profiles}
-                    canManage={canManage}
-                    currentUserId={currentUserId}
-                    onRefresh={() => router.refresh()}
-                  />
-                ))}
-                {colTasks.length === 0 && (
-                  <div className="flex-1 flex items-center justify-center">
-                    <p className="text-xs text-muted-foreground text-center py-4">
-                      Nenhuma tarefa
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )
-        })}
+        {ACTIVE_COLUMNS.map((col) => (
+          <KanbanColumn
+            key={col.id}
+            status={col.id}
+            label={col.label}
+            colTasks={tasksByStatus[col.id] ?? []}
+            isOver={dragOverColumn === col.id}
+            onColumnDragEnter={handleColumnDragEnter}
+            onColumnDrop={handleColumnDrop}
+            onColumnDragLeave={handleColumnDragLeave}
+            onTaskDragStart={handleDragStart}
+            onTaskDragEnd={handleDragEnd}
+            onTaskRefresh={handleRefresh}
+            profiles={profiles}
+            canManage={canManage}
+            currentUserId={currentUserId}
+          />
+        ))}
       </div>
 
       {/* Seção de Tarefas Arquivadas */}
@@ -260,12 +366,12 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
                 <TaskCard
                   key={task.id}
                   task={task}
-                  onDragStart={() => {}}
-                  onDragEnd={() => {}}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
                   profiles={profiles}
                   canManage={canManage}
                   currentUserId={currentUserId}
-                  onRefresh={() => router.refresh()}
+                  onRefresh={handleRefresh}
                 />
               ))}
             </div>

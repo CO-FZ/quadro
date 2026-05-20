@@ -1,15 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import type { Profile, TaskWithAssignees } from '@/lib/supabase/types'
 import { isOverdue } from '@/lib/utils/task-status'
 import { formatDateBr } from '@/lib/utils/format'
-import TaskDetailModal from '@/components/features/TaskDetailModal'
+
+const TaskDetailModal = dynamic(() => import('@/components/features/TaskDetailModal'), { ssr: false, loading: () => null })
 
 interface TaskCardProps {
   task: TaskWithAssignees
-  onDragStart: () => void
+  onDragStart: (taskId: string) => void
   onDragEnd: () => void
   profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'nome_guerra' | 'avatar_url' | 'role' | 'patente'>[]
   canManage: boolean
@@ -61,7 +63,7 @@ function UserAvatars({ assignees }: { assignees: TaskWithAssignees['task_assigne
   )
 }
 
-export default function TaskCard({ task, onDragStart, onDragEnd, profiles, canManage, currentUserId, onRefresh }: TaskCardProps) {
+const TaskCard = memo(function TaskCard({ task, onDragStart, onDragEnd, profiles, canManage, currentUserId, onRefresh }: TaskCardProps) {
   const [showDetail, setShowDetail] = useState(false)
   const overdue = isOverdue(task)
   const isAssignee = task.task_assignees.some((a) => a.user_id === currentUserId)
@@ -71,7 +73,7 @@ export default function TaskCard({ task, onDragStart, onDragEnd, profiles, canMa
     <>
       <div
         draggable={canDrag}
-        onDragStart={onDragStart}
+        onDragStart={() => onDragStart(task.id)}
         onDragEnd={onDragEnd}
         onClick={() => setShowDetail(true)}
         className={`group bg-background border border-border rounded-xl p-3 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all duration-200 ease-out select-none ${canDrag ? 'active:scale-[0.98]' : ''}`}
@@ -137,4 +139,6 @@ export default function TaskCard({ task, onDragStart, onDragEnd, profiles, canMa
       )}
     </>
   )
-}
+})
+
+export default TaskCard
