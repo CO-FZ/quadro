@@ -4,6 +4,7 @@ import Image from 'next/image'
 import type { Profile, TaskWithAssignees, TaskStatus } from '@/lib/supabase/types'
 import { SECTOR_LABELS } from '@/lib/supabase/types'
 import { isOverdue } from '@/lib/utils/task-status'
+import { formatDateBr } from '@/lib/utils/format'
 
 interface ProfileViewProps {
   profile: Profile | null
@@ -139,7 +140,7 @@ export default function ProfileView({ profile, tasks }: ProfileViewProps) {
                   <div className="shrink-0 text-right">
                     <p className="text-xs text-muted-foreground">Entrega</p>
                     <p className={`text-xs font-medium ${overdueMark ? 'text-destructive' : 'text-foreground'}`}>
-                      {new Date(task.end_date + 'T00:00:00').toLocaleDateString('pt-BR')}
+                      {formatDateBr(task.end_date)}
                     </p>
                     {task.drive_url && (
                       <a

@@ -31,13 +31,10 @@ CREATE INDEX IF NOT EXISTS idx_role_change_audit_created_at
 
 ALTER TABLE public.role_change_audit ENABLE ROW LEVEL SECURITY;
 
--- Apenas admins podem ler o audit log.
--- Nenhuma policy de INSERT/UPDATE/DELETE para clients: a server action
--- usa o client autenticado do usuario (que e admin) para inserir.
--- O INSERT funciona porque o server action bypassa RLS via service role
--- ou porque o admin tem permissao implicita de INSERT sem policy restritiva.
--- Para garantir que somente a server action insere (nao via PostgREST direto),
--- adicionamos REVOKE de INSERT para anon e authenticated apos criar a tabela.
+-- Apenas admins podem ler o audit log (SELECT policy).
+-- Sem policy de INSERT/UPDATE/DELETE: tabela sem policy permissiva bloqueia
+-- todos os writes via PostgREST, mas a server action (autenticada como admin)
+-- pode inserir via Supabase client com o JWT do admin.
 DROP POLICY IF EXISTS "Admins podem ler role change audit" ON public.role_change_audit;
 CREATE POLICY "Admins podem ler role change audit"
     ON public.role_change_audit

@@ -9,7 +9,7 @@ import { KANBAN_COLUMNS } from '@/lib/supabase/types'
 import type { TaskStatus } from '@/lib/supabase/types'
 import TaskModal from '@/components/features/TaskModal'
 import { useToast } from '@/components/ui/ToastProvider'
-import { formatNomeCompleto } from '@/lib/utils/format'
+import { formatNomeCompleto, formatDateBr, formatDateTimeBr } from '@/lib/utils/format'
 
 interface TaskDetailModalProps {
   task: TaskWithAssignees
@@ -158,13 +158,13 @@ export default function TaskDetailModal({ task, profiles, canManage, onClose, on
             <div>
               <p className="text-xs text-muted-foreground">Início</p>
               <p className="text-sm font-medium">
-                {new Date(task.start_date + 'T00:00:00').toLocaleDateString('pt-BR')}
+                {formatDateBr(task.start_date)}
               </p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Entrega</p>
               <p className={`text-sm font-medium ${overdue ? 'text-destructive' : ''}`}>
-                {new Date(task.end_date + 'T00:00:00').toLocaleDateString('pt-BR')}
+                {formatDateBr(task.end_date)}
               </p>
             </div>
           </div>
@@ -184,7 +184,7 @@ export default function TaskDetailModal({ task, profiles, canManage, onClose, on
                   </div>
                 )}
                 <span className="font-medium text-foreground">{label}</span>
-                <span>em {new Date(task.created_at).toLocaleDateString('pt-BR')}</span>
+                <span>em {formatDateTimeBr(task.created_at)}</span>
               </div>
             )
           })()}

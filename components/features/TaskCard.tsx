@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import type { Profile, TaskWithAssignees } from '@/lib/supabase/types'
 import { isOverdue } from '@/lib/utils/task-status'
+import { formatDateBr } from '@/lib/utils/format'
 import TaskDetailModal from '@/components/features/TaskDetailModal'
 
 interface TaskCardProps {
@@ -121,7 +122,7 @@ export default function TaskCard({ task, onDragStart, onDragEnd, profiles, canMa
 
         {/* Data de entrega */}
         <p className="text-[10px] text-muted-foreground mt-2">
-          Entrega: {new Date(task.end_date + 'T00:00:00').toLocaleDateString('pt-BR')}
+          Entrega: {formatDateBr(task.end_date)}
         </p>
       </div>
 

@@ -20,7 +20,7 @@ import {
   getRoleChangeAudit,
 } from '@/lib/actions/admin'
 import { isPrivilegedDomainEntry } from '@/lib/utils/admin-warnings'
-import { formatNomeCompleto } from '@/lib/utils/format'
+import { formatNomeCompleto, formatDateTimeBr } from '@/lib/utils/format'
 import { t } from '@/lib/i18n'
 
 interface AdminViewProps {
@@ -88,9 +88,11 @@ function EditModal({ profile, onClose, onSuccess, onError }: EditModalProps) {
   }, [onClose])
 
   useEffect(() => {
-    getRoleChangeAudit(profile.id, 5).then((result) => {
-      if (result.ok) setRoleHistory(result.data)
-    })
+    let cancelled = false
+    getRoleChangeAudit(profile.id, 5)
+      .then((result) => { if (!cancelled && result.ok) setRoleHistory(result.data) })
+      .catch(() => {})
+    return () => { cancelled = true }
   }, [profile.id])
 
   function handleSubmit(e: React.FormEvent) {
@@ -232,7 +234,7 @@ function EditModal({ profile, onClose, onSuccess, onError }: EditModalProps) {
               <div className="flex flex-col gap-1 rounded-xl border border-border bg-muted/30 px-3 py-2">
                 {roleHistory.map((entry) => (
                   <div key={entry.id} className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="shrink-0 text-[10px]">{new Date(entry.created_at).toLocaleDateString('pt-BR')}</span>
+                    <span className="shrink-0 text-[10px]">{formatDateTimeBr(entry.created_at)}</span>
                     <span className={`shrink-0 font-medium px-1.5 py-0.5 rounded ${ROLE_COLORS[entry.old_role]}`}>{ROLE_LABELS[entry.old_role]}</span>
                     <span className="shrink-0">→</span>
                     <span className={`shrink-0 font-medium px-1.5 py-0.5 rounded ${ROLE_COLORS[entry.new_role]}`}>{ROLE_LABELS[entry.new_role]}</span>
@@ -486,7 +488,7 @@ export default function AdminView({
 
                       {/* Membro desde */}
                       <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell whitespace-nowrap">
-                        {new Date(p.created_at).toLocaleDateString('pt-BR')}
+                        {formatDateTimeBr(p.created_at)}
                       </td>
 
                       {/* Perfil (patente + divisão + role) */}
@@ -610,7 +612,7 @@ export default function AdminView({
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-xs text-muted-foreground hidden sm:block">
-                          {new Date(entry.created_at).toLocaleDateString('pt-BR')}
+                          {formatDateTimeBr(entry.created_at)}
                         </span>
                         <button
                           onClick={() => handleRemoveWhitelist(entry.id, entry.identifier)}

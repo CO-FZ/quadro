@@ -80,7 +80,7 @@ export default function DashboardView({ stats, totalByStatus, sectorStats, overd
       </div>
 
       {/* Alerta de tarefas atrasadas */}
-      {overdueCount > 0 && (
+      {overdueCount > 0 ? (
         <div className="flex items-center gap-4 rounded-2xl border border-destructive/30 bg-destructive/5 p-5">
           <span className="text-3xl">⚠</span>
           <div>
@@ -88,16 +88,14 @@ export default function DashboardView({ stats, totalByStatus, sectorStats, overd
               {overdueCount} {overdueCount === 1 ? 'tarefa atrasada' : 'tarefas atrasadas'}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {overdueCount === 1 ? 'Tarefa ativa com prazo vencido' : 'Tarefas ativas com prazo vencido'} — verifique o Kanban.
+              {overdueCount === 1 ? 'Tarefa ativa' : 'Tarefas ativas'} com prazo vencido — verifique o Kanban.
             </p>
           </div>
           <div className="ml-auto rounded-2xl bg-destructive/10 px-4 py-2">
             <p className="text-3xl font-bold text-destructive">{overdueCount}</p>
           </div>
         </div>
-      )}
-
-      {overdueCount === 0 && (
+      ) : (
         <div className="flex items-center gap-3 rounded-2xl border border-green-500/20 bg-green-500/5 px-5 py-4">
           <span className="text-lg">✅</span>
           <p className="text-sm text-green-700 dark:text-green-400 font-medium">Nenhuma tarefa atrasada</p>

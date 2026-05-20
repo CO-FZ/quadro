@@ -101,35 +101,28 @@ export async function updateUserProfile(userId: string, data: UserProfileUpdate)
 
     const supabase = await createClient()
 
-    // Last-admin guard: se está rebaixando um admin, garantir que não é o único.
-    if (data.role !== 'admin') {
-      const { data: target } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single()
-
-      if (target?.role === 'admin') {
-        const { count } = await supabase
-          .from('profiles')
-          .select('id', { count: 'exact', head: true })
-          .eq('role', 'admin')
-
-        if ((count ?? 0) <= 1) {
-          return {
-            ok: false,
-            code: 'LAST_ADMIN',
-            message: 'Não é possível rebaixar o único admin do sistema. Promova outro usuário a admin antes.',
-          }
-        }
-      }
-    }
-
+    // Single fetch covers both last-admin guard and audit log.
     const { data: currentProfile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', userId)
       .single()
+
+    // Last-admin guard: se está rebaixando um admin, garantir que não é o único.
+    if (data.role !== 'admin' && currentProfile?.role === 'admin') {
+      const { count } = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('role', 'admin')
+
+      if ((count ?? 0) <= 1) {
+        return {
+          ok: false,
+          code: 'LAST_ADMIN',
+          message: 'Não é possível rebaixar o único admin do sistema. Promova outro usuário a admin antes.',
+        }
+      }
+    }
 
     const { error } = await supabase.from('profiles').update({
       nome_guerra: data.nome_guerra?.trim() || null,

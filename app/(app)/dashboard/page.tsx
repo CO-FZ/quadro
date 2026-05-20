@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import type { UserTaskStats } from '@/lib/supabase/types'
 import DashboardView from '@/components/features/DashboardView'
 
+const ACTIVE_STATUSES = new Set(['backlog', 'alocada', 'em_desenvolvimento', 'em_revisao'])
+
 export default async function DashboardPage() {
   const supabase = await createClient()
 
@@ -32,7 +34,6 @@ export default async function DashboardPage() {
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const ACTIVE_STATUSES = new Set(['backlog', 'alocada', 'em_desenvolvimento', 'em_revisao'])
   let overdueCount = 0
 
   for (const t of taskCounts ?? []) {
