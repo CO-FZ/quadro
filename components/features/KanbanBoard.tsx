@@ -93,6 +93,9 @@ const KanbanColumn = memo(function KanbanColumn({
     overscan: 4,
     paddingStart: 12,
     paddingEnd: 12,
+    // measureElement reads actual rendered height (including paddingBottom gap),
+    // so positions are recalculated after first paint and overlap is eliminated.
+    measureElement: (el) => el.getBoundingClientRect().height,
   })
 
   return (
@@ -129,7 +132,9 @@ const KanbanColumn = memo(function KanbanColumn({
               const task = colTasks[virtualItem.index]
               return (
                 <div
-                  key={task.id}
+                  key={virtualItem.key}
+                  data-index={virtualItem.index}
+                  ref={virtualizer.measureElement}
                   style={{
                     position: 'absolute',
                     top: 0,
