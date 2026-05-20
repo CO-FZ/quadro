@@ -33,32 +33,51 @@ export async function updateUserRole(userId: string, role: AppRole): Promise<Act
 
     const supabase = await createClient()
 
+    // Single fetch covers both last-admin guard and audit log.
+    const { data: currentProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+
     // Last-admin guard: se está rebaixando um admin, garantir que não é o único.
-    if (role !== 'admin') {
-      const { data: target } = await supabase
+    if (role !== 'admin' && currentProfile?.role === 'admin') {
+      const { count } = await supabase
         .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single()
+        .select('id', { count: 'exact', head: true })
+        .eq('role', 'admin')
 
-      if (target?.role === 'admin') {
-        const { count } = await supabase
-          .from('profiles')
-          .select('id', { count: 'exact', head: true })
-          .eq('role', 'admin')
-
-        if ((count ?? 0) <= 1) {
-          return {
-            ok: false,
-            code: 'LAST_ADMIN',
-            message: 'Não é possível rebaixar o único admin do sistema. Promova outro usuário a admin antes.',
-          }
+      if ((count ?? 0) <= 1) {
+        return {
+          ok: false,
+          code: 'LAST_ADMIN',
+          message: 'Não é possível rebaixar o único admin do sistema. Promova outro usuário a admin antes.',
         }
       }
     }
 
     const { error } = await supabase.from('profiles').update({ role }).eq('id', userId)
     if (error) return { ok: false, code: 'DB_ERROR', message: error.message }
+
+    // Best-effort audit: log role change without blocking the update.
+    if (currentProfile && currentProfile.role !== role) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { error: auditError } = await supabase.from('role_change_audit').insert({
+          target_profile_id: userId,
+          actor_profile_id: user.id,
+          old_role: currentProfile.role,
+          new_role: role,
+        })
+        if (auditError) {
+          logger.warn('role_change_audit_insert_failed', {
+            event: 'role_change_audit_insert_failed',
+            target_profile_id: userId,
+            error: auditError.message,
+          })
+        }
+      }
+    }
 
     revalidateAdmin()
     return { ok: true }

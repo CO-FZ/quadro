@@ -1,4 +1,5 @@
 import "@supabase/functions-js/edge-runtime.d.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8"
 import { google } from "npm:googleapis@133.0.0"
 import { logger } from "../_shared/logger.ts"
 
@@ -34,9 +35,13 @@ async function withRetry<T>(
 export async function handleRequest(req: Request): Promise<Response> {
   let opType: WebhookPayload["type"] | "unknown" = "unknown"
   let taskId: string | null = null
+  let payload: WebhookPayload | null = null
 
   try {
-    const payload: WebhookPayload = await req.json()
+    payload = await req.json()
+    if (!payload) {
+      return new Response(JSON.stringify({ error: "Invalid payload" }), { status: 400 })
+    }
     opType = payload.type
     taskId = (payload.record?.id as string) ?? (payload.old_record?.id as string) ?? null
     logger.info("sync_sheets_received", { operation: opType, task_id: taskId })
@@ -164,12 +169,51 @@ export async function handleRequest(req: Request): Promise<Response> {
       operation: opType,
       task_id: taskId,
       message,
+      ...(credentialKeys ? { credential_keys: credentialKeys } : {}),
     })
+
+    // Best-effort DLQ log: write the failed synchronization attempt to sync_sheets_failures table.
+    if (payload) {
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")
+        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
+        if (supabaseUrl && supabaseServiceKey) {
+          const supabase = createClient(supabaseUrl, supabaseServiceKey)
+          const { error: dbError } = await supabase
+            .from("sync_sheets_failures")
+            .insert({
+              task_id: taskId,
+              operation: opType,
+              payload: payload,
+              error_message: message,
+            })
+          if (dbError) {
+            logger.error("sync_sheets_dlq_insert_failed", {
+              error: dbError.message,
+              task_id: taskId,
+            })
+          } else {
+            logger.info("sync_sheets_dlq_inserted", {
+              task_id: taskId,
+              operation: opType,
+            })
+          }
+        } else {
+          logger.warn("sync_sheets_dlq_missing_keys", {
+            task_id: taskId,
+          })
+        }
+      } catch (dlqErr) {
+        logger.error("sync_sheets_dlq_unexpected_error", {
+          error: dlqErr instanceof Error ? dlqErr.message : String(dlqErr),
+          task_id: taskId,
+        })
+      }
+    }
 
     return new Response(
       JSON.stringify({
         error: message,
-        ...(credentialKeys ? { credential_keys: credentialKeys } : {}),
       }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     )
