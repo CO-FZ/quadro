@@ -1,15 +1,17 @@
 ---
 sprint: 18
 title: Histórico de Tarefas — Busca e Paginação
-status: pendente
+status: concluida
 inicio: 2026-05-21
+conclusao: 2026-05-21
 objetivo: Adicionar uma nova aba de "Histórico" (entre Kanban e Matriz) que liste as tarefas finalizadas e arquivadas com paginação e busca textual.
 ---
 
 # Sprint 18 — Histórico de Tarefas
 
-- **Status:** PENDENTE
+- **Status:** CONCLUÍDA
 - **Início:** 21/05/2026
+- **Conclusão:** 21/05/2026
 - **Objetivo:** Adicionar uma nova aba de "Histórico" (entre Kanban e Matriz) que liste as tarefas finalizadas e arquivadas com paginação e busca textual.
 
 ---
@@ -26,7 +28,7 @@ Esta sprint introduz a aba "Histórico" que consolida as tarefas nestes dois est
 
 | ID | Título | Size | Status | Impacto |
 |----|--------|------|--------|---------|
-| 18.1 | Aba de Histórico de Tarefas com Busca e Paginação | M | pendente | Alto |
+| 18.1 | Aba de Histórico de Tarefas com Busca e Paginação | M | ✅ concluída | Alto |
 
 ---
 
@@ -42,10 +44,15 @@ Esta sprint introduz a aba "Histórico" que consolida as tarefas nestes dois est
 
 ## Critérios de aceite
 
-- [ ] A aba "Histórico" está localizada entre "Kanban" e "Matriz" na barra de navegação principal (`AppShell`).
-- [ ] Apenas tarefas com status `finalizada` e `arquivada` são exibidas no Histórico.
-- [ ] A listagem é exibida em formato de tabela organizada por data de criação (`created_at` ou similar) em ordem decrescente (mais recente primeiro).
-- [ ] Limite estrito de 20 tarefas exibidas por página.
-- [ ] Navegação de páginas (Voltar/Avançar e números de página) localizada no canto inferior centralizado.
-- [ ] Caixa de pesquisa funcional que realiza busca em qualquer campo da tarefa (título, descrição, setor).
-- [ ] O filtro de busca é executado no servidor (Supabase) dinamicamente e atualiza a URL.
+- [x] A aba "Histórico" está localizada entre "Kanban" e "Matriz" na barra de navegação principal (`AppShell`).
+- [x] Apenas tarefas com status `finalizada` e `arquivada` são exibidas no Histórico.
+- [x] A listagem é exibida em formato de tabela organizada por data de criação (`created_at`) em ordem decrescente (mais recente primeiro).
+- [x] Limite estrito de 20 tarefas exibidas por página.
+- [x] Navegação de páginas (Voltar/Avançar e números de página) localizada no canto inferior centralizado.
+- [x] Caixa de pesquisa funcional que realiza busca em qualquer campo da tarefa (título, descrição, setor).
+- [x] O filtro de busca é executado no servidor (Supabase) dinamicamente e atualiza a URL.
+
+## Débitos técnicos registrados para próxima sprint
+
+- Paginação renderiza todos os botões de página — sem janela deslizante. Risco de UI quebrada com >20 páginas.
+- Busca por setor usa substring de string literal (`'dt'.includes(term)`) — ativar com termos curtos como 'd'. Baixo impacto no contexto atual.

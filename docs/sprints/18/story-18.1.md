@@ -2,7 +2,7 @@
 id: 18.1
 sprint: 18
 title: Aba de Histórico de Tarefas com Busca e Paginação
-status: pendente
+status: concluida
 size: M
 tipo: feature
 depends_on: []
@@ -51,10 +51,10 @@ Criar uma nova aba "/historico" e implementar os seguintes componentes:
 
 ## Critérios de aceite
 
-- [ ] A aba "Histórico" aparece na ordem correta na navegação principal.
-- [ ] Listagem paginada correta (20 itens por página).
-- [ ] Ordenação decrescente por data (mais recentes no topo).
-- [ ] Filtro textual de busca abrangendo título, descrição e setor no banco de dados.
-- [ ] A busca é reativa e atualiza a URL, preservando o estado no navegador.
-- [ ] Exibe os avatares dos responsáveis atribuídos a cada tarefa.
-- [ ] Estilização premium e compatível com temas Light/Dark do projeto.
+- [x] A aba "Histórico" aparece na ordem correta na navegação principal.
+- [x] Listagem paginada correta (20 itens por página).
+- [x] Ordenação decrescente por data (mais recentes no topo).
+- [x] Filtro textual de busca abrangendo título, descrição e setor no banco de dados.
+- [x] A busca é reativa e atualiza a URL, preservando o estado no navegador.
+- [x] Exibe os avatares dos responsáveis atribuídos a cada tarefa.
+- [x] Estilização premium e compatível com temas Light/Dark do projeto.
