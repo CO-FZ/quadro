@@ -7,16 +7,17 @@ const ACTIVE_STATUSES = new Set(['backlog', 'alocada', 'em_desenvolvimento', 'em
 export default async function DashboardPage() {
   const supabase = await createClient()
 
-  const { data: stats } = await supabase
-    .from('user_task_stats')
-    .select('*')
-    .order('alocada_tasks', { ascending: false })
-    .order('total_tasks', { ascending: false })
-
-  const { data: taskCounts } = await supabase
-    .from('tasks')
-    .select('status, sector, end_date')
-    .eq('is_servico', false)
+  const [{ data: stats }, { data: taskCounts }] = await Promise.all([
+    supabase
+      .from('user_task_stats')
+      .select('*')
+      .order('alocada_tasks', { ascending: false })
+      .order('total_tasks', { ascending: false }),
+    supabase
+      .from('tasks')
+      .select('status, sector, end_date')
+      .eq('is_servico', false),
+  ])
 
   const totalByStatus = {
     backlog: 0,

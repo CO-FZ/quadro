@@ -16,32 +16,33 @@ export default async function MatrizPage() {
 
   const fmt = (d: Date) => d.toISOString().slice(0, 10)
 
-  const { data: tasks } = await supabase
-    .from('tasks')
-    .select(`
-      *,
-      task_assignees (
-        task_id,
-        user_id,
-        assigned_at,
-        profiles (
-          id,
-          email,
-          full_name,
-          avatar_url,
-          role,
-          patente
+  const [{ data: tasks }, { data: profiles }] = await Promise.all([
+    supabase
+      .from('tasks')
+      .select(`
+        *,
+        task_assignees (
+          task_id,
+          user_id,
+          assigned_at,
+          profiles (
+            id,
+            email,
+            full_name,
+            avatar_url,
+            role,
+            patente
+          )
         )
-      )
-    `)
-    .lte('start_date', fmt(windowEnd))
-    .gte('end_date', fmt(windowStart))
-    .neq('status', 'arquivada')
-
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('id, email, full_name, nome_guerra, avatar_url, role, patente')
-    .is('archived_at', null)
+      `)
+      .lte('start_date', fmt(windowEnd))
+      .gte('end_date', fmt(windowStart))
+      .neq('status', 'arquivada'),
+    supabase
+      .from('profiles')
+      .select('id, email, full_name, nome_guerra, avatar_url, role, patente')
+      .is('archived_at', null),
+  ])
 
   return (
     <MatrizView

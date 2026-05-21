@@ -84,7 +84,7 @@ export default function AppShell({ profile, children }: AppShellProps) {
           <div className="flex items-center justify-between h-14">
             {/* Logo / Brand */}
             <div className="flex items-center gap-3">
-              <Image src="/CO-FZ.png" alt="CO-FZ" width={200} height={50} className="h-8 w-auto object-contain" />
+              <Image src="/CO-FZ.png" alt="CO-FZ" width={200} height={50} className="h-8 w-auto object-contain" priority />
               <span className="font-bold text-sm tracking-wide hidden sm:block">
                 Quadro
               </span>

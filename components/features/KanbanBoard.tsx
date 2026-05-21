@@ -7,9 +7,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Profile, TaskStatus, TaskWithAssignees } from '@/lib/supabase/types'
 import { KANBAN_COLUMNS } from '@/lib/supabase/types'
 import { formatNomeCompleto } from '@/lib/utils/format'
+import dynamic from 'next/dynamic'
 import TaskCard from '@/components/features/TaskCard'
-import TaskModal from '@/components/features/TaskModal'
 import { updateTaskStatus, createTask } from '@/lib/actions/tasks'
+
+const TaskModal = dynamic(() => import('@/components/features/TaskModal'), {
+  ssr: false,
+  loading: () => null,
+})
 import { useToast } from '@/components/ui/ToastProvider'
 
 interface KanbanBoardProps {

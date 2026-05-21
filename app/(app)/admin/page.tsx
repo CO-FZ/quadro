@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { getCurrentUser, getCurrentProfile } from '@/lib/supabase/queries'
 import { createClient } from '@/lib/supabase/server'
 import { getWhitelist, getPrivilegedRoleAudit } from '@/lib/actions/admin'
 import AdminView from '@/components/features/AdminView'
@@ -10,33 +11,18 @@ export const metadata = {
 }
 
 export default async function AdminPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [user, currentProfile] = await Promise.all([getCurrentUser(), getCurrentProfile()])
 
   if (!user) redirect('/login')
+  if (currentProfile?.role !== 'admin') redirect('/kanban')
 
-  // Guard: apenas admin acessa esta rota
-  const { data: currentProfile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+  const supabase = await createClient()
 
-  if (currentProfile?.role !== 'admin') {
-    redirect('/kanban')
-  }
-
-  // Busca todos os perfis para listagem
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('*')
-    .order('created_at', { ascending: true })
-
-  // Busca whitelist
-  const whitelistResult = await getWhitelist()
-
-  // Busca audit log (story 07B.3) — só admin chega aqui, mas a action revalida.
-  const auditResult = await getPrivilegedRoleAudit({ limit: 50 })
+  const [{ data: profiles }, whitelistResult, auditResult] = await Promise.all([
+    supabase.from('profiles').select('*').order('created_at', { ascending: true }),
+    getWhitelist(),
+    getPrivilegedRoleAudit({ limit: 50 }),
+  ])
 
   return (
     <AdminView

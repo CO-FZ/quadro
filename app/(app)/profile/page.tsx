@@ -1,5 +1,6 @@
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser, getCurrentProfile } from '@/lib/supabase/queries'
 import type { TaskWithAssignees } from '@/lib/supabase/types'
 import ProfileView from '@/components/features/ProfileView'
 
@@ -9,19 +10,11 @@ export const metadata = {
 }
 
 export default async function ProfilePage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const [user, profile] = await Promise.all([getCurrentUser(), getCurrentProfile()])
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  const supabase = await createClient()
 
   const { data: tasks } = await supabase
     .from('tasks')
