@@ -3,13 +3,21 @@ import { storageStatePath } from './fixtures/auth'
 
 test.use({ storageState: storageStatePath('admin') })
 
+// Helper: navega para /historico e aguarda o RSC terminar de fazer stream.
+// networkidle é frágil com App Router streaming — espera pelo h1 em vez disso.
+async function gotoHistorico(page: import('@playwright/test').Page, qs = '') {
+  await page.goto(`/historico${qs}`)
+  await expect(page.getByRole('heading', { name: /histórico de tarefas/i })).toBeVisible({
+    timeout: 10_000,
+  })
+}
+
 test.describe('Histórico — admin', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/historico')
-    await page.waitForLoadState('networkidle')
+    await gotoHistorico(page)
   })
 
-  test('nav link "Histórico" visível na barra principal', async ({ page }) => {
+  test('nav link "Histórico" visível na barra de navegação', async ({ page }) => {
     await expect(page.getByRole('link', { name: /histórico/i })).toBeVisible()
   })
 
@@ -19,32 +27,38 @@ test.describe('Histórico — admin', () => {
     }
   })
 
-  test('busca atualiza URL com parâmetro q', async ({ page }) => {
+  test('busca: digitar atualiza URL com q= e page=1', async ({ page }) => {
     const input = page.getByPlaceholder(/pesquisar/i)
-    await input.fill('teste')
-    // Debounce 400ms + transition — aguarda URL mudar
-    await page.waitForURL(/q=teste/, { timeout: 3_000 })
-    expect(page.url()).toContain('q=teste')
+    await input.fill('relatório')
+    // Debounce 400ms + startTransition + router.push
+    await page.waitForURL(/q=relat/, { timeout: 5_000 })
+    expect(page.url()).toContain('q=relat')
     expect(page.url()).toContain('page=1')
   })
 
-  test('limpar busca remove parâmetro q da URL', async ({ page }) => {
-    await page.goto('/historico?q=termo&page=1')
-    await page.waitForLoadState('networkidle')
+  test('clear button remove q= da URL', async ({ page }) => {
+    // Navega com query preexistente
+    await gotoHistorico(page, '?q=termo&page=1')
 
-    await page.getByRole('button', { name: 'Limpar busca' }).click()
-    await page.waitForURL(/\/historico(?!\?q=)/, { timeout: 3_000 })
+    // Botão X só aparece quando inputValue não é vazio
+    const clearBtn = page.getByRole('button', { name: 'Limpar busca' })
+    await expect(clearBtn).toBeVisible({ timeout: 3_000 })
+    await clearBtn.click()
 
+    // Debounce + router.push → URL não tem mais q=
+    await page.waitForURL((url) => !url.searchParams.has('q'), { timeout: 5_000 })
     expect(page.url()).not.toContain('q=')
   })
 
-  test('estado vazio exibe mensagem "Nenhuma tarefa encontrada"', async ({ page }) => {
-    await page.goto('/historico?q=zzz_busca_que_nao_existe_xkcd')
-    await page.waitForLoadState('networkidle')
-    await expect(page.getByText(/nenhuma tarefa encontrada/i)).toBeVisible()
+  test('busca sem resultado exibe mensagem de estado vazio', async ({ page }) => {
+    // String impossível de existir como título/descrição/setor
+    await gotoHistorico(page, '?q=xkcd_zzz_not_found_42')
+    await expect(page.getByText(/nenhuma tarefa encontrada/i)).toBeVisible({ timeout: 5_000 })
   })
 
-  test('screenshot — historico baseline (desktop)', async ({ page }) => {
+  test('screenshot baseline — desktop (atualizar com --update-snapshots na primeira execução)', async ({
+    page,
+  }) => {
     await expect(page).toHaveScreenshot('historico-desktop.png', {
       maxDiffPixelRatio: 0.02,
     })

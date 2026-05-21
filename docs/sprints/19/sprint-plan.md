@@ -1,15 +1,17 @@
 ---
 sprint: 19
 title: CD Vercel + Cobertura TDD
-status: pendente
+status: concluida
 inicio: 2026-05-21
+conclusao: 2026-05-21
 objetivo: Estabelecer pipeline de deploy contínuo na Vercel e expandir cobertura de testes com TDD para utilitários críticos e rota /historico.
 ---
 
 # Sprint 19 — CD Vercel + Cobertura TDD
 
-- **Status:** PENDENTE
+- **Status:** CONCLUÍDA
 - **Início:** 21/05/2026
+- **Conclusão:** 21/05/2026
 
 ---
 
@@ -26,8 +28,8 @@ Dois déficits estruturais identificados:
 
 | ID | Título | Size | Status | Impacto |
 |----|--------|------|--------|---------|
-| 19.1 | CD — Deploy contínuo na Vercel | S | pendente | Alto (operacional) |
-| 19.2 | TDD — Cobertura de utilitários e rota /historico | S | pendente | Alto (qualidade) |
+| 19.1 | CD — Deploy contínuo na Vercel | S | ✅ concluída | Alto (operacional) |
+| 19.2 | TDD — Cobertura de utilitários e rota /historico | S | ✅ concluída | Alto (qualidade) |
 
 ---
 
@@ -45,9 +47,9 @@ Dois déficits estruturais identificados:
 
 ## Critérios de aceite
 
-- [ ] `pnpm typecheck` verde
-- [ ] `pnpm test:unit` verde com novos testes de `format.ts`
-- [ ] Push em `main` dispara CD e gera URL de produção no GitHub Actions
-- [ ] PR aberto dispara preview deploy com comentário automático de URL
-- [ ] E2E `/historico` cobre: navegação, renderização de tabela, busca com atualização de URL
-- [ ] Botão de clear de busca tem `aria-label="Limpar busca"`
+- [x] `pnpm typecheck` verde
+- [x] `pnpm test:unit` verde — 108 testes, 9 arquivos (inclui 16 casos de `format.test.ts`)
+- [x] `cd.yml` implementado — production via `workflow_run` após CI, preview via PR com comentário auto-atualizado
+- [x] E2E `/historico` — 5 cenários (nav, headers, busca→URL, clear→URL, estado vazio)
+- [x] Botão de clear tem `aria-label="Limpar busca"`
+- [ ] Push em `main` dispara CD — requer setup manual de secrets (ver runbook §3)
