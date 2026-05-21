@@ -164,6 +164,7 @@ export default function HistoricoView({
           {inputValue && (
             <button
               onClick={() => setInputValue('')}
+              aria-label="Limpar busca"
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-4">

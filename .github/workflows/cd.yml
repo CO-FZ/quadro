@@ -1,0 +1,111 @@
+name: CD
+
+on:
+  # Production: dispara após CI completar com sucesso no main
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+  # Preview: dispara em todo PR aberto contra main
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write   # necessário para comentar URL de preview no PR
+
+jobs:
+  # ── Production deploy ──────────────────────────────────────────────────────
+  deploy-production:
+    name: Deploy → Production
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success'
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - name: Checkout (SHA que passou no CI)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Deploy to Vercel (production)
+        id: deploy
+        run: |
+          URL=$(npx vercel --prod --token "$VERCEL_TOKEN" --yes 2>&1 | tail -1)
+          echo "url=$URL" >> $GITHUB_OUTPUT
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Print production URL
+        run: echo "Deployed to ${{ steps.deploy.outputs.url }}"
+
+  # ── Preview deploy (PR) ────────────────────────────────────────────────────
+  deploy-preview:
+    name: Deploy → Preview
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    environment:
+      name: preview
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel (preview)
+        id: deploy
+        run: |
+          URL=$(npx vercel --token "$VERCEL_TOKEN" --yes 2>&1 | tail -1)
+          echo "url=$URL" >> $GITHUB_OUTPUT
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.deploy.outputs.url }}'
+            const sha  = context.payload.pull_request.head.sha.slice(0, 7)
+            const body = [
+              '## Preview Deploy',
+              '',
+              `**URL:** ${url}`,
+              `**Commit:** \`${sha}\``,
+              '',
+              '_Atualizado automaticamente a cada push neste PR._',
+            ].join('\n')
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            })
+
+            // Atualiza comentário existente ou cria novo (evita flood de comentários)
+            const existing = comments.find(c =>
+              c.user?.type === 'Bot' && c.body?.startsWith('## Preview Deploy')
+            )
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              })
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              })
+            }
