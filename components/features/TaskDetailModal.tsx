@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import type { Profile, TaskWithAssignees } from '@/lib/supabase/types'
 import { isOverdue } from '@/lib/utils/task-status'
@@ -94,7 +95,7 @@ export default function TaskDetailModal({ task, profiles, canManage, onClose, on
     )
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/50 backdrop-blur-sm">
       <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
@@ -310,6 +311,7 @@ export default function TaskDetailModal({ task, profiles, canManage, onClose, on
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
