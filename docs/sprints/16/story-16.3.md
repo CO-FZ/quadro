@@ -2,7 +2,7 @@
 id: 16.3
 sprint: 16
 title: Virtualização das colunas do Kanban
-status: pendente
+status: concluida
 size: M
 tipo: performance
 depends_on: [16.1]
@@ -36,6 +36,8 @@ O DnD nativo do browser (HTML5 drag events) depende dos elementos estarem no DOM
 
 ## Critérios de aceite
 
-- `pnpm typecheck` verde
-- Coluna com 200 cards: scroll fluido, só cards visíveis no DOM (verificar DevTools → Elements)
-- DnD funciona para cards dentro do viewport visível
+- [x] `pnpm typecheck` verde
+- [x] Coluna com 200 cards: scroll fluido, só cards visíveis no DOM (verificar DevTools → Elements)
+- [x] DnD funciona para cards dentro do viewport visível
+
+> **Nota de implementação:** a lógica de medida do virtualizer foi ajustada no commit `cfc1502` para usar alturas dinâmicas (measureElement) e keys estáveis, resolvendo jank no scroll após o drag.

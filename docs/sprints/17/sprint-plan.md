@@ -1,15 +1,17 @@
 ---
 sprint: 17
 title: Tab Transition Performance — Perceived Latency
-status: pendente
+status: concluida
 inicio: 2026-05-20
-objetivo: Eliminar tela branca entre abas via skeletons + reduzir TTFB com queries paralelas e deduplicação de fetch.
+conclusao: 2026-05-21
+objetivo: Eliminar tela branca entre abas via skeletons + reduzir TTFB com queries paralelas e deduplicacao de fetch.
 ---
 
 # Sprint 17 — Tab Transition Performance
 
-- **Status:** PENDENTE
+- **Status:** CONCLUÍDA
 - **Início:** 20/05/2026
+- **Conclusão:** 21/05/2026
 - **Objetivo:** Navegação entre abas percebida como imediata. Usuário vê skeleton ao clicar; dados chegam ao fundo.
 
 ---
@@ -42,9 +44,9 @@ Queries independentes poderiam correr em paralelo com `Promise.all`, reduzindo T
 
 | ID | Título | Size | Status | Impacto |
 |----|--------|------|--------|---------|
-| 17.1 | Loading skeletons para todas as rotas (app) | S | pendente | Maior (UX imediata) |
-| 17.2 | Paralelizar queries independentes nas pages | XS | pendente | Médio (TTFB) |
-| 17.3 | Deduplicar fetch de perfil com React cache() | XS | pendente | Médio (DB calls) |
+| 17.1 | Loading skeletons para todas as rotas (app) | S | ✅ concluída | Maior (UX imediata) |
+| 17.2 | Paralelizar queries independentes nas pages | XS | ✅ concluída | Médio (TTFB) |
+| 17.3 | Deduplicar fetch de perfil com React cache() | XS | ✅ concluída | Médio (DB calls) |
 
 ---
 
@@ -60,9 +62,13 @@ Queries independentes poderiam correr em paralelo com `Promise.all`, reduzindo T
 
 ## Critérios de aceite
 
-- [ ] `pnpm typecheck` verde
-- [ ] Clicar em qualquer aba exibe skeleton imediatamente (< 50ms visual response)
-- [ ] Zero tela branca entre transições de aba
-- [ ] `/kanban`, `/dashboard`, `/matriz`, `/profile`, `/admin` têm `loading.tsx`
-- [ ] Queries independentes correm com `Promise.all`
-- [ ] `getUser()` chamado uma única vez por render-pass no layout+kanban
+- [x] `pnpm typecheck` verde
+- [x] Clicar em qualquer aba exibe skeleton imediatamente (< 50ms visual response)
+- [x] Zero tela branca entre transições de aba
+- [x] `/kanban`, `/dashboard`, `/matriz`, `/profile`, `/admin` têm `loading.tsx`
+- [x] Queries independentes correm com `Promise.all`
+- [x] `getUser()` chamado uma única vez por render-pass no layout+kanban
+
+## Commit de entrega
+
+- `67adbe1` — feat: implement loading skeletons across app routes, optimize dashboard data fetching, and centralize supabase queries

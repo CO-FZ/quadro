@@ -1,8 +1,9 @@
 ---
 sprint: 16
 title: Performance Engineering — Mobile-First
-status: em_andamento
+status: concluida
 inicio: 2026-05-20
+conclusao: 2026-05-21
 objetivo: Otimizar renderização do front-end para fluidez em dispositivos móveis de campo; reduzir bundle inicial e re-renderizações desnecessárias.
 ---
 
@@ -10,7 +11,7 @@ objetivo: Otimizar renderização do front-end para fluidez em dispositivos móv
 
 - **Status:** CONCLUÍDA
 - **Início:** 20/05/2026
-- **Conclusão:** 20/05/2026
+- **Conclusão:** 21/05/2026
 - **Objetivo:** Memoização de componentes quentes, lazy loading de modais pesados, e virtualização das colunas do Kanban para suportar centenas de tarefas.
 
 ---
@@ -19,9 +20,9 @@ objetivo: Otimizar renderização do front-end para fluidez em dispositivos móv
 
 | ID | Título | Size | Status |
 |----|--------|------|--------|
-| 16.1 | Memoização de TaskCard + callbacks no KanbanBoard | S | pendente |
-| 16.2 | Lazy loading de modais pesados (next/dynamic) | S | pendente |
-| 16.3 | Virtualização das colunas do Kanban | M | pendente |
+| 16.1 | Memoização de TaskCard + callbacks no KanbanBoard | S | ✅ concluída |
+| 16.2 | Lazy loading de modais pesados (next/dynamic) | S | ✅ concluída |
+| 16.3 | Virtualização das colunas do Kanban | M | ✅ concluída |
 
 ---
 
@@ -36,8 +37,13 @@ objetivo: Otimizar renderização do front-end para fluidez em dispositivos móv
 
 ## Critérios de aceite
 
-- [ ] `pnpm typecheck` verde
-- [ ] `pnpm test:unit` verde
-- [ ] Zero re-renders desnecessários de TaskCard durante drag (verificar React DevTools Profiler)
-- [ ] Bundle inicial do /kanban reduzido (next/dynamic elimina TaskDetailModal do critical path)
-- [ ] Coluna com 200+ tarefas renderiza sem jank (Story 16.3)
+- [x] `pnpm typecheck` verde
+- [x] `pnpm test:unit` verde
+- [x] Zero re-renders desnecessários de TaskCard durante drag (`React.memo` + `useCallback` em `KanbanBoard`)
+- [x] Bundle inicial do /kanban reduzido (`next/dynamic` com `ssr: false` para `TaskDetailModal`)
+- [x] Coluna com 200+ tarefas renderiza sem jank (`useVirtualizer` via `@tanstack/react-virtual`)
+
+## Commit de entrega
+
+- `06d7235` — perf: optimize kanban rendering with TaskCard memoization, column virtualization and lazy-loading TaskDetailModal
+- `cfc1502` — refactor: update virtualizer measurement logic to use dynamic element heights and keys

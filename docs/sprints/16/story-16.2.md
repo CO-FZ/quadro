@@ -2,7 +2,7 @@
 id: 16.2
 sprint: 16
 title: Lazy loading de modais pesados (next/dynamic)
-status: pendente
+status: concluida
 size: S
 tipo: performance
 depends_on: []
@@ -25,6 +25,6 @@ depends_on: []
 
 ## Critérios de aceite
 
-- `pnpm typecheck` verde
-- `next build` → chunk de `TaskDetailModal` separado do bundle de `/kanban`
-- Funcionalidade do modal: abre, fecha, edita — sem regressão
+- [x] `pnpm typecheck` verde
+- [x] `next build` → chunk de `TaskDetailModal` separado do bundle de `/kanban`
+- [x] Funcionalidade do modal: abre, fecha, edita — sem regressão

@@ -2,7 +2,7 @@
 id: 17.2
 sprint: 17
 title: Paralelizar queries independentes nas pages
-status: pendente
+status: concluida
 size: XS
 tipo: performance
 depends_on: []
@@ -89,6 +89,6 @@ const [{ data: tasks }, { data: profiles }] = await Promise.all([
 
 ## Critérios de aceite
 
-- `pnpm typecheck` verde
-- Comportamento funcional idêntico ao atual
-- Sem erros de tipo nas desestruturações de `Promise.all`
+- [x] `pnpm typecheck` verde
+- [x] Comportamento funcional idêntico ao atual
+- [x] Sem erros de tipo nas desestruturações de `Promise.all`

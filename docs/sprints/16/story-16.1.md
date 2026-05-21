@@ -2,7 +2,7 @@
 id: 16.1
 sprint: 16
 title: Memoização de TaskCard + callbacks no KanbanBoard
-status: pendente
+status: concluida
 size: S
 tipo: performance
 depends_on: []
@@ -27,5 +27,5 @@ depends_on: []
 
 ## Critérios de aceite
 
-- `pnpm typecheck` verde
-- React DevTools Profiler: durante drag, só o card em movimento e a coluna alvo re-renderizam
+- [x] `pnpm typecheck` verde
+- [x] React DevTools Profiler: durante drag, só o card em movimento e a coluna alvo re-renderizam

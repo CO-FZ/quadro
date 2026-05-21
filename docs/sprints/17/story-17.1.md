@@ -2,7 +2,7 @@
 id: 17.1
 sprint: 17
 title: Loading skeletons para todas as rotas (app)
-status: pendente
+status: concluida
 size: S
 tipo: performance
 depends_on: []
@@ -81,7 +81,7 @@ Skeleton deve ter **mesma estrutura de grid** que o componente real para evitar 
 
 ## Critérios de aceite
 
-- `pnpm typecheck` verde
-- Navegar para qualquer rota exibe skeleton antes dos dados (verificar em DevTools → Network → Slow 3G)
-- Sem layout shift significativo ao substituir skeleton por conteúdo real
-- Skeleton usa mesma grade/estrutura visual do componente real
+- [x] `pnpm typecheck` verde
+- [x] Navegar para qualquer rota exibe skeleton antes dos dados (verificar em DevTools → Network → Slow 3G)
+- [x] Sem layout shift significativo ao substituir skeleton por conteúdo real
+- [x] Skeleton usa mesma grade/estrutura visual do componente real

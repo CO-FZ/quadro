@@ -2,7 +2,7 @@
 id: 17.3
 sprint: 17
 title: Deduplicar fetch de perfil com React cache()
-status: pendente
+status: concluida
 size: XS
 tipo: performance
 depends_on: []
@@ -92,6 +92,6 @@ export default async function KanbanPage() {
 
 ## Critérios de aceite
 
-- `pnpm typecheck` verde
-- Comportamento de auth idêntico (redirect para `/login` se sem sessão)
-- Sem regressão nos dados de `currentProfile` exibidos no `AppShell`
+- [x] `pnpm typecheck` verde
+- [x] Comportamento de auth idêntico (redirect para `/login` se sem sessão)
+- [x] Sem regressão nos dados de `currentProfile` exibidos no `AppShell`
