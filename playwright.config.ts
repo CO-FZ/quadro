@@ -39,7 +39,9 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'pnpm dev',
+    // CI: reuse the pre-built .next output via `pnpm start` (faster, consistent).
+    // Local: `pnpm dev` with hot reload.
+    command: process.env.CI ? 'pnpm start' : 'pnpm dev',
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

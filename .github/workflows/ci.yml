@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         with: { version: 9 }
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: pnpm }
@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         with: { version: 9 }
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: pnpm }
@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         with: { version: 9 }
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: pnpm }
@@ -50,7 +50,74 @@ jobs:
       SUPABASE_URL: http://127.0.0.1:54321
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with: { version: latest }
+
+      - name: Start Supabase local
+        run: supabase start
+
+      - name: Export Supabase keys
+        # supabase status -o env outputs ANON_KEY=... and SERVICE_ROLE_KEY=...
+        # Rename to the names the integration fixture expects.
+        run: |
+          supabase status -o env \
+            | grep -E '^(ANON_KEY|SERVICE_ROLE_KEY)=' \
+            | sed 's/^ANON_KEY=/SUPABASE_ANON_KEY=/' \
+            | sed 's/^SERVICE_ROLE_KEY=/SUPABASE_SERVICE_ROLE_KEY=/' \
+            >> $GITHUB_ENV
+
+      - name: Reset DB and seed
+        run: supabase db reset
+
+      - name: Run integration tests
+        run: pnpm test:integration
+
+  db:
+    name: pgTAP Tests (Camada 4)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with: { version: latest }
+
+      - name: Start Supabase local
+        run: supabase start
+
+      - name: Reset DB
+        run: supabase db reset
+
+      - name: Enable pgTAP extension
+        # Use psql directly — avoids CLI version differences (db execute removed in v2)
+        run: |
+          psql postgresql://postgres:postgres@127.0.0.1:54322/postgres \
+            -c "CREATE EXTENSION IF NOT EXISTS pgtap;"
+
+      - name: Run pgTAP tests
+        run: pnpm test:db
+
+  e2e:
+    name: E2E Tests (Camada 3)
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      PLAYWRIGHT_BASE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
         with: { version: 9 }
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: pnpm }
@@ -65,61 +132,14 @@ jobs:
 
       - name: Export Supabase keys
         run: |
-          supabase status -o env | grep -E 'ANON_KEY|SERVICE_ROLE_KEY' >> $GITHUB_ENV
+          supabase status -o env \
+            | grep -E '^(ANON_KEY|SERVICE_ROLE_KEY)=' \
+            | sed 's/^ANON_KEY=/SUPABASE_ANON_KEY=/' \
+            | sed 's/^SERVICE_ROLE_KEY=/SUPABASE_SERVICE_ROLE_KEY=/' \
+            >> $GITHUB_ENV
 
       - name: Reset DB and seed
-        run: supabase db reset --local
-
-      - name: Run integration tests
-        run: pnpm test:integration
-
-  db:
-    name: pgTAP Tests (Camada 4)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with: { version: 9 }
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: pnpm }
-      - run: pnpm install --frozen-lockfile
-
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
-        with: { version: latest }
-
-      - name: Start Supabase local + reset
-        run: supabase start && supabase db reset --local
-
-      - name: Install pgTAP
-        run: supabase db execute --local "CREATE EXTENSION IF NOT EXISTS pgtap;"
-
-      - name: Run pgTAP tests
-        run: pnpm test:db
-
-  e2e:
-    name: E2E Tests (Camada 3)
-    runs-on: ubuntu-latest
-    env:
-      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with: { version: 9 }
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: pnpm }
-      - run: pnpm install --frozen-lockfile
-
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
-        with: { version: latest }
-
-      - name: Start Supabase local + reset + seed
-        run: supabase start && supabase db reset --local
-
-      - name: Export Supabase keys
-        run: |
-          supabase status -o env | grep -E 'ANON_KEY' >> $GITHUB_ENV
+        run: supabase db reset
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
@@ -127,12 +147,12 @@ jobs:
       - name: Build Next.js
         run: pnpm build
         env:
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ env.SUPABASE_ANON_KEY }}
 
       - name: Run E2E tests
         run: pnpm test:e2e
         env:
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ env.ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ env.SUPABASE_ANON_KEY }}
 
       - name: Upload screenshot diff artifacts
         if: failure()
