@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, startTransition, useCallback, useMemo, useOptimistic, useRef, useState } from 'react'
+import { memo, startTransition, useCallback, useEffect, useMemo, useOptimistic, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -239,9 +239,9 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
 
   // Refs give handleColumnDrop a stable identity while always reading fresh values.
   const draggingIdRef = useRef(draggingId)
-  draggingIdRef.current = draggingId
   const optimisticTasksRef = useRef(optimisticTasks)
-  optimisticTasksRef.current = optimisticTasks
+  useEffect(() => { draggingIdRef.current = draggingId }, [draggingId])
+  useEffect(() => { optimisticTasksRef.current = optimisticTasks }, [optimisticTasks])
 
   const handleColumnDragEnter = useCallback((status: TaskStatus) => {
     setDragOverColumn(status)
