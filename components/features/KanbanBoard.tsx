@@ -91,6 +91,7 @@ const KanbanColumn = memo(function KanbanColumn({
     onColumnDrop(status)
   }, [onColumnDrop, status])
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual v3 not React Compiler-compatible; memo() on this component handles memoization manually
   const virtualizer = useVirtualizer({
     count: colTasks.length,
     getScrollElement: () => scrollRef.current,
