@@ -22,7 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_run' &&
-      github.event.workflow_run.conclusion == 'success'
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
     environment:
       name: production
       url: ${{ steps.deploy.outputs.url }}
@@ -36,7 +37,9 @@ jobs:
       - name: Deploy to Vercel (production)
         id: deploy
         run: |
-          URL=$(npx vercel --prod --token "$VERCEL_TOKEN" --yes 2>&1 | tail -1)
+          OUTPUT=$(npx vercel --prod --token "$VERCEL_TOKEN" --yes 2>&1)
+          printf '%s\n' "$OUTPUT"
+          URL=$(printf '%s\n' "$OUTPUT" | grep -oE 'https://[^ ]+' | tail -1)
           echo "url=$URL" >> $GITHUB_OUTPUT
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -61,7 +64,9 @@ jobs:
       - name: Deploy to Vercel (preview)
         id: deploy
         run: |
-          URL=$(npx vercel --token "$VERCEL_TOKEN" --yes 2>&1 | tail -1)
+          OUTPUT=$(npx vercel --token "$VERCEL_TOKEN" --yes 2>&1)
+          printf '%s\n' "$OUTPUT"
+          URL=$(printf '%s\n' "$OUTPUT" | grep -oE 'https://[^ ]+' | tail -1)
           echo "url=$URL" >> $GITHUB_OUTPUT
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
