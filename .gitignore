@@ -37,19 +37,8 @@ yarn-error.log*
 /coverage
 test_output*.txt
 
-# Pasta completa do Antigravity (skills, brain, cache do agente), exceto templates/docs
-.gemini/*
-!.gemini/antigravity/
-.gemini/antigravity/*
-!.gemini/antigravity/skills/
-.gemini/antigravity/skills/*
-!.gemini/antigravity/skills/agent-product-harness/
-.gemini/antigravity/skills/agent-product-harness/*
-!.gemini/antigravity/skills/agent-product-harness/agent-product-harness/
-.gemini/antigravity/skills/agent-product-harness/agent-product-harness/*
-!.gemini/antigravity/skills/agent-product-harness/agent-product-harness/templates/
-.gemini/antigravity/skills/agent-product-harness/agent-product-harness/templates/*
-!.gemini/antigravity/skills/agent-product-harness/agent-product-harness/templates/docs/
+# Pasta do Antigravity (dados do agente — nunca commitar)
+.gemini/
 
 # Skills locais do projeto (não são código da aplicação)
 /skills/
