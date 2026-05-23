@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import type { Profile, TaskStatus, TaskWithAssignees } from '@/lib/supabase/types'
 import { formatNomeCompleto } from '@/lib/utils/format'
 import { sortByPatente } from '@/lib/utils/patente'
@@ -10,8 +11,19 @@ interface MatrizViewProps {
   tasks: TaskWithAssignees[]
   profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'nome_guerra' | 'avatar_url' | 'role' | 'patente'>[]
   today: string
+  anchor: string
   windowStart: string
   windowEnd: string
+}
+
+function formatRangeLabel(start: string, end: string): string {
+  const s = new Date(start + 'T00:00:00')
+  const e = new Date(end + 'T00:00:00')
+  const day = (d: Date) => String(d.getDate()).padStart(2, '0')
+  const mon = (d: Date) => d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')
+  return s.getMonth() === e.getMonth()
+    ? `${day(s)}–${day(e)} ${mon(e)}`
+    : `${day(s)} ${mon(s)} – ${day(e)} ${mon(e)}`
 }
 
 const STATUS_BADGE: Record<TaskStatus, string> = {
@@ -59,30 +71,65 @@ export default function MatrizView({
   tasks,
   profiles,
   today,
+  anchor,
   windowStart,
   windowEnd,
 }: MatrizViewProps) {
-  const todayRowRef = useRef<HTMLTableRowElement>(null)
+  const anchorRowRef = useRef<HTMLTableRowElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const days = buildDays(windowStart, windowEnd)
   const sortedProfiles = sortByPatente(profiles)
 
+  const prevRef = addDays(anchor, -7)
+  const nextRef = addDays(anchor, 7)
+  const isAtToday = anchor === today
+
   useEffect(() => {
-    if (todayRowRef.current && containerRef.current) {
+    if (anchorRowRef.current && containerRef.current) {
       const container = containerRef.current
-      const row = todayRowRef.current
+      const row = anchorRowRef.current
       const rowTop = row.offsetTop
       const containerHeight = container.clientHeight
       container.scrollTop = rowTop - containerHeight / 2 + row.clientHeight / 2
     }
-  }, [])
+  }, [anchor])
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-bold text-foreground">Matriz de Atividades</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Visão semanal do efetivo — ±7 dias</p>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-xl font-bold text-foreground">Matriz de Atividades</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Visão do efetivo — janela de ±7 dias</p>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Link
+            href={`/matriz?ref=${prevRef}`}
+            aria-label="Semana anterior"
+            className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-border text-foreground hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            ‹
+          </Link>
+          <span className="text-xs font-medium text-muted-foreground min-w-[110px] text-center tabular-nums">
+            {formatRangeLabel(windowStart, windowEnd)}
+          </span>
+          <Link
+            href={`/matriz?ref=${nextRef}`}
+            aria-label="Próxima semana"
+            className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-border text-foreground hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            ›
+          </Link>
+          {!isAtToday && (
+            <Link
+              href="/matriz"
+              aria-label="Ir para hoje"
+              className="inline-flex items-center h-8 px-3 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              Hoje
+            </Link>
+          )}
+        </div>
       </div>
 
       <div
@@ -144,7 +191,7 @@ export default function MatrizView({
               return (
                 <tr
                   key={day}
-                  ref={isToday ? todayRowRef : undefined}
+                  ref={day === anchor ? anchorRowRef : undefined}
                   className={`${rowBg} ${!isToday ? 'hover:bg-muted/30' : ''}`}
                 >
                   {/* Date column — frozen left */}
