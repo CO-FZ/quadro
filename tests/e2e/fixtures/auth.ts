@@ -4,6 +4,18 @@ import fs from 'node:fs'
 
 export type E2EPersona = 'admin' | 'coord' | 'efetivo'
 
+// Single source of truth for E2E persona accounts. Used by loginAs() and by
+// seed.setup.ts, which creates these users via the Supabase admin API.
+// Deterministic, test-only credentials — never use in production.
+export const E2E_PERSONAS: Record<
+  E2EPersona,
+  { email: string; password: string; role: 'admin' | 'coordenador' | 'efetivo' }
+> = {
+  admin:   { email: 'test-admin@cofz.local',   password: 'TestAdmin123!',   role: 'admin' },
+  coord:   { email: 'test-coord@cofz.local',   password: 'TestCoord123!',   role: 'coordenador' },
+  efetivo: { email: 'test-efetivo@cofz.local', password: 'TestEfetivo123!', role: 'efetivo' },
+}
+
 // storageState files per persona (written by auth.setup.ts, read by tests)
 export function storageStatePath(persona: E2EPersona): string {
   const dir = path.resolve(__dirname, '../.auth')
@@ -16,13 +28,7 @@ export function storageStatePath(persona: E2EPersona): string {
 // For test environment, use Supabase Auth admin API to create a session,
 // then inject cookies into Playwright's browser context.
 export async function loginAs(page: Page, persona: E2EPersona) {
-  const credentials: Record<E2EPersona, { email: string; password: string }> = {
-    admin:   { email: 'test-admin@cofz.local',   password: 'TestAdmin123!'   },
-    coord:   { email: 'test-coord@cofz.local',   password: 'TestCoord123!'   },
-    efetivo: { email: 'test-efetivo@cofz.local', password: 'TestEfetivo123!' },
-  }
-
-  const { email, password } = credentials[persona]
+  const { email, password } = E2E_PERSONAS[persona]
 
   // Use Supabase REST auth endpoint directly
   const supabaseUrl  = process.env.NEXT_PUBLIC_SUPABASE_URL!

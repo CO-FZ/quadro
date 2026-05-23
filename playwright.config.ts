@@ -17,8 +17,11 @@ export default defineConfig({
   },
 
   projects: [
+    // Seed: create persona users via admin API (must run before login)
+    { name: 'seed', testMatch: /seed\.setup\.ts/ },
+
     // Setup: create storageState files per persona
-    { name: 'setup', testMatch: /.*\.setup\.ts/ },
+    { name: 'setup', testMatch: /auth\.setup\.ts/, dependencies: ['seed'] },
 
     // Desktop Chrome
     {
