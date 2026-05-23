@@ -43,13 +43,14 @@ Requisitos de produto adicionais (definidos com o solicitante):
 
 | ID | Título | Size | Status | Impacto |
 |----|--------|------|--------|---------|
+| 21.4 | Corrigir CI: alinhar versão do pnpm (workspace `ignoredBuiltDependencies`) | XS | 🔲 planejada | Alto (CI bloqueado) |
 | 21.1 | Edge Function: rebuild pivotado da planilha-espelho (aba única) | L | 🔲 planejada | Alto (dado) |
 | 21.2 | Cobertura de gatilhos: `task_assignees` e `profiles` disparam o sync | S | 🔲 planejada | Alto (correção) |
 | 21.3 | Navegação de dias na Matriz (além de ±7d, centrada em hoje) | M | 🔲 planejada | Médio (UX) |
 
-Detalhamento em [story-21.1.md](./story-21.1.md), [story-21.2.md](./story-21.2.md), [story-21.3.md](./story-21.3.md).
+Detalhamento em [story-21.1.md](./story-21.1.md), [story-21.2.md](./story-21.2.md), [story-21.3.md](./story-21.3.md), [story-21.4.md](./story-21.4.md).
 
-**Ordem de execução:** 21.1 → 21.2 → 21.3. A 21.2 (gatilhos) depende da Edge Function da 21.1 aceitar payloads de `task_assignees`/`profiles` (hoje retorna `400 Invalid table`). A 21.3 é independente do backend, mas fecha o requisito de centramento/navegação de forma coerente entre app e planilha.
+**Ordem de execução:** 21.4 → 21.1 → 21.2 → 21.3. A **21.4 é bloqueador** — o CI falha hoje no `setup-node` (cache pnpm) por mismatch de versão do pnpm (local 10 × CI fixado em 9), então nenhum PR mergeia sem ela. A 21.2 (gatilhos) depende da Edge Function da 21.1 aceitar payloads de `task_assignees`/`profiles` (hoje retorna `400 Invalid table`). A 21.3 é independente do backend, mas fecha o requisito de centramento/navegação de forma coerente entre app e planilha.
 
 ---
 
@@ -111,6 +112,7 @@ Criar uma tarefa com K alocados gera 1 webhook de `tasks` + K de `task_assignees
 
 ## Critérios de conclusão (sprint)
 
+- [ ] CI verde no `setup-node`/`install` (Story 21.4 — bloqueador): pnpm alinhado via `packageManager`.
 - [ ] ADR 0013 criado e `Aceito`; nota de remissão adicionada ao ADR 0004.
 - [ ] Aba `Matriz` reflete o pivô (efetivo × dias × tarefas) em staging, validado por smoke manual.
 - [ ] Dias passados preservados após mutação em tarefa do passado (teste manual de não-regressão).
