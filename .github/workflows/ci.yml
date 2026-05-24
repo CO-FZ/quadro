@@ -67,6 +67,7 @@ jobs:
             | grep -E '^(ANON_KEY|SERVICE_ROLE_KEY)=' \
             | sed 's/^ANON_KEY=/SUPABASE_ANON_KEY=/' \
             | sed 's/^SERVICE_ROLE_KEY=/SUPABASE_SERVICE_ROLE_KEY=/' \
+            | tr -d '"' \
             >> $GITHUB_ENV
 
       - name: Reset DB and seed
@@ -130,6 +131,7 @@ jobs:
             | grep -E '^(ANON_KEY|SERVICE_ROLE_KEY)=' \
             | sed 's/^ANON_KEY=/SUPABASE_ANON_KEY=/' \
             | sed 's/^SERVICE_ROLE_KEY=/SUPABASE_SERVICE_ROLE_KEY=/' \
+            | tr -d '"' \
             >> $GITHUB_ENV
 
       - name: Reset DB and seed
