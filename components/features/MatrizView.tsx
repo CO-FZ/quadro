@@ -12,6 +12,7 @@ interface MatrizViewProps {
   today: string
   windowStart: string
   windowEnd: string
+  sheetsUrl?: string
 }
 
 const STATUS_BADGE: Record<TaskStatus, string> = {
@@ -61,6 +62,7 @@ export default function MatrizView({
   today,
   windowStart,
   windowEnd,
+  sheetsUrl,
 }: MatrizViewProps) {
   const todayRowRef = useRef<HTMLTableRowElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -80,9 +82,38 @@ export default function MatrizView({
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-bold text-foreground">Matriz de Atividades</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Visão semanal do efetivo — ±7 dias</p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-foreground">Matriz de Atividades</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Visão semanal do efetivo — ±7 dias</p>
+        </div>
+        {sheetsUrl && (
+          <a
+            href={sheetsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Abrir planilha no Google Sheets"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M15 3h6v6" />
+              <path d="M10 14 21 3" />
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            </svg>
+            Abrir no Google Sheets
+          </a>
+        )}
       </div>
 
       <div
