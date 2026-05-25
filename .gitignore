@@ -37,6 +37,12 @@ yarn-error.log*
 /coverage
 test_output*.txt
 
+# Playwright (artefatos de execução — não versionar)
+/test-results/
+/playwright-report/
+/blob-report/
+/tests/e2e/.auth/
+
 # Pasta do Antigravity (dados do agente — nunca commitar)
 .gemini/
 
