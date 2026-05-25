@@ -104,33 +104,61 @@ export default function MatrizView({
           <h1 className="text-xl font-bold text-foreground">Matriz de Atividades</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Visão semanal do efetivo — ±7 dias</p>
         </div>
-        {sheetsUrl && (
-          <a
-            href={sheetsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Abrir planilha no Google Sheets"
-            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+        <div className="flex items-center gap-1.5 flex-wrap justify-end">
+          <Link
+            href={`/matriz?ref=${prevRef}`}
+            aria-label="Semana anterior"
+            className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-border text-foreground hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
+            ‹
+          </Link>
+          <span className="text-xs font-medium text-muted-foreground min-w-[110px] text-center tabular-nums">
+            {formatRangeLabel(windowStart, windowEnd)}
+          </span>
+          <Link
+            href={`/matriz?ref=${nextRef}`}
+            aria-label="Próxima semana"
+            className="inline-flex items-center justify-center h-8 w-8 rounded-lg border border-border text-foreground hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            ›
+          </Link>
+          {!isAtToday && (
+            <Link
+              href="/matriz"
+              aria-label="Ir para hoje"
+              className="inline-flex items-center h-8 px-3 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
-              <path d="M15 3h6v6" />
-              <path d="M10 14 21 3" />
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-            </svg>
-            Abrir no Google Sheets
-          </a>
-        )}
+              Hoje
+            </Link>
+          )}
+          {sheetsUrl && (
+            <a
+              href={sheetsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Abrir planilha no Google Sheets"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M15 3h6v6" />
+                <path d="M10 14 21 3" />
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+              </svg>
+              Abrir no Google Sheets
+            </a>
+          )}
+        </div>
       </div>
 
       <div
