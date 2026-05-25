@@ -214,8 +214,9 @@ function EditModal({ profile, onClose, onSuccess, onError }: EditModalProps) {
 
           {/* Role */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-foreground">Perfil de acesso</label>
+            <label className="text-sm font-medium text-foreground" htmlFor="edit-role">Perfil de acesso</label>
             <select
+              id="edit-role"
               value={role}
               onChange={(e) => setRole(e.target.value as AppRole)}
               disabled={isSubmitting}
@@ -350,7 +351,7 @@ export default function AdminView({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6" data-testid="admin-page">
       {/* Edit Modal */}
       {editingProfile && (
         <EditModal
@@ -386,11 +387,13 @@ export default function AdminView({
       )}
 
       {/* Tabs */}
-      <div className="flex border-b border-border gap-1">
+      <div className="flex border-b border-border gap-1" role="tablist">
         {((['usuarios', 'whitelist', ...(showAuditTab ? ['auditoria'] as const : [])]) as AdminTab[]).map((tab) => (
           <button
             key={tab}
             id={`tab-${tab}`}
+            role="tab"
+            aria-selected={activeTab === tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 text-sm font-medium transition-colors capitalize border-b-2 -mb-px ${
               activeTab === tab

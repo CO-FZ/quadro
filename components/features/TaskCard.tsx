@@ -72,6 +72,8 @@ const TaskCard = memo(function TaskCard({ task, onDragStart, onDragEnd, profiles
   return (
     <>
       <div
+        data-testid={`task-card-${task.id}`}
+        data-assignee={isAssignee || undefined}
         draggable={canDrag}
         onDragStart={() => onDragStart(task.id)}
         onDragEnd={onDragEnd}
