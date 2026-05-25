@@ -36,6 +36,15 @@ yarn-error.log*
 # ── Cobertura de testes e artefatos temporários ───────────────────────────────
 /coverage
 test_output*.txt
+/test-results/
+/playwright-report/
+/tests/e2e/.auth/
+
+# Playwright (artefatos de execução — não versionar)
+/test-results/
+/playwright-report/
+/blob-report/
+/tests/e2e/.auth/
 
 # Pasta do Antigravity (dados do agente — nunca commitar)
 .gemini/

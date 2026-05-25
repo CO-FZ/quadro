@@ -2,19 +2,35 @@ import { createClient } from '@/lib/supabase/server'
 import type { Profile, TaskWithAssignees } from '@/lib/supabase/types'
 import MatrizView from '@/components/features/MatrizView'
 
-export default async function MatrizPage() {
+interface PageProps {
+  searchParams: Promise<{ ref?: string }>
+}
+
+function parseRef(ref: string | undefined, fallback: string): string {
+  if (ref && /^\d{4}-\d{2}-\d{2}$/.test(ref)) {
+    const d = new Date(ref + 'T00:00:00')
+    if (!Number.isNaN(d.getTime())) return ref
+  }
+  return fallback
+}
+
+export default async function MatrizPage({ searchParams }: PageProps) {
+  const params = await searchParams
   const supabase = await createClient()
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-
-  const windowStart = new Date(today)
-  windowStart.setDate(today.getDate() - 7)
-
-  const windowEnd = new Date(today)
-  windowEnd.setDate(today.getDate() + 7)
-
   const fmt = (d: Date) => d.toISOString().slice(0, 10)
+  const todayStr = fmt(today)
+
+  const anchorStr = parseRef(params.ref, todayStr)
+  const anchor = new Date(anchorStr + 'T00:00:00')
+
+  const windowStart = new Date(anchor)
+  windowStart.setDate(anchor.getDate() - 7)
+
+  const windowEnd = new Date(anchor)
+  windowEnd.setDate(anchor.getDate() + 7)
 
   const [{ data: tasks }, { data: profiles }] = await Promise.all([
     supabase
@@ -50,7 +66,8 @@ export default async function MatrizPage() {
     <MatrizView
       tasks={(tasks ?? []) as TaskWithAssignees[]}
       profiles={(profiles ?? []) as Pick<Profile, 'id' | 'email' | 'full_name' | 'nome_guerra' | 'avatar_url' | 'role' | 'patente'>[]}
-      today={fmt(today)}
+      today={todayStr}
+      anchor={anchorStr}
       windowStart={fmt(windowStart)}
       windowEnd={fmt(windowEnd)}
       sheetsUrl={sheetsUrl}

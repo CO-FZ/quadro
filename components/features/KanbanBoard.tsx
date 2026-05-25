@@ -106,6 +106,7 @@ const KanbanColumn = memo(function KanbanColumn({
 
   return (
     <div
+      data-testid={`kanban-col-${status}`}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       onDragLeave={onColumnDragLeave}
@@ -271,7 +272,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
   }, [applyOptimistic, moveStatusMutation])
 
   return (
-    <div className="flex flex-col gap-6 h-full">
+    <div className="flex flex-col gap-6 h-full" data-testid="kanban-board">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>

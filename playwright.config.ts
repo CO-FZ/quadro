@@ -1,4 +1,36 @@
+// @ts-expect-error - @next/env typings are not in the current typescript paths
+import { loadEnvConfig } from '@next/env'
 import { defineConfig, devices } from '@playwright/test'
+import { execSync } from 'node:child_process'
+
+// Load environment variables from .env.local
+loadEnvConfig(process.cwd())
+
+// Local development override: if running locally and local Supabase is active,
+// override Next.js env variables to point to the local Supabase CLI instance.
+if (!process.env.CI) {
+  try {
+    const statusOutput = execSync('npx supabase status --output json', { encoding: 'utf-8', stdio: 'pipe' })
+    const statusJson = JSON.parse(statusOutput)
+    
+    const localUrl = statusJson.API_URL || statusJson.api_url
+    const localAnonKey = statusJson.ANON_KEY || statusJson.anon_key
+    const localServiceKey = statusJson.SERVICE_ROLE_KEY || statusJson.service_role_key
+
+    if (localUrl) {
+      process.env.NEXT_PUBLIC_SUPABASE_URL = localUrl
+      process.env.SUPABASE_URL = localUrl
+    }
+    if (localAnonKey) {
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = localAnonKey
+    }
+    if (localServiceKey) {
+      process.env.SUPABASE_SERVICE_ROLE_KEY = localServiceKey
+    }
+  } catch {
+    // If local Supabase is not running or failed to fetch status, fall back to .env.local values
+  }
+}
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'
 
@@ -17,8 +49,11 @@ export default defineConfig({
   },
 
   projects: [
+    // Seed: create persona users via admin API (must run before login)
+    { name: 'seed', testMatch: /seed\.setup\.ts/ },
+
     // Setup: create storageState files per persona
-    { name: 'setup', testMatch: /.*\.setup\.ts/ },
+    { name: 'setup', testMatch: /auth\.setup\.ts/, dependencies: ['seed'] },
 
     // Desktop Chrome
     {

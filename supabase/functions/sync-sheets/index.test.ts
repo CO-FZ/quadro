@@ -17,7 +17,7 @@ function makeRequest(body: unknown): Request {
   })
 }
 
-Deno.test("returns 400 for non-tasks table", async () => {
+Deno.test("returns 400 for an unsynced table", async () => {
   using _env = stub(Deno.env, "get", (key: string) => {
     if (key === "GOOGLE_SERVICE_ACCOUNT_JSON") return '{"type":"service_account","project_id":"x"}'
     if (key === "GOOGLE_SHEET_ID") return "sheet-123"
@@ -26,7 +26,7 @@ Deno.test("returns 400 for non-tasks table", async () => {
 
   const req = makeRequest({
     type: "INSERT",
-    table: "profiles",
+    table: "some_other_table",
     schema: "public",
     record: { id: "abc" },
     old_record: {},
@@ -36,6 +36,23 @@ Deno.test("returns 400 for non-tasks table", async () => {
   assertEquals(res.status, 400)
   const body = await res.json()
   assertEquals(body.error, "Invalid table")
+})
+
+Deno.test("accepts task_assignees and profiles tables (not 400)", async () => {
+  using _env = stub(Deno.env, "get", () => undefined) // missing config → 500, but not 400
+
+  for (const table of ["task_assignees", "profiles"]) {
+    const req = makeRequest({
+      type: "INSERT",
+      table,
+      schema: "public",
+      record: { id: "abc" },
+      old_record: {},
+    })
+    const res = await handleRequest(req)
+    assertEquals(res.status, 500) // passes table check, fails on missing config
+    await res.body?.cancel()
+  }
 })
 
 Deno.test("returns 500 when GOOGLE_SERVICE_ACCOUNT_JSON is missing", async () => {

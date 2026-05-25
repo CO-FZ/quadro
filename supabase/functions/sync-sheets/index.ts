@@ -2,14 +2,22 @@ import "@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8"
 import { google } from "npm:googleapis@133.0.0"
 import { logger } from "../_shared/logger.ts"
+import {
+  buildMatrix,
+  parseExistingGrid,
+  type ProfileRow,
+  type TaskRow,
+} from "./matrix.ts"
 
 interface WebhookPayload {
   type: "INSERT" | "UPDATE" | "DELETE"
   table: string
   schema: string
-  record: Record<string, unknown>
-  old_record: Record<string, unknown>
+  record: Record<string, unknown> | null
+  old_record: Record<string, unknown> | null
 }
+
+const SYNC_TABLES = new Set(["tasks", "task_assignees", "profiles"])
 
 async function withRetry<T>(
   fn: () => Promise<T>,
@@ -32,9 +40,25 @@ async function withRetry<T>(
   throw lastError
 }
 
+// deno-lint-ignore no-explicit-any
+async function getOrCreateSheetId(sheets: any, spreadsheetId: string, tabName: string): Promise<number> {
+  const meta = await withRetry(() => sheets.spreadsheets.get({ spreadsheetId }))
+  // deno-lint-ignore no-explicit-any
+  const found = (meta.data.sheets ?? []).find((s: any) => s.properties?.title === tabName)
+  if (found) return found.properties.sheetId as number
+
+  const added = await withRetry(() =>
+    sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: { requests: [{ addSheet: { properties: { title: tabName } } }] },
+    })
+  )
+  return added.data.replies[0].addSheet.properties.sheetId as number
+}
+
 export async function handleRequest(req: Request): Promise<Response> {
   let opType: WebhookPayload["type"] | "unknown" = "unknown"
-  let taskId: string | null = null
+  let table: string | null = null
   let payload: WebhookPayload | null = null
 
   try {
@@ -43,10 +67,10 @@ export async function handleRequest(req: Request): Promise<Response> {
       return new Response(JSON.stringify({ error: "Invalid payload" }), { status: 400 })
     }
     opType = payload.type
-    taskId = (payload.record?.id as string) ?? (payload.old_record?.id as string) ?? null
-    logger.info("sync_sheets_received", { operation: opType, task_id: taskId })
+    table = payload.table
+    logger.info("sync_sheets_received", { operation: opType, table })
 
-    if (payload.table !== "tasks") {
+    if (!SYNC_TABLES.has(payload.table)) {
       return new Response(JSON.stringify({ error: "Invalid table" }), { status: 400 })
     }
 
@@ -54,99 +78,134 @@ export async function handleRequest(req: Request): Promise<Response> {
     const spreadsheetId = Deno.env.get("GOOGLE_SHEET_ID")
 
     if (!credentialsJson || !spreadsheetId) {
-      logger.error("sync_sheets_missing_config", { operation: opType, task_id: taskId })
+      logger.error("sync_sheets_missing_config", { operation: opType, table })
       return new Response(JSON.stringify({ error: "Missing config" }), { status: 500 })
     }
 
-    const credentials = JSON.parse(credentialsJson)
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
+    if (!supabaseUrl || !supabaseServiceKey) {
+      logger.error("sync_sheets_missing_supabase_config", { operation: opType, table })
+      return new Response(JSON.stringify({ error: "Missing config" }), { status: 500 })
+    }
 
+    const tabName = Deno.env.get("SHEET_TAB_NAME") ?? "Matriz"
+    const forwardBufferDays = Number(Deno.env.get("SHEET_FORWARD_BUFFER_DAYS") ?? "30")
+    const today = new Date().toISOString().slice(0, 10)
+
+    // 1. Read current state from the database (service role).
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+    const [{ data: profilesData, error: profilesErr }, { data: tasksData, error: tasksErr }] =
+      await Promise.all([
+        supabase.from("profiles").select("id, full_name, nome_guerra, patente, archived_at"),
+        supabase
+          .from("tasks")
+          .select("id, title, sector, status, is_servico, start_date, end_date, task_assignees(user_id)")
+          .neq("status", "arquivada"),
+      ])
+
+    if (profilesErr) throw new Error(`profiles query failed: ${profilesErr.message}`)
+    if (tasksErr) throw new Error(`tasks query failed: ${tasksErr.message}`)
+
+    const profiles = (profilesData ?? []) as ProfileRow[]
+    const tasks = (tasksData ?? []) as TaskRow[]
+
+    // 2. Google Sheets client.
+    const credentials = JSON.parse(credentialsJson)
     const auth = new google.auth.GoogleAuth({
       credentials,
       scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     })
-
     const sheets = google.sheets({ version: "v4", auth })
 
-    const { type, record } = payload
-    const range = "Tasks!A:H"
+    const sheetId = await getOrCreateSheetId(sheets, spreadsheetId, tabName)
 
-    const rowData = [
-      record.id,
-      record.title,
-      record.sector || "",
-      record.status,
-      record.description || "",
-      record.created_at,
-      record.end_date || "",
-      record.created_by || "",
+    // 3. Read existing grid to preserve past days.
+    const existingResp = await withRetry(() =>
+      sheets.spreadsheets.values.get({ spreadsheetId, range: tabName })
+    )
+    const existing = parseExistingGrid(existingResp.data.values as string[][] | undefined)
+
+    // 4. Build the pivoted matrix.
+    const matrix = buildMatrix({ profiles, tasks, existing, today, forwardBufferDays })
+
+    // 5. Clear + write the whole tab.
+    await withRetry(() => sheets.spreadsheets.values.clear({ spreadsheetId, range: tabName }))
+    await withRetry(() =>
+      sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `${tabName}!A1`,
+        valueInputOption: "RAW",
+        requestBody: { values: matrix.values },
+      })
+    )
+
+    // 6. Formatting: freeze header rows + date columns, hide key row/col, highlight today.
+    // deno-lint-ignore no-explicit-any
+    const requests: any[] = [
+      {
+        updateSheetProperties: {
+          properties: { sheetId, gridProperties: { frozenRowCount: 2, frozenColumnCount: 2 } },
+          fields: "gridProperties(frozenRowCount,frozenColumnCount)",
+        },
+      },
+      {
+        updateDimensionProperties: {
+          range: { sheetId, dimension: "ROWS", startIndex: 0, endIndex: 1 },
+          properties: { hiddenByUser: true },
+          fields: "hiddenByUser",
+        },
+      },
+      {
+        updateDimensionProperties: {
+          range: { sheetId, dimension: "COLUMNS", startIndex: 0, endIndex: 1 },
+          properties: { hiddenByUser: true },
+          fields: "hiddenByUser",
+        },
+      },
+      {
+        repeatCell: {
+          range: {
+            sheetId,
+            startRowIndex: 2,
+            startColumnIndex: 2,
+            endColumnIndex: matrix.columnCount,
+          },
+          cell: { userEnteredFormat: { wrapStrategy: "WRAP", verticalAlignment: "TOP" } },
+          fields: "userEnteredFormat(wrapStrategy,verticalAlignment)",
+        },
+      },
     ]
 
-    if (type === "INSERT") {
-      await withRetry(() =>
-        sheets.spreadsheets.values.append({
-          spreadsheetId,
-          range,
-          valueInputOption: "USER_ENTERED",
-          requestBody: { values: [rowData] },
-        })
-      )
-      logger.info("sync_sheets_appended", { operation: type, task_id: taskId })
-    } else if (type === "UPDATE") {
-      const response = await withRetry(() =>
-        sheets.spreadsheets.values.get({
-          spreadsheetId,
-          range: "Tasks!A:A",
-        })
-      )
-
-      const rows = response.data.values || []
-      const rowIndex = rows.findIndex((row: unknown[]) => row[0] === record.id)
-
-      if (rowIndex !== -1) {
-        const updateRange = `Tasks!A${rowIndex + 1}:H${rowIndex + 1}`
-        await withRetry(() =>
-          sheets.spreadsheets.values.update({
-            spreadsheetId,
-            range: updateRange,
-            valueInputOption: "USER_ENTERED",
-            requestBody: { values: [rowData] },
-          })
-        )
-        logger.info("sync_sheets_updated", { operation: type, task_id: taskId, row: rowIndex + 1 })
-      } else {
-        await withRetry(() =>
-          sheets.spreadsheets.values.append({
-            spreadsheetId,
-            range,
-            valueInputOption: "USER_ENTERED",
-            requestBody: { values: [rowData] },
-          })
-        )
-        logger.warn("sync_sheets_update_fallback_append", { operation: type, task_id: taskId })
-      }
-    } else if (type === "DELETE") {
-      const response = await withRetry(() =>
-        sheets.spreadsheets.values.get({
-          spreadsheetId,
-          range: "Tasks!A:A",
-        })
-      )
-      const rows = response.data.values || []
-      const oldId = payload.old_record.id
-      const rowIndex = rows.findIndex((row) => row[0] === oldId)
-
-      if (rowIndex !== -1) {
-        await withRetry(() =>
-          sheets.spreadsheets.values.update({
-            spreadsheetId,
-            range: `Tasks!D${rowIndex + 1}`,
-            valueInputOption: "USER_ENTERED",
-            requestBody: { values: [["Deleted"]] },
-          })
-        )
-        logger.info("sync_sheets_deleted", { operation: type, task_id: String(oldId ?? "") })
-      }
+    if (matrix.todayRowIndex !== null) {
+      requests.push({
+        repeatCell: {
+          range: {
+            sheetId,
+            startRowIndex: matrix.todayRowIndex,
+            endRowIndex: matrix.todayRowIndex + 1,
+            startColumnIndex: 1,
+            endColumnIndex: matrix.columnCount,
+          },
+          cell: {
+            userEnteredFormat: { backgroundColor: { red: 0.85, green: 0.92, blue: 1 } },
+          },
+          fields: "userEnteredFormat.backgroundColor",
+        },
+      })
     }
+
+    await withRetry(() =>
+      sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests } })
+    )
+
+    logger.info("sync_sheets_rebuilt", {
+      operation: opType,
+      table,
+      columns: matrix.columnCount - 2,
+      days: matrix.dayRowCount,
+    })
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { "Content-Type": "application/json" },
@@ -154,25 +213,9 @@ export async function handleRequest(req: Request): Promise<Response> {
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
+    logger.error("sync_sheets_failed", { operation: opType, table, message })
 
-    let credentialKeys: string[] | null = null
-    try {
-      const credentialsJson = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON")
-      if (credentialsJson) {
-        credentialKeys = Object.keys(JSON.parse(credentialsJson))
-      }
-    } catch {
-      credentialKeys = null
-    }
-
-    logger.error("sync_sheets_failed", {
-      operation: opType,
-      task_id: taskId,
-      message,
-      ...(credentialKeys ? { credential_keys: credentialKeys } : {}),
-    })
-
-    // Best-effort DLQ log: write the failed synchronization attempt to sync_sheets_failures table.
+    // Best-effort DLQ log of the failed synchronization attempt.
     if (payload) {
       try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL")
@@ -182,39 +225,29 @@ export async function handleRequest(req: Request): Promise<Response> {
           const { error: dbError } = await supabase
             .from("sync_sheets_failures")
             .insert({
-              task_id: taskId,
+              task_id: null,
               operation: opType,
               payload: payload,
               error_message: message,
             })
           if (dbError) {
-            logger.error("sync_sheets_dlq_insert_failed", {
-              error: dbError.message,
-              task_id: taskId,
-            })
+            logger.error("sync_sheets_dlq_insert_failed", { error: dbError.message, table })
           } else {
-            logger.info("sync_sheets_dlq_inserted", {
-              task_id: taskId,
-              operation: opType,
-            })
+            logger.info("sync_sheets_dlq_inserted", { operation: opType, table })
           }
         } else {
-          logger.warn("sync_sheets_dlq_missing_keys", {
-            task_id: taskId,
-          })
+          logger.warn("sync_sheets_dlq_missing_keys", { table })
         }
       } catch (dlqErr) {
         logger.error("sync_sheets_dlq_unexpected_error", {
           error: dlqErr instanceof Error ? dlqErr.message : String(dlqErr),
-          task_id: taskId,
+          table,
         })
       }
     }
 
     return new Response(
-      JSON.stringify({
-        error: message,
-      }),
+      JSON.stringify({ error: message }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     )
   }
