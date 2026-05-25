@@ -15,6 +15,12 @@ export default defineConfig({
     hookTimeout: 60_000,
     globalSetup: ['tests/integration/globalSetup.ts'],
     pool: 'forks',
-    maxConcurrency: 1, // all integration tests share 1 process (same DB state)
+    // All integration tests share one Postgres DB, so files must run serially.
+    // Otherwise they race: a transient admin user created in handle_new_user makes
+    // tasks.actions' last-admin guard see count>1, letting it downgrade the
+    // test-admin and cascading FORBIDDEN/RLS failures elsewhere. maxConcurrency
+    // only serializes WITHIN a file; fileParallelism:false serializes across files.
+    fileParallelism: false,
+    maxConcurrency: 1,
   },
 })
