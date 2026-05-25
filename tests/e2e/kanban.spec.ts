@@ -4,10 +4,7 @@ import { storageStatePath } from './fixtures/auth'
 // Reuse admin session by default; override per test as needed
 test.use({ storageState: storageStatePath('admin') })
 
-// TODO(sprint-21): quarentenado. Depende de data-testid="kanban-board",
-// data-testid^="task-card" e data-testid="kanban-col-finalizada" que a UI ainda
-// nao expoe. Reabilitar quando o board for instrumentado.
-test.describe.skip('Kanban — admin', () => {
+test.describe('Kanban — admin', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/kanban')
     await page.waitForSelector('[data-testid="kanban-board"]', { timeout: 10_000 })
@@ -19,22 +16,26 @@ test.describe.skip('Kanban — admin', () => {
     }
   })
 
-  test('screenshot mobile — kanban board baseline', async ({ page }) => {
-    // Only runs on 'mobile' project
+  // TODO(sprint-21): baseline visual ausente. Gerar com `pnpm test:e2e:update` e
+  // revisar a imagem (AGENTS.md secao 5) antes de reabilitar.
+  test.skip('screenshot mobile — kanban board baseline', async ({ page }) => {
     await expect(page).toHaveScreenshot('kanban-mobile.png', { maxDiffPixelRatio: 0.02 })
   })
 
   test('admin creates task via FAB', async ({ page }) => {
+    // Unique title: chromium + mobile share one DB, so a static title would
+    // produce two cards on the second project (strict-mode violation).
+    const title = `E2E Test Task ${Date.now()}`
     await page.getByRole('button', { name: /nova tarefa|criar/i }).click()
-    await page.getByLabel(/título/i).fill('E2E Test Task')
-    await page.getByLabel(/setor/i).selectOption('DT')
+    await page.getByLabel(/título/i).fill(title)
+    // Setor defaults to DT (it's a button toggle, not a select), so no extra step.
 
     const TODAY = new Date().toISOString().slice(0, 10)
     await page.getByLabel(/início/i).fill(TODAY)
     await page.getByLabel(/entrega/i).fill(TODAY)
     await page.getByRole('button', { name: /salvar|criar/i }).click()
 
-    await expect(page.getByText('E2E Test Task')).toBeVisible({ timeout: 5_000 })
+    await expect(page.getByText(title)).toBeVisible({ timeout: 5_000 })
   })
 
   test('admin creates serviço task — title/description fields hidden', async ({ page }) => {
@@ -60,7 +61,7 @@ test.describe.skip('Kanban — admin', () => {
   })
 })
 
-test.describe.skip('Kanban — efetivo (restricted)', () => {
+test.describe('Kanban — efetivo (restricted)', () => {
   test.use({ storageState: storageStatePath('efetivo') })
 
   test('efetivo cannot see archive/delete buttons', async ({ page }) => {

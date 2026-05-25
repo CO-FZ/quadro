@@ -11,20 +11,14 @@ test.describe('Auth callback', () => {
     test.skip(true, 'Google OAuth flow requires manual validation or staging environment')
   })
 
-  // TODO(sprint-21): a pagina de login ainda nao renderiza mensagem para
-  // ?error=not_authorized. Reabilitar quando o tratamento de erro existir.
-  test.skip('non-whitelisted email → friendly error on login page', async ({ page }) => {
-    // Navigate to login page and check for any existing error message
-    await page.goto('/')
-
-    // If redirected to login
-    const url = page.url()
-    if (url.includes('login') || url.includes('auth')) {
-      // Simulate callback with error param
-      await page.goto('/?error=not_authorized')
-      await expect(page.getByText(/não autorizado|acesso negado|não encontrado na whitelist/i))
-        .toBeVisible({ timeout: 5_000 })
-    }
+  test('non-whitelisted email → friendly error on login page', async ({ page }) => {
+    // The login page renders the callback error from ?error=not_authorized.
+    // Message (lib/i18n/auth.ts): "Este e-mail não está autorizado a acessar o Quadro..."
+    await page.goto('/login?error=not_authorized')
+    await expect(page.getByRole('alert')).toContainText(
+      /não está autorizado|não autorizado|acesso negado/i,
+      { timeout: 5_000 },
+    )
   })
 
   // TODO(sprint-21): baseline visual ausente. Gerar com `pnpm test:e2e:update`

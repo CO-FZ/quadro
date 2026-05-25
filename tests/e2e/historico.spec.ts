@@ -18,9 +18,10 @@ test.describe('Histórico — admin', () => {
   })
 
   test('nav link "Histórico" visível na barra de navegação', async ({ page }, testInfo) => {
-    // TODO(sprint-21): no mobile a navbar colapsa em menu; o link nao fica visivel
-    // diretamente. Cobrir mobile abrindo o menu antes. Por ora valida so no desktop.
-    test.skip(testInfo.project.name === 'mobile', 'nav colapsada no mobile — abrir menu antes (TODO)')
+    // On mobile the navbar collapses into a hamburger; open it to reveal the links.
+    if (testInfo.project.name === 'mobile') {
+      await page.locator('#btn-mobile-menu').click()
+    }
     await expect(page.getByRole('link', { name: /histórico/i })).toBeVisible()
   })
 

@@ -27,10 +27,11 @@ test.describe('Matriz de Atividades', () => {
   })
 
   test('navigating to /matriz from nav works', async ({ page }, testInfo) => {
-    // TODO(sprint-21): no mobile a navbar colapsa em menu; o link nao fica visivel
-    // diretamente. Cobrir mobile abrindo o menu antes. Por ora valida so no desktop.
-    test.skip(testInfo.project.name === 'mobile', 'nav colapsada no mobile — abrir menu antes (TODO)')
     await page.goto('/kanban')
+    // On mobile the navbar collapses into a hamburger; open it to reveal the links.
+    if (testInfo.project.name === 'mobile') {
+      await page.locator('#btn-mobile-menu').click()
+    }
     await page.getByRole('link', { name: /matriz/i }).click()
     await expect(page).toHaveURL(/\/matriz/)
     await expect(page.getByText(/matriz de atividades/i)).toBeVisible({ timeout: 5_000 })
