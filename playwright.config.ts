@@ -1,4 +1,9 @@
+// @ts-expect-error - @next/env typings are not in the current typescript paths
+import { loadEnvConfig } from '@next/env'
 import { defineConfig, devices } from '@playwright/test'
+
+// Load environment variables from .env.local
+loadEnvConfig(process.cwd())
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000'
 
