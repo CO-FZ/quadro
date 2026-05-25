@@ -60,6 +60,8 @@ export default async function MatrizPage({ searchParams }: PageProps) {
       .is('archived_at', null),
   ])
 
+  const sheetsUrl = process.env.NEXT_PUBLIC_GOOGLE_SHEET_URL || undefined
+
   return (
     <MatrizView
       tasks={(tasks ?? []) as TaskWithAssignees[]}
@@ -68,6 +70,7 @@ export default async function MatrizPage({ searchParams }: PageProps) {
       anchor={anchorStr}
       windowStart={fmt(windowStart)}
       windowEnd={fmt(windowEnd)}
+      sheetsUrl={sheetsUrl}
     />
   )
 }
