@@ -14,11 +14,11 @@ test.describe('Auth callback', () => {
   test('non-whitelisted email → friendly error on login page', async ({ page }) => {
     // The login page renders the callback error from ?error=not_authorized.
     // Message (lib/i18n/auth.ts): "Este e-mail não está autorizado a acessar o Quadro..."
+    // Scope to the message alert: Next.js adds an empty role="alert" route announcer.
     await page.goto('/login?error=not_authorized')
-    await expect(page.getByRole('alert')).toContainText(
-      /não está autorizado|não autorizado|acesso negado/i,
-      { timeout: 5_000 },
-    )
+    await expect(
+      page.getByRole('alert').filter({ hasText: /autorizado|acesso negado/i }),
+    ).toBeVisible({ timeout: 5_000 })
   })
 
   // TODO(sprint-21): baseline visual ausente. Gerar com `pnpm test:e2e:update`
