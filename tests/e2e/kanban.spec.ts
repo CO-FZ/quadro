@@ -8,6 +8,8 @@ test.describe('Kanban — admin', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/kanban')
     await page.waitForSelector('[data-testid="kanban-board"]', { timeout: 10_000 })
+    // Hide Next.js dev overlay/portal to prevent intercepting clicks in mobile view
+    await page.addStyleTag({ content: 'nextjs-portal { display: none !important; }' })
   })
 
   test('kanban board renders columns', async ({ page }) => {
