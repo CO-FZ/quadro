@@ -81,7 +81,7 @@ export default function HistoricoView({
   const [inputValue, setInputValue] = useState(query)
   const [selectedTask, setSelectedTask] = useState<TaskWithAssignees | null>(null)
 
-  const canManage = currentUserRole === 'admin' || currentUserRole === 'coordenador'
+  const canFinalize = currentUserRole === 'admin' || currentUserRole === 'coordenador'
 
   const [prevQuery, setPrevQuery] = useState(query)
   if (query !== prevQuery) {
@@ -315,7 +315,7 @@ export default function HistoricoView({
         <TaskDetailModal
           task={selectedTask}
           profiles={profiles}
-          canManage={canManage}
+          canFinalize={canFinalize}
           onClose={() => setSelectedTask(null)}
           onRefresh={() => {
             setSelectedTask(null)

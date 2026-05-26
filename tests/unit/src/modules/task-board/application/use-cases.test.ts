@@ -117,9 +117,11 @@ describe('TaskUseCases.updateTask', () => {
     expect(repo.updateTask).toHaveBeenCalledOnce()
   })
 
-  it('efetivo → FORBIDDEN', async () => {
-    const uc = new TaskUseCases(makeRepo())
-    await expect(uc.updateTask(efetivo, 'task-1', baseInput, [])).rejects.toThrow('FORBIDDEN')
+  it('efetivo pode atualizar (Sprint 22 — acesso universal)', async () => {
+    const repo = makeRepo()
+    const uc = new TaskUseCases(repo)
+    await uc.updateTask(efetivo, 'task-1', baseInput, [])
+    expect(repo.updateTask).toHaveBeenCalledOnce()
   })
 })
 
@@ -131,9 +133,11 @@ describe('TaskUseCases.updateTaskAssignees', () => {
     expect(repo.updateTaskAssignees).toHaveBeenCalledOnce()
   })
 
-  it('efetivo → FORBIDDEN', async () => {
-    const uc = new TaskUseCases(makeRepo())
-    await expect(uc.updateTaskAssignees(efetivo, 'task-1', [])).rejects.toThrow('FORBIDDEN')
+  it('efetivo pode atualizar assignees (Sprint 22 — acesso universal)', async () => {
+    const repo = makeRepo()
+    const uc = new TaskUseCases(repo)
+    await uc.updateTaskAssignees(efetivo, 'task-1', [])
+    expect(repo.updateTaskAssignees).toHaveBeenCalledOnce()
   })
 
   it('tarefa em backlog com novo assignee → promove para alocada', async () => {

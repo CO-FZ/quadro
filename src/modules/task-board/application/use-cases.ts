@@ -35,7 +35,7 @@ export class TaskUseCases {
     data: NormalizedTaskInput,
     assigneeIds: string[]
   ): Promise<void> {
-    assertRole(caller, ['admin', 'coordenador'])
+    if (!caller) throw new Error('UNAUTHENTICATED')
     return this.taskRepository.updateTask(taskId, data, assigneeIds)
   }
 
@@ -59,7 +59,7 @@ export class TaskUseCases {
     taskId: string,
     assigneeIds: string[]
   ): Promise<void> {
-    assertRole(caller, ['admin', 'coordenador'])
+    if (!caller) throw new Error('UNAUTHENTICATED')
 
     if (assigneeIds.length > 0) {
       const task = await this.taskRepository.getTaskById(taskId)

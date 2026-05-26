@@ -14,7 +14,7 @@ interface TaskCardProps {
   onDragStart: (taskId: string) => void
   onDragEnd: () => void
   profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'nome_guerra' | 'avatar_url' | 'role' | 'patente'>[]
-  canManage: boolean
+  canFinalize: boolean
   currentUserId: string
   onRefresh: () => void
 }
@@ -63,22 +63,21 @@ function UserAvatars({ assignees }: { assignees: TaskWithAssignees['task_assigne
   )
 }
 
-const TaskCard = memo(function TaskCard({ task, onDragStart, onDragEnd, profiles, canManage, currentUserId, onRefresh }: TaskCardProps) {
+const TaskCard = memo(function TaskCard({ task, onDragStart, onDragEnd, profiles, canFinalize, currentUserId, onRefresh }: TaskCardProps) {
   const [showDetail, setShowDetail] = useState(false)
   const overdue = isOverdue(task)
   const isAssignee = task.task_assignees.some((a) => a.user_id === currentUserId)
-  const canDrag = canManage || isAssignee
 
   return (
     <>
       <div
         data-testid={`task-card-${task.id}`}
         data-assignee={isAssignee || undefined}
-        draggable={canDrag}
+        draggable={true}
         onDragStart={() => onDragStart(task.id)}
         onDragEnd={onDragEnd}
         onClick={() => setShowDetail(true)}
-        className={`group bg-background border border-border rounded-xl p-3 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all duration-200 ease-out select-none ${canDrag ? 'active:scale-[0.98]' : ''}`}
+        className="group bg-background border border-border rounded-xl p-3 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all duration-200 ease-out select-none active:scale-[0.98]"
       >
         {/* Badges de topo */}
         <div className="flex items-center gap-1.5 mb-2">
@@ -134,7 +133,7 @@ const TaskCard = memo(function TaskCard({ task, onDragStart, onDragEnd, profiles
         <TaskDetailModal
           task={task}
           profiles={profiles}
-          canManage={canManage}
+          canFinalize={canFinalize}
           onClose={() => setShowDetail(false)}
           onRefresh={() => { setShowDetail(false); onRefresh() }}
         />

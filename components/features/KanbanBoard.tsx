@@ -59,7 +59,7 @@ interface KanbanColumnProps {
   onTaskDragEnd: () => void
   onTaskRefresh: () => void
   profiles: KanbanBoardProps['profiles']
-  canManage: boolean
+  canFinalize: boolean
   currentUserId: string
 }
 
@@ -75,7 +75,7 @@ const KanbanColumn = memo(function KanbanColumn({
   onTaskDragEnd,
   onTaskRefresh,
   profiles,
-  canManage,
+  canFinalize,
   currentUserId,
 }: KanbanColumnProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -156,7 +156,7 @@ const KanbanColumn = memo(function KanbanColumn({
                     onDragStart={onTaskDragStart}
                     onDragEnd={onTaskDragEnd}
                     profiles={profiles}
-                    canManage={canManage}
+                    canFinalize={canFinalize}
                     currentUserId={currentUserId}
                     onRefresh={onTaskRefresh}
                   />
@@ -181,7 +181,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
   const [filterSector, setFilterSector] = useState<'all' | 'DT' | 'DA'>('all')
   const [filterAssignee, setFilterAssignee] = useState<string>('all')
 
-  const canManage = currentUserRole === 'admin' || currentUserRole === 'coordenador'
+  const canFinalize = currentUserRole === 'admin' || currentUserRole === 'coordenador'
 
   const [optimisticTasks, applyOptimistic] = useOptimistic(
     tasks,
@@ -253,6 +253,9 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
     setDragOverColumn(null)
   }, [])
 
+  const canFinalizeRef = useRef(canFinalize)
+  useEffect(() => { canFinalizeRef.current = canFinalize }, [canFinalize])
+
   const handleColumnDrop = useCallback((status: TaskStatus) => {
     const movingId = draggingIdRef.current
     if (!movingId) return
@@ -260,6 +263,10 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
     setDraggingId(null)
     setDragOverColumn(null)
     if (!task || task.status === status) return
+    if (status === 'finalizada' && !canFinalizeRef.current) {
+      toast('Apenas coordenadores e admins podem finalizar tarefas.', 'error')
+      return
+    }
 
     startTransition(async () => {
       applyOptimistic({ taskId: movingId, status })
@@ -269,7 +276,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
         // Erro tratado em onError do useMutation; rollback otimista ocorre ao fim da transição.
       }
     })
-  }, [applyOptimistic, moveStatusMutation])
+  }, [applyOptimistic, moveStatusMutation, toast])
 
   return (
     <div className="flex flex-col gap-6 h-full" data-testid="kanban-board">
@@ -338,7 +345,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
             onTaskDragEnd={handleDragEnd}
             onTaskRefresh={handleRefresh}
             profiles={profiles}
-            canManage={canManage}
+            canFinalize={canFinalize}
             currentUserId={currentUserId}
           />
         ))}
@@ -381,7 +388,7 @@ export default function KanbanBoard({ tasks, profiles, currentUserId, currentUse
                   onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
                   profiles={profiles}
-                  canManage={canManage}
+                  canFinalize={canFinalize}
                   currentUserId={currentUserId}
                   onRefresh={handleRefresh}
                 />

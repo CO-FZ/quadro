@@ -15,7 +15,7 @@ import { formatNomeCompleto, formatDateBr, formatDateTimeBr } from '@/lib/utils/
 interface TaskDetailModalProps {
   task: TaskWithAssignees
   profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'nome_guerra' | 'avatar_url' | 'role' | 'patente'>[]
-  canManage: boolean
+  canFinalize: boolean
   onClose: () => void
   onRefresh: () => void
 }
@@ -31,7 +31,7 @@ const DRIVE_ICON = (
   </svg>
 )
 
-export default function TaskDetailModal({ task, profiles, canManage, onClose, onRefresh }: TaskDetailModalProps) {
+export default function TaskDetailModal({ task, profiles, canFinalize, onClose, onRefresh }: TaskDetailModalProps) {
   const [isPending, startTransition] = useTransition()
   const { toast } = useToast()
   const currentAssigneeIds = task.task_assignees.map((a) => a.user_id)
@@ -123,19 +123,17 @@ export default function TaskDetailModal({ task, profiles, canManage, onClose, on
           </div>
 
           <div className="flex items-center gap-1 shrink-0">
-            {/* Botão Editar */}
-            {canManage && (
-              <button
-                id="btn-edit-task"
-                onClick={() => setShowEditModal(true)}
-                className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                title="Editar tarefa"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                </svg>
-              </button>
-            )}
+            {/* Botão Editar — todos os perfis */}
+            <button
+              id="btn-edit-task"
+              onClick={() => setShowEditModal(true)}
+              className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              title="Editar tarefa"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+              </svg>
+            </button>
             {/* Botão Fechar */}
             <button
               onClick={onClose}
@@ -203,84 +201,64 @@ export default function TaskDetailModal({ task, profiles, canManage, onClose, on
             </a>
           )}
 
-          {/* Responsáveis */}
+          {/* Responsáveis — todos os perfis podem alocar */}
           <div className="flex flex-col gap-2">
             <p className="text-sm font-medium text-foreground">Responsáveis</p>
-            {canManage ? (
-              <>
-                <div className="border border-border rounded-xl overflow-hidden max-h-36 overflow-y-auto">
-                  {profiles.map((p) => (
-                    <label
-                      key={p.id}
-                      className="flex items-center gap-3 px-3 py-2 hover:bg-muted transition-colors cursor-pointer border-b border-border last:border-0"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={assigneeIds.includes(p.id)}
-                        onChange={() => toggleAssignee(p.id)}
-                        className="accent-primary"
-                      />
-                      {p.avatar_url ? (
-                        <Image src={p.avatar_url} alt={p.full_name ?? p.email} width={24} height={24} className="h-6 w-6 rounded-full object-cover" />
-                      ) : (
-                        <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-primary-foreground">
-                          {(p.full_name ?? p.email)[0]?.toUpperCase()}
-                        </div>
-                      )}
-                      <span className="text-sm truncate">{formatNomeCompleto(p.patente, p.nome_guerra ?? p.full_name) || p.email}</span>
-                    </label>
-                  ))}
-                </div>
-                <button
-                  onClick={handleSaveAssignees}
-                  disabled={isPending}
-                  className="self-end text-xs font-medium text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+            <div className="border border-border rounded-xl overflow-hidden max-h-36 overflow-y-auto">
+              {profiles.map((p) => (
+                <label
+                  key={p.id}
+                  className="flex items-center gap-3 px-3 py-2 hover:bg-muted transition-colors cursor-pointer border-b border-border last:border-0"
                 >
-                  {isPending ? 'Salvando...' : 'Salvar responsáveis'}
-                </button>
-              </>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {task.task_assignees.map((a) => (
-                  <div key={a.user_id} className="flex items-center gap-1.5 bg-muted rounded-full px-2 py-1">
-                    {a.profiles?.avatar_url ? (
-                      <Image src={a.profiles.avatar_url} alt={a.profiles.full_name ?? a.profiles.email} width={20} height={20} className="h-5 w-5 rounded-full" />
-                    ) : (
-                      <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center text-[8px] font-bold text-primary-foreground">
-                        {(a.profiles?.full_name ?? a.profiles?.email)?.[0]?.toUpperCase()}
-                      </div>
-                    )}
-                    <span className="text-xs text-muted-foreground">{formatNomeCompleto(a.profiles?.patente, a.profiles?.nome_guerra ?? a.profiles?.full_name) || a.profiles?.email}</span>
-                  </div>
-                ))}
-                {task.task_assignees.length === 0 && (
-                  <p className="text-xs text-muted-foreground">Nenhum responsável alocado.</p>
-                )}
-              </div>
-            )}
+                  <input
+                    type="checkbox"
+                    checked={assigneeIds.includes(p.id)}
+                    onChange={() => toggleAssignee(p.id)}
+                    className="accent-primary"
+                  />
+                  {p.avatar_url ? (
+                    <Image src={p.avatar_url} alt={p.full_name ?? p.email} width={24} height={24} className="h-6 w-6 rounded-full object-cover" />
+                  ) : (
+                    <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-primary-foreground">
+                      {(p.full_name ?? p.email)[0]?.toUpperCase()}
+                    </div>
+                  )}
+                  <span className="text-sm truncate">{formatNomeCompleto(p.patente, p.nome_guerra ?? p.full_name) || p.email}</span>
+                </label>
+              ))}
+            </div>
+            <button
+              onClick={handleSaveAssignees}
+              disabled={isPending}
+              className="self-end text-xs font-medium text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+            >
+              {isPending ? 'Salvando...' : 'Salvar responsáveis'}
+            </button>
           </div>
 
-          {/* Mover status */}
-          {canManage && (
-            <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium text-foreground">Mover para</p>
-              <div className="flex flex-wrap gap-2">
-                {KANBAN_COLUMNS.filter((c) => c.id !== task.status && c.id !== ('arquivada' as TaskStatus)).map((col) => (
-                  <button
-                    key={col.id}
-                    onClick={() => handleMoveStatus(col.id)}
-                    disabled={isPending}
-                    className="text-xs px-3 py-1.5 rounded-lg border border-border hover:bg-muted transition-colors disabled:opacity-50"
-                  >
-                    → {col.label}
-                  </button>
-                ))}
-              </div>
+          {/* Mover status — todos podem mover; finalizada só para canFinalize */}
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-medium text-foreground">Mover para</p>
+            <div className="flex flex-wrap gap-2">
+              {KANBAN_COLUMNS.filter((c) =>
+                c.id !== task.status &&
+                c.id !== ('arquivada' as TaskStatus) &&
+                (canFinalize || c.id !== 'finalizada')
+              ).map((col) => (
+                <button
+                  key={col.id}
+                  onClick={() => handleMoveStatus(col.id)}
+                  disabled={isPending}
+                  className="text-xs px-3 py-1.5 rounded-lg border border-border hover:bg-muted transition-colors disabled:opacity-50"
+                >
+                  → {col.label}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
 
-          {/* Ações destrutivas */}
-          {canManage && (
+          {/* Ações destrutivas — apenas coordenador/admin */}
+          {canFinalize && (
             <div className="flex items-center justify-between pt-2 border-t border-border">
               {/* Arquivar — somente tarefas finalizadas */}
               {task.status === 'finalizada' && (
