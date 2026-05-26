@@ -67,7 +67,7 @@ it('CA-06: efetivo creates task → ok: true, status backlog', async () => {
   const { client } = await getPersonaSession('efetivo')
   _activeClient = client
 
-  const { createTask } = await import('@/lib/actions/tasks')
+  const { createTask } = await import('../../../lib/actions/tasks')
   const TODAY = new Date().toISOString().slice(0, 10)
 
   const result = await createTask({
@@ -100,7 +100,7 @@ it('CA-07: createTask with assignees → status alocada', async () => {
   const { client } = await getPersonaSession('efetivo')
   _activeClient = client
 
-  const { createTask } = await import('@/lib/actions/tasks')
+  const { createTask } = await import('../../../lib/actions/tasks')
   const TODAY = new Date().toISOString().slice(0, 10)
 
   const result = await createTask({
@@ -133,7 +133,7 @@ it('CA-08: efetivo updateTask → FORBIDDEN, DB unchanged', async () => {
   const { client } = await getPersonaSession('efetivo')
   _activeClient = client
 
-  const { updateTask } = await import('@/lib/actions/tasks')
+  const { updateTask } = await import('../../../lib/actions/tasks')
   const TODAY = new Date().toISOString().slice(0, 10)
 
   const result = await updateTask(taskId, {
@@ -163,7 +163,7 @@ it('CA-09: efetivo updateTaskStatus finalizada → FORBIDDEN', async () => {
   const { client } = await getPersonaSession('efetivo')
   _activeClient = client
 
-  const { updateTaskStatus } = await import('@/lib/actions/tasks')
+  const { updateTaskStatus } = await import('../../../lib/actions/tasks')
   const result = await updateTaskStatus(taskId, 'finalizada')
 
   expect(result.ok).toBe(false)
@@ -181,7 +181,7 @@ it('CA-10: efetivo (assignee) moves backlog → alocada → em_desenvolvimento �
   const { client } = await getPersonaSession('efetivo')
   _activeClient = client
 
-  const { updateTaskStatus } = await import('@/lib/actions/tasks')
+  const { updateTaskStatus } = await import('../../../lib/actions/tasks')
 
   const r1 = await updateTaskStatus(taskId, 'alocada')
   expect(r1.ok).toBe(true)
@@ -201,7 +201,7 @@ it('CA-13: updateUserRole rebaixar único admin → LAST_ADMIN', async () => {
 
   _activeClient = (await getPersonaSession('admin')).client
 
-  const { updateUserRole } = await import('@/lib/actions/admin')
+  const { updateUserRole } = await import('../../../lib/actions/admin')
   const result = await updateUserRole(adminId, 'efetivo')
 
   expect(result.ok).toBe(false)
@@ -216,7 +216,7 @@ describe('addToWhitelist', () => {
   it('CA-14: bulk add 4 entries via csv/newline/semicolon', async () => {
     _activeClient = (await getPersonaSession('admin')).client
 
-    const { addToWhitelist } = await import('@/lib/actions/admin')
+    const { addToWhitelist } = await import('../../../lib/actions/admin')
     const result = await addToWhitelist('ca14a@wl.test, ca14b@wl.test\nca14c@wl.test; ca14d@wl.test', 'efetivo')
 
     expect(result.ok).toBe(true)
@@ -234,7 +234,7 @@ describe('addToWhitelist', () => {
     await adminClient.from('whitelist').upsert({ identifier: existing, default_role: 'efetivo' }, { onConflict: 'identifier' })
 
     _activeClient = (await getPersonaSession('admin')).client
-    const { addToWhitelist } = await import('@/lib/actions/admin')
+    const { addToWhitelist } = await import('../../../lib/actions/admin')
     const result = await addToWhitelist(`${existing}, ca15new@wl.test`, 'efetivo')
 
     expect(result.ok).toBe(true)
@@ -259,7 +259,7 @@ it('CA-16: archiveUser único admin → LAST_ADMIN', async () => {
   if ((count ?? 0) > 1) return
 
   _activeClient = (await getPersonaSession('admin')).client
-  const { archiveUser } = await import('@/lib/actions/admin')
+  const { archiveUser } = await import('../../../lib/actions/admin')
   const result = await archiveUser(adminId)
 
   expect(result.ok).toBe(false)
@@ -269,7 +269,7 @@ it('CA-16: archiveUser único admin → LAST_ADMIN', async () => {
 // CA-17: createTask with is_servico=true → title forced 'Serviço', description/drive_url null
 it('CA-17: createTask is_servico=true → título "Serviço", description e drive_url nulos no DB', async () => {
   _activeClient = (await getPersonaSession('admin')).client
-  const { createTask } = await import('@/lib/actions/tasks')
+  const { createTask } = await import('../../../lib/actions/tasks')
   const TODAY = new Date().toISOString().slice(0, 10)
 
   const result = await createTask({

@@ -53,7 +53,7 @@ describe('updateUserProfile', () => {
   it('CA-18: admin updates nome_guerra, patente, divisao → persisted in DB', async () => {
     _activeClient = (await getPersonaSession('admin')).client
 
-    const { updateUserProfile } = await import('@/lib/actions/admin')
+    const { updateUserProfile } = await import('../../../lib/actions/admin')
     const result = await updateUserProfile(coordId, {
       nome_guerra: 'Silva Coord',
       patente: 'Cap',
@@ -78,7 +78,7 @@ describe('updateUserProfile', () => {
   it('CA-18b: null values clear existing fields', async () => {
     _activeClient = (await getPersonaSession('admin')).client
 
-    const { updateUserProfile } = await import('@/lib/actions/admin')
+    const { updateUserProfile } = await import('../../../lib/actions/admin')
     await updateUserProfile(coordId, {
       nome_guerra: null,
       patente: null,
@@ -100,7 +100,7 @@ describe('updateUserProfile', () => {
   it('CA-18c: efetivo calling updateUserProfile → FORBIDDEN', async () => {
     _activeClient = (await getPersonaSession('efetivo')).client
 
-    const { updateUserProfile } = await import('@/lib/actions/admin')
+    const { updateUserProfile } = await import('../../../lib/actions/admin')
     const result = await updateUserProfile(coordId, {
       nome_guerra: 'Hacked',
       patente: null,
@@ -123,7 +123,7 @@ it('CA-19: updateUserProfile rebaixar único admin para efetivo → LAST_ADMIN',
 
   _activeClient = (await getPersonaSession('admin')).client
 
-  const { updateUserProfile } = await import('@/lib/actions/admin')
+  const { updateUserProfile } = await import('../../../lib/actions/admin')
   const result = await updateUserProfile(adminId, {
     nome_guerra: null,
     patente: null,
