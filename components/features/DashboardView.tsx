@@ -164,7 +164,7 @@ export default function DashboardView({ stats, totalByStatus, sectorStats, overd
                 <thead>
                   <tr className="border-b border-border bg-muted">
                     <th className="text-left px-5 py-3 font-semibold text-muted-foreground">Colaborador</th>
-                    <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden md:table-cell">Perfil</th>
+                    <th className="text-left px-4 py-3 font-semibold text-muted-foreground hidden md:table-cell">Divisão</th>
                     <th className="text-center px-4 py-3 font-semibold text-muted-foreground">Total</th>
                     <th className="text-center px-4 py-3 font-semibold text-primary hidden sm:table-cell">Em Dev.</th>
                     <th className="text-center px-4 py-3 font-semibold text-green-700 dark:text-green-400">Finalizadas</th>
@@ -206,22 +206,19 @@ export default function DashboardView({ stats, totalByStatus, sectorStats, overd
                           </div>
                         </td>
 
-                        {/* Role + Divisão */}
+                        {/* Divisão */}
                         <td className="px-4 py-4 hidden md:table-cell">
-                          <div className="flex flex-col gap-1">
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize w-fit ${
-                              s.role === 'admin' ? 'bg-destructive/10 text-destructive' :
-                              s.role === 'coordenador' ? 'bg-primary/10 text-primary' :
-                              'bg-muted text-muted-foreground'
+                          {s.divisao ? (
+                            <span className={`text-xs font-bold px-2.5 py-1 rounded-full w-fit ${
+                              s.divisao === 'DT'
+                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
                             }`}>
-                              {s.role}
+                              {s.divisao}
                             </span>
-                            {s.divisao && (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full w-fit bg-secondary/20 text-foreground">
-                                {s.divisao}
-                              </span>
-                            )}
-                          </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
                         </td>
 
                         {/* Total */}
