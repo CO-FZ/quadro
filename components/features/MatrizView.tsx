@@ -3,18 +3,29 @@
 import { useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import type { Profile, TaskStatus, TaskWithAssignees } from '@/lib/supabase/types'
+import type { Leave, LeaveType, Profile, TaskStatus, TaskWithAssignees } from '@/lib/supabase/types'
 import { formatNomeCompleto } from '@/lib/utils/format'
 import { sortByPatente } from '@/lib/utils/patente'
+import { getLeavesForCell } from '@/lib/utils/leave-calendar'
+import { t } from '@/lib/i18n'
+
+type LeaveCell = Pick<Leave, 'id' | 'profile_id' | 'type' | 'start_date' | 'end_date' | 'description'>
 
 interface MatrizViewProps {
   tasks: TaskWithAssignees[]
   profiles: Pick<Profile, 'id' | 'email' | 'full_name' | 'nome_guerra' | 'avatar_url' | 'role' | 'patente'>[]
+  leaves?: LeaveCell[]
   today: string
   anchor: string
   windowStart: string
   windowEnd: string
   sheetsUrl?: string
+}
+
+const LEAVE_BADGE: Record<LeaveType, string> = {
+  ferias: 'bg-green-500/15 text-green-700 dark:text-green-400',
+  instalacao: 'bg-amber-400/20 text-amber-700 dark:text-amber-400',
+  dispensa: 'bg-sky-500/15 text-sky-700 dark:text-sky-400',
 }
 
 function formatRangeLabel(start: string, end: string): string {
@@ -71,6 +82,7 @@ function getTasksForCell(tasks: TaskWithAssignees[], userId: string, day: string
 export default function MatrizView({
   tasks,
   profiles,
+  leaves = [],
   today,
   anchor,
   windowStart,
@@ -246,14 +258,25 @@ export default function MatrizView({
                   {/* Task cells */}
                   {sortedProfiles.map((p) => {
                     const cellTasks = getTasksForCell(tasks, p.id, day)
+                    const cellLeaves = getLeavesForCell(leaves, p.id, day)
                     return (
                       <td
                         key={p.id}
                         className={`border-b border-r border-border px-2 py-1.5 align-top ${taskCellBg}`}
                         style={{ minWidth: 160 }}
                       >
-                        {cellTasks.length > 0 ? (
+                        {(cellLeaves.length > 0 || cellTasks.length > 0) ? (
                           <div className="flex flex-col gap-1">
+                            {/* Afastamentos primeiro — sinaliza indisponibilidade */}
+                            {cellLeaves.map((l) => (
+                              <span
+                                key={l.id}
+                                title={`${t(`leaves.type.${l.type}`)} · ${l.start_date} – ${l.end_date}`}
+                                className={`block text-[11px] font-semibold px-2 py-0.5 rounded-md truncate max-w-full ${LEAVE_BADGE[l.type]}`}
+                              >
+                                {t(`leaves.type.${l.type}`)}
+                              </span>
+                            ))}
                             {cellTasks.map((t) => (
                               <span
                                 key={t.id}

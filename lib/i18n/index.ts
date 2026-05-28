@@ -11,8 +11,9 @@
 
 import { auth } from './auth'
 import { admin } from './admin'
+import { leaves } from './leaves'
 
-const dict = { auth, admin } as const
+const dict = { auth, admin, leaves } as const
 
 type Dict = typeof dict
 type Translatable = string | ((...args: unknown[]) => string)

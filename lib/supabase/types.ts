@@ -20,6 +20,18 @@ export type {
 } from '@/src/modules/task-board/domain/entities'
 export { KANBAN_COLUMNS, SECTOR_LABELS, PATENTE_OPTIONS } from '@/src/modules/task-board/domain/entities'
 
+// Personnel context — afastamentos do efetivo (ADR 0014).
+// Fonte de verdade: src/modules/personnel/domain/entities.ts
+export type {
+  Leave,
+  LeaveType,
+  RawLeaveInput,
+  NormalizedLeaveInput,
+  LeaveDatesValidation,
+  LeaveFilter,
+} from '@/src/modules/personnel/domain/entities'
+export { LEAVE_TYPE_OPTIONS } from '@/src/modules/personnel/domain/entities'
+
 // Reporting context
 export interface UserTaskStats {
   user_id: string

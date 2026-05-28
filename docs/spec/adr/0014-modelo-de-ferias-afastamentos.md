@@ -1,6 +1,6 @@
 # ADR 0014 — Modelo de Férias e Afastamentos do Efetivo
 
-**Status:** Proposto (Sprint 23)
+**Status:** Aceito (Sprint 23 — implementado)
 **Data:** 2026-05-28
 **Relacionados:** 0001 (RBAC/RLS), 0006 (Modular Monolith), 0007 (State Architecture), 0009 (Centralização de Guards)
 
