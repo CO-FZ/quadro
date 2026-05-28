@@ -12,7 +12,8 @@ export default async function DashboardPage() {
       .from('user_task_stats')
       .select('*')
       .order('alocada_tasks', { ascending: false })
-      .order('total_tasks', { ascending: false }),
+      .order('total_tasks', { ascending: false })
+      .order('full_name', { ascending: true }),
     supabase
       .from('tasks')
       .select('status, sector, end_date')
