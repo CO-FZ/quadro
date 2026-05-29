@@ -25,22 +25,23 @@ describe('SELECT profiles', () => {
     expect(data!.length).toBeGreaterThanOrEqual(3)
   })
 
-  it('coord can only SELECT own profile', async () => {
+  // ADR 0013 / Sprint 22.1: perfis ativos visíveis a todos os autenticados.
+  it('coord can SELECT all active profiles', async () => {
     const { data, error } = await (await getPersonaSession('coord')).client
       .from('profiles')
       .select('id')
     expect(error).toBeNull()
-    expect(data!.length).toBe(1)
-    expect(data![0].id).toBe(coordId)
+    expect(data!.length).toBeGreaterThanOrEqual(3)
+    expect(data!.map((p) => p.id)).toContain(coordId)
   })
 
-  it('efetivo can only SELECT own profile', async () => {
+  it('efetivo can SELECT all active profiles', async () => {
     const { data, error } = await (await getPersonaSession('efetivo')).client
       .from('profiles')
       .select('id')
     expect(error).toBeNull()
-    expect(data!.length).toBe(1)
-    expect(data![0].id).toBe(efetivoId)
+    expect(data!.length).toBeGreaterThanOrEqual(3)
+    expect(data!.map((p) => p.id)).toContain(efetivoId)
   })
 })
 
