@@ -55,12 +55,13 @@ it('efetivo can INSERT task_assignees with own user_id (self-assign)', async () 
   await adminClient.from('task_assignees').delete().eq('task_id', taskId).eq('user_id', efetivoId)
 })
 
-it('efetivo CANNOT INSERT task_assignees spoofing another user_id', async () => {
+// ADR 0013 / Sprint 22.2: qualquer autenticado pode alocar qualquer membro.
+it('efetivo CAN INSERT task_assignees for another user_id', async () => {
   const { error } = await (await getPersonaSession('efetivo')).client
     .from('task_assignees')
     .insert({ task_id: taskId, user_id: adminId })
-  expect(error).not.toBeNull()
-  expect(error!.message).toMatch(/row-level security|policy|violates/i)
+  expect(error).toBeNull()
+  await adminClient.from('task_assignees').delete().eq('task_id', taskId).eq('user_id', adminId)
 })
 
 describe('SELECT task_assignees', () => {

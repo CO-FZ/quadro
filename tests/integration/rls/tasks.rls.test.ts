@@ -105,13 +105,15 @@ describe('UPDATE tasks', () => {
     expect(error).toBeNull()
   })
 
-  it('efetivo cannot update task where not assignee', async () => {
-    const { data } = await (await getPersonaSession('efetivo')).client
+  // ADR 0013 / Sprint 22.3: tasks UPDATE liberado a qualquer autenticado (USING true).
+  it('efetivo can update task even when not assignee', async () => {
+    const { data, error } = await (await getPersonaSession('efetivo')).client
       .from('tasks')
-      .update({ title: 'rls-efetivo-bad-update' })
+      .update({ title: 'rls-efetivo-update-ok' })
       .eq('id', adminTaskId)
       .select()
-    expect(data?.length ?? 0).toBe(0) // 0 rows modified — RLS filtered out
+    expect(error).toBeNull()
+    expect(data?.length ?? 0).toBe(1) // RLS permite — 1 linha alterada
   })
 })
 

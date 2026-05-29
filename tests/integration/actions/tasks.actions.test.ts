@@ -125,10 +125,9 @@ it('CA-07: createTask with assignees → status alocada', async () => {
   ctx.taskIds.push(data!.id)
 })
 
-// CA-08: efetivo calling updateTask → FORBIDDEN (requireRole gate fires before DB)
-it('CA-08: efetivo updateTask → FORBIDDEN, DB unchanged', async () => {
+// CA-08: ADR 0013 / Sprint 22.3 — efetivo pode editar detalhes de qualquer tarefa.
+it('CA-08: efetivo updateTask → ok, DB atualizado', async () => {
   const taskId = await seedTask(adminId)
-  const { data: before } = await adminClient.from('tasks').select('updated_at').eq('id', taskId).single()
 
   const { client } = await getPersonaSession('efetivo')
   _activeClient = client
@@ -137,7 +136,7 @@ it('CA-08: efetivo updateTask → FORBIDDEN, DB unchanged', async () => {
   const TODAY = new Date().toISOString().slice(0, 10)
 
   const result = await updateTask(taskId, {
-    title: 'HACKED',
+    title: 'Editado pelo efetivo',
     description: '',
     start_date: TODAY,
     end_date: TODAY,
@@ -147,12 +146,10 @@ it('CA-08: efetivo updateTask → FORBIDDEN, DB unchanged', async () => {
     is_servico: false,
   })
 
-  expect(result.ok).toBe(false)
-  if (!result.ok) expect(result.code).toBe('FORBIDDEN')
+  expect(result.ok).toBe(true)
 
-  const { data: after } = await adminClient.from('tasks').select('updated_at, title').eq('id', taskId).single()
-  expect(after!.updated_at).toBe(before!.updated_at)
-  expect(after!.title).not.toBe('HACKED')
+  const { data: after } = await adminClient.from('tasks').select('title').eq('id', taskId).single()
+  expect(after!.title).toBe('Editado pelo efetivo')
 })
 
 // CA-09: efetivo updateTaskStatus to 'finalizada' → FORBIDDEN

@@ -3,10 +3,11 @@ import { adminClient } from './supabase'
 export interface CleanupCtx {
   taskIds: string[]
   whitelistIds: string[]
+  leaveIds: string[]
 }
 
 export function makeCleanupCtx(): CleanupCtx {
-  return { taskIds: [], whitelistIds: [] }
+  return { taskIds: [], whitelistIds: [], leaveIds: [] }
 }
 
 export async function cleanup(ctx: CleanupCtx) {
@@ -16,5 +17,8 @@ export async function cleanup(ctx: CleanupCtx) {
   }
   if (ctx.whitelistIds.length > 0) {
     await adminClient.from('whitelist').delete().in('id', ctx.whitelistIds)
+  }
+  if (ctx.leaveIds.length > 0) {
+    await adminClient.from('leaves').delete().in('id', ctx.leaveIds)
   }
 }

@@ -11,7 +11,9 @@ import type {
   PrivilegedRoleAuditEntry,
   PrivilegedRoleAuditSource,
   RoleChangeAuditEntry,
+  Leave,
 } from '@/lib/supabase/types'
+import FeriasView from '@/components/features/FeriasView'
 import { PATENTE_OPTIONS } from '@/lib/supabase/types'
 import {
   updateUserProfile,
@@ -29,9 +31,11 @@ interface AdminViewProps {
   auditEntries?: PrivilegedRoleAuditEntry[]
   auditError?: string | null
   currentUserRole?: AppRole
+  leaves?: Leave[]
+  currentYear: number
 }
 
-type AdminTab = 'usuarios' | 'whitelist' | 'auditoria'
+type AdminTab = 'usuarios' | 'whitelist' | 'auditoria' | 'ferias'
 
 const AUDIT_SOURCE_LABEL_KEYS: Record<PrivilegedRoleAuditSource, string> = {
   whitelist_email: 'admin.audit.source_whitelist_email',
@@ -280,17 +284,24 @@ export default function AdminView({
   auditEntries = [],
   auditError = null,
   currentUserRole,
+  leaves = [],
+  currentYear,
 }: AdminViewProps) {
+  const isAdmin = currentUserRole === 'admin'
   const [isSubmitting, startTransition] = useTransition()
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const [newIdentifier, setNewIdentifier] = useState('')
   const [newDefaultRole, setNewDefaultRole] = useState<AppRole>('efetivo')
-  const [activeTab, setActiveTab] = useState<AdminTab>('usuarios')
+  const [activeTab, setActiveTab] = useState<AdminTab>(isAdmin ? 'usuarios' : 'ferias')
   const [searchQuery, setSearchQuery] = useState('')
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null)
 
-  const showAuditTab = currentUserRole === 'admin'
+  // Abas visíveis por role: admin vê tudo; coordenador vê apenas Férias.
+  const visibleTabs: AdminTab[] = isAdmin
+    ? ['usuarios', 'whitelist', 'auditoria', 'ferias']
+    : ['ferias']
+  const showAuditTab = isAdmin
   const whitelistById = useMemo(
     () => new Map(initialWhitelist.map((entry) => [entry.id, entry])),
     [initialWhitelist],
@@ -364,8 +375,12 @@ export default function AdminView({
 
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-foreground">Painel Administrativo</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Gerencie usuários e permissões de acesso</p>
+        <h1 className="text-xl font-bold text-foreground">
+          {isAdmin ? 'Painel Administrativo' : t('leaves.panel_title')}
+        </h1>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          {isAdmin ? 'Gerencie usuários e permissões de acesso' : t('leaves.panel_subtitle')}
+        </p>
       </div>
 
       {/* Feedback */}
@@ -386,16 +401,16 @@ export default function AdminView({
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex border-b border-border gap-1" role="tablist">
-        {((['usuarios', 'whitelist', ...(showAuditTab ? ['auditoria'] as const : [])]) as AdminTab[]).map((tab) => (
+      {/* Tabs — scroll horizontal no mobile (4 abas estouram 360px) */}
+      <div className="flex border-b border-border gap-1 overflow-x-auto" role="tablist">
+        {visibleTabs.map((tab) => (
           <button
             key={tab}
             id={`tab-${tab}`}
             role="tab"
             aria-selected={activeTab === tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-medium transition-colors capitalize border-b-2 -mb-px ${
+            className={`shrink-0 whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors capitalize border-b-2 -mb-px ${
               activeTab === tab
                 ? 'border-primary text-primary'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -403,6 +418,7 @@ export default function AdminView({
           >
             {tab === 'usuarios' && `Usuários (${profiles.length})`}
             {tab === 'whitelist' && `Whitelist (${initialWhitelist.length})`}
+            {tab === 'ferias' && `${t('leaves.tab_label')} (${leaves.length})`}
             {tab === 'auditoria' && (
               <span className="inline-flex items-center gap-1.5">
                 {t('admin.audit.tab_label')} ({auditEntries.length})
@@ -723,6 +739,16 @@ export default function AdminView({
 
           <p className="text-xs text-muted-foreground">{t('admin.audit.backfill_notice')}</p>
         </div>
+      )}
+
+      {/* Tab: Férias */}
+      {activeTab === 'ferias' && (
+        <FeriasView
+          profiles={profiles}
+          initialLeaves={leaves}
+          initialYear={currentYear}
+          canManage
+        />
       )}
     </div>
   )

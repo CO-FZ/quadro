@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import type { Profile, TaskWithAssignees } from '@/lib/supabase/types'
+import type { Leave, Profile, TaskWithAssignees } from '@/lib/supabase/types'
 import MatrizView from '@/components/features/MatrizView'
 
 interface PageProps {
@@ -32,7 +32,7 @@ export default async function MatrizPage({ searchParams }: PageProps) {
   const windowEnd = new Date(anchor)
   windowEnd.setDate(anchor.getDate() + 7)
 
-  const [{ data: tasks }, { data: profiles }] = await Promise.all([
+  const [{ data: tasks }, { data: profiles }, { data: leaves }] = await Promise.all([
     supabase
       .from('tasks')
       .select(`
@@ -58,6 +58,11 @@ export default async function MatrizPage({ searchParams }: PageProps) {
       .from('profiles')
       .select('id, email, full_name, nome_guerra, avatar_url, role, patente')
       .is('archived_at', null),
+    supabase
+      .from('leaves')
+      .select('id, profile_id, type, start_date, end_date, description')
+      .lte('start_date', fmt(windowEnd))
+      .gte('end_date', fmt(windowStart)),
   ])
 
   const sheetsUrl = process.env.NEXT_PUBLIC_GOOGLE_SHEET_URL || undefined
@@ -66,6 +71,7 @@ export default async function MatrizPage({ searchParams }: PageProps) {
     <MatrizView
       tasks={(tasks ?? []) as TaskWithAssignees[]}
       profiles={(profiles ?? []) as Pick<Profile, 'id' | 'email' | 'full_name' | 'nome_guerra' | 'avatar_url' | 'role' | 'patente'>[]}
+      leaves={(leaves ?? []) as Pick<Leave, 'id' | 'profile_id' | 'type' | 'start_date' | 'end_date' | 'description'>[]}
       today={todayStr}
       anchor={anchorStr}
       windowStart={fmt(windowStart)}
