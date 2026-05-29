@@ -401,8 +401,8 @@ export default function AdminView({
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex border-b border-border gap-1" role="tablist">
+      {/* Tabs — scroll horizontal no mobile (4 abas estouram 360px) */}
+      <div className="flex border-b border-border gap-1 overflow-x-auto" role="tablist">
         {visibleTabs.map((tab) => (
           <button
             key={tab}
@@ -410,7 +410,7 @@ export default function AdminView({
             role="tab"
             aria-selected={activeTab === tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-medium transition-colors capitalize border-b-2 -mb-px ${
+            className={`shrink-0 whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors capitalize border-b-2 -mb-px ${
               activeTab === tab
                 ? 'border-primary text-primary'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
