@@ -32,6 +32,17 @@ export type {
 } from '@/src/modules/personnel/domain/entities'
 export { LEAVE_TYPE_OPTIONS } from '@/src/modules/personnel/domain/entities'
 
+// Allocation context — alocação do efetivo em edificações/obras no mapa (ADR 0015).
+// Fonte de verdade: src/modules/allocation/domain/entities.ts
+export type {
+  Building,
+  BuildingAssignee,
+  BuildingWithAssignees,
+  RawBuildingInput,
+  NormalizedBuildingInput,
+  BuildingNameValidation,
+} from '@/src/modules/allocation/domain/entities'
+
 // Reporting context
 export interface UserTaskStats {
   user_id: string
