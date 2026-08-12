@@ -71,7 +71,7 @@ function BuildingMarker({
         aria-label={`Obra ${building.name}`}
       >
         {building.assignees.length > 0 && (
-          <div className="flex items-center">
+          <div data-testid="marker-avatars" className="flex items-center">
             {building.assignees.slice(0, 4).map((a, i) => (
               <AssigneeAvatar key={a.id} assignee={a} index={i} />
             ))}
@@ -340,7 +340,7 @@ export default function MapaView({ initialBuildings, profiles, canManage, google
 
   if (!googleMapsApiKey) {
     return (
-      <div className="flex flex-col gap-6">
+      <div data-testid="mapa-page" className="flex flex-col gap-6">
         <h1 className="text-2xl font-bold text-foreground">Mapa</h1>
         <div className="bg-card border border-border rounded-2xl p-8 text-center text-sm text-muted-foreground">
           O mapa ainda não foi configurado. Defina <code className="px-1 py-0.5 rounded bg-muted">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> em <code className="px-1 py-0.5 rounded bg-muted">.env.local</code> (veja instruções no arquivo <code className="px-1 py-0.5 rounded bg-muted">.env.local.example</code>).
@@ -351,7 +351,7 @@ export default function MapaView({ initialBuildings, profiles, canManage, google
 
   if (loadError) {
     return (
-      <div className="flex flex-col gap-6">
+      <div data-testid="mapa-page" className="flex flex-col gap-6">
         <h1 className="text-2xl font-bold text-foreground">Mapa</h1>
         <div className="bg-card border border-border rounded-2xl p-8 text-center text-sm text-destructive">
           Não foi possível carregar o Google Maps. Verifique a chave de API e as restrições configuradas no Google Cloud Console.
@@ -361,7 +361,7 @@ export default function MapaView({ initialBuildings, profiles, canManage, google
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div data-testid="mapa-page" className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Mapa</h1>
@@ -379,7 +379,7 @@ export default function MapaView({ initialBuildings, profiles, canManage, google
         )}
       </div>
 
-      <div className={`bg-card border border-border rounded-2xl overflow-hidden ${placing ? 'cursor-crosshair' : ''}`}>
+      <div data-testid="mapa-map-container" className={`bg-card border border-border rounded-2xl overflow-hidden ${placing ? 'cursor-crosshair' : ''}`}>
         {isLoaded ? (
           <GoogleMap
             mapContainerStyle={CONTAINER_STYLE}
@@ -393,7 +393,7 @@ export default function MapaView({ initialBuildings, profiles, canManage, google
             ))}
           </GoogleMap>
         ) : (
-          <div style={CONTAINER_STYLE} className="flex items-center justify-center">
+          <div data-testid="mapa-map-loading" style={CONTAINER_STYLE} className="flex items-center justify-center">
             <div className="h-10 w-10 rounded-full border-2 border-muted border-t-primary animate-spin" />
           </div>
         )}
